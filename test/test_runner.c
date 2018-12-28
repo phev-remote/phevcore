@@ -63,6 +63,7 @@ int main()
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
+    RUN_TEST(test_phev_pipe_no_input_connection);
 
     return UNITY_END();
 }

@@ -5,6 +5,9 @@
 #include "msg_utils.h"
 #include "phev_pipe.h"
 
+static message_t * global_message = NULL;
+static message_t * global_in_message = NULL;
+
 void test_phev_pipe_outHandlerIn(messagingClient_t *client, message_t *message) 
 {
     return;
@@ -14,8 +17,6 @@ message_t * test_phev_pipe_inHandlerIn(messagingClient_t *client)
 {
     return NULL;
 }
-message_t * global_message = NULL;
-message_t * global_in_message = NULL;
 
 void test_phev_pipe_outHandlerOut(messagingClient_t *client, message_t *message) 
 {
@@ -28,6 +29,12 @@ message_t * test_phev_pipe_inHandlerOut(messagingClient_t *client)
     message_t * message = msg_utils_copyMsg(global_in_message);
     
     return message;
+}
+
+message_t * test_phev_pipe_inHandlerIn_notConnnected(messagingClient_t * client)
+{
+    client->connected = false;
+    return NULL;
 }
 void test_phev_pipe_createPipe(void)
 {
@@ -209,5 +216,41 @@ void test_phev_pipe_splitter_two_messages(void)
     
     TEST_ASSERT_EQUAL_MEMORY(msg1_data, messages->messages[0]->data, 6);
     TEST_ASSERT_EQUAL_MEMORY(msg2_data, messages->messages[1]->data, 6);
+
+}
+
+void test_phev_pipe_no_input_connection(void)
+{
+    global_message = NULL;
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn_notConnnected,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
+
+    msg_pipe_loop(ctx->pipe);
+    TEST_ASSERT_NULL(global_message);
 
 }
