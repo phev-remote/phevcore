@@ -8,8 +8,9 @@
 #undef PHEV_CONNECT_MAX_RETRIES
 #define PHEV_CONNECT_MAX_RETRIES 2
 #endif
-static message_t * test_pipe_global_message = NULL;
+static message_t * test_pipe_global_message[10];
 static message_t * test_pipe_global_in_message = NULL;
+static int test_pipe_global_message_idx = 0;
 
 void test_phev_pipe_outHandlerIn(messagingClient_t *client, message_t *message) 
 {
@@ -23,13 +24,17 @@ message_t * test_phev_pipe_inHandlerIn(messagingClient_t *client)
 
 void test_phev_pipe_outHandlerOut(messagingClient_t *client, message_t *message) 
 {
-    test_pipe_global_message = msg_utils_copyMsg(message);
+    hexdump("OUTHANDLEROUT",message->data,message->length,0);
+    test_pipe_global_message[test_pipe_global_message_idx++] = msg_utils_copyMsg(message);
     return;
 }
 
 message_t * test_phev_pipe_inHandlerOut(messagingClient_t *client) 
 {
-    message_t * message = msg_utils_copyMsg(test_pipe_global_in_message);
+    message_t * message = NULL;
+    if(test_pipe_global_in_message) {
+        message = msg_utils_copyMsg(test_pipe_global_in_message);
+    }
     
     return message;
 }
@@ -41,7 +46,10 @@ message_t * test_phev_pipe_inHandlerIn_notConnnected(messagingClient_t * client)
 }
 void test_phev_pipe_createPipe(void)
 {
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -73,7 +81,10 @@ void test_phev_pipe_createPipe(void)
 }
 void test_phev_pipe_create(void)
 {
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -94,7 +105,10 @@ void test_phev_pipe_create(void)
 void test_phev_pipe_loop(void)
 {
 
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[1] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -111,11 +125,14 @@ void test_phev_pipe_loop(void)
     
     phev_pipe_loop(ctx);
 
-    
+    TEST_ASSERT_NULL(test_pipe_global_message[1]);
+
 }
 void test_phev_pipe_sendMac(void)
 {
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
     
     const uint8_t expected[] = {0xf2,0x0a,0x00,0x01,0x24,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xc8,0xf6,0x04,0x00,0xaa,0x00,0xa4};
     
@@ -135,17 +152,19 @@ void test_phev_pipe_sendMac(void)
 
     phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
 
-//    phev_pipe_sendMac(ctx, mac);
+    phev_pipe_sendMac(ctx, mac);
 
-//    phev_pipe_loop(ctx);
+    phev_pipe_loop(ctx);
 
-    TEST_ASSERT_NOT_NULL(test_pipe_global_message);
-    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message,sizeof(expected));
+    TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
+    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
 
 }
 void test_phev_pipe_start(void)
 {
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
     
     const uint8_t expected[] = {0xf2,0x0a,0x00,0x01,0x24,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xc8,0xf6,0x04,0x00,0xaa,0x00,0xa4};
     
@@ -165,17 +184,21 @@ void test_phev_pipe_start(void)
 
     phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
 
-    //phev_pipe_start(ctx,mac);
+    phev_pipe_start(ctx,mac);
 
-    //phev_pipe_loop(ctx);
+    phev_pipe_loop(ctx);
 
     TEST_ASSERT_NOT_NULL(ctx);
-    TEST_ASSERT_NOT_NULL(test_pipe_global_message);
-    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message,sizeof(expected));
+    TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
+    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
 
 }
 void test_phev_pipe_publish(void)
 {
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -208,11 +231,15 @@ void test_phev_pipe_publish(void)
 
     msg_pipe_outboundPublish(ctx->pipe,  message);
 
-    TEST_ASSERT_NOT_NULL(test_pipe_global_message);
-    TEST_ASSERT_EQUAL_MEMORY(startMsg,test_pipe_global_message->data,sizeof(startMsg));
+    TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
+    TEST_ASSERT_EQUAL_MEMORY(startMsg,test_pipe_global_message[0]->data,sizeof(startMsg));
 }
 void test_phev_pipe_commandResponder(void)
 {
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     const uint8_t reg[] = {0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3};
     const uint8_t expected[] = {0xf6,0x04,0x01,0x15,0x00,0x10};
     test_pipe_global_in_message = msg_utils_createMsg(reg,sizeof(reg));
@@ -245,13 +272,15 @@ void test_phev_pipe_commandResponder(void)
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     msg_pipe_loop(ctx->pipe);
-    TEST_ASSERT_NOT_NULL(test_pipe_global_message);
-    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message->data,sizeof(expected));
+    TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
+    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
 }
 void test_phev_pipe_commandResponder_should_only_respond_to_commands(void)
 {
     const uint8_t reg[] = {0x9f,0x04,0x01,0x10,0x06,0xba};
-    test_pipe_global_message = NULL;
+    
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
     test_pipe_global_in_message = msg_utils_createMsg(reg,sizeof(reg));
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
@@ -282,7 +311,7 @@ void test_phev_pipe_commandResponder_should_only_respond_to_commands(void)
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     msg_pipe_loop(ctx->pipe);
-    TEST_ASSERT_NULL(test_pipe_global_message);
+    TEST_ASSERT_NULL(test_pipe_global_message[0]);
 }
 
 void test_phev_pipe_outputChainInputTransformer(void)
@@ -326,7 +355,10 @@ void test_phev_pipe_splitter_two_messages(void)
 
 void test_phev_pipe_no_input_connection(void)
 {
-    test_pipe_global_message = NULL;
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn_notConnnected,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -356,11 +388,15 @@ void test_phev_pipe_no_input_connection(void)
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     msg_pipe_loop(ctx->pipe);
-    TEST_ASSERT_NULL(test_pipe_global_message);
+    TEST_ASSERT_NULL(test_pipe_global_message[0]);
 
 }
 void test_phev_pipe_waitForConnection_should_timeout(void)
 {
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,

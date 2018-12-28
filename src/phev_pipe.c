@@ -35,7 +35,7 @@ void phev_pipe_loop(phev_pipe_ctx_t * ctx)
         msg_pipe_loop(ctx->pipe);
     } else {
         phev_pipe_waitForConnection(ctx);
-    }/*
+    }
     if(ctx->pipe->out->connected)
     {
         time(&now);
@@ -45,7 +45,6 @@ void phev_pipe_loop(phev_pipe_ctx_t * ctx)
             time(&ctx->lastPingTime);
         }
     }
-    */
 }
 void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac)
 {
