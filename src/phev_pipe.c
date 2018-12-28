@@ -4,16 +4,68 @@
 
 const static char * APP_TAG = "PHEV_PIPE";
 
+void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG,"START - waitForConnection");
+    ctx->connected = false;
+    int retries = 0;
+    time_t now;
+
+    while(!(ctx->pipe->in->connected && ctx->pipe->out->connected))
+    {
+        LOG_I(APP_TAG,"Not connected waiting...");
+        SLEEP(PHEV_CONNECT_WAIT_TIME);
+        retries ++;
+        if(retries > PHEV_CONNECT_MAX_RETRIES)
+        {
+            LOG_E(APP_TAG,"Max retires reached");
+            return;
+        }
+    }
+    ctx->connected = true;
+    LOG_V(APP_TAG,"END - waitForConnection");
+}
 void phev_pipe_loop(phev_pipe_ctx_t * ctx)
 {
     time_t now;
-    msg_pipe_loop(ctx->pipe);
-    time(&now);
-    if(now > ctx->lastPingTime) 
+
+    if(ctx->pipe->in->connected && ctx->pipe->out->connected)
     {
-        phev_pipe_ping(ctx);
-        time(&ctx->lastPingTime);
+        ctx->connected = true;
+        msg_pipe_loop(ctx->pipe);
+    } else {
+        phev_pipe_waitForConnection(ctx);
+    }/*
+    if(ctx->pipe->out->connected)
+    {
+        time(&now);
+        if(now > ctx->lastPingTime) 
+        {
+            phev_pipe_ping(ctx);
+            time(&ctx->lastPingTime);
+        }
     }
+    */
+}
+void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac)
+{
+    LOG_V(APP_TAG,"START - sendMac");
+    
+    message_t * message = phev_core_startMessageEncoded(mac);
+    msg_pipe_outboundPublish(ctx->pipe,  message);
+
+    //free(message);
+    LOG_V(APP_TAG,"END - sendMac");
+    
+}
+void phev_pipe_start(phev_pipe_ctx_t * ctx, uint8_t * mac)
+{
+    LOG_V(APP_TAG,"START - start");
+    
+    phev_pipe_waitForConnection(ctx);
+
+    phev_pipe_sendMac(ctx, mac);
+    LOG_V(APP_TAG,"END - start");
 }
 
 phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * out)
@@ -34,7 +86,7 @@ phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * o
     };
 
     phev_pipe_ctx_t * ctx = phev_pipe_createPipe(settings);
-    
+
     LOG_V(APP_TAG,"END - create");
 
     return ctx;
@@ -78,6 +130,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
 
     ctx->errorHandler = settings.errorHandler;
     ctx->eventHandler = NULL;
+    ctx->connected = false;
     ctx->ctx = settings.ctx;
     
     phev_pipe_resetPing(ctx);

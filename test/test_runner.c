@@ -58,12 +58,18 @@ int main()
 //  PHEV PIPE
     
     RUN_TEST(test_phev_pipe_createPipe);
+    RUN_TEST(test_phev_pipe_create);
+    RUN_TEST(test_phev_pipe_loop);
+    RUN_TEST(test_phev_pipe_start);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
     RUN_TEST(test_phev_pipe_splitter_one_message);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
     RUN_TEST(test_phev_pipe_no_input_connection);
+    RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
+    RUN_TEST(test_phev_pipe_waitForConnection);
+    RUN_TEST(test_phev_pipe_sendMac);
 
     return UNITY_END();
 }

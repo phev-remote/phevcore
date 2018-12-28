@@ -5,6 +5,26 @@
 #include "msg_pipe.h"
 #include "phev_core.h"
 
+#define PHEV_CONNECT_WAIT_TIME (1000)
+#define PHEV_CONNECT_MAX_RETRIES (5)
+
+#ifdef _WIN32
+//  For Windows (32- and 64-bit)
+#   include <windows.h>
+#   define SLEEP(msecs) Sleep(msecs)
+#elif __unix
+//  For linux, OSX, and other unixes
+#   define _POSIX_C_SOURCE 199309L // or greater
+#   include <time.h>
+#   define SLEEP(msecs) do {            \
+        struct timespec ts;             \
+        ts.tv_sec = msecs/1000;         \
+        ts.tv_nsec = msecs%1000*1000;   \
+        nanosleep(&ts, NULL);           \
+        } while (0)
+#else
+#   error "Unknown system"
+#endif
 
 enum {
     PHEV_PIPE_GOT_VIN,
@@ -42,6 +62,7 @@ typedef struct phev_pipe_ctx_t {
     phevErrorHandler_t errorHandler;
     time_t lastPingTime;
     uint8_t currentPing;
+    bool connected;
     void * ctx;
 } phev_pipe_ctx_t;
 
@@ -62,6 +83,7 @@ typedef struct phev_pipe_settings_t {
 void phev_pipe_loop(phev_pipe_ctx_t *);
 phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * out);
 phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t);
+void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx);
 message_t * phev_pipe_outputChainInputTransformer(void *, message_t *);
 message_t * phev_pipe_outputEventTransformer(void *, message_t *);
 void phev_pipe_registerEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
@@ -70,6 +92,8 @@ message_t * phev_pipe_commandResponder(void *, message_t *);
 messageBundle_t * phev_pipe_outputSplitter(void *, message_t *);
 void phev_pipe_ping(phev_pipe_ctx_t *);
 void phev_pipe_resetPing(phev_pipe_ctx_t *);
+void phev_pipe_start(phev_pipe_ctx_t * ctx, uint8_t * mac);
+void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac);
 //void phev_pipe_sendCommand(phev_core_command_t);
 
 #endif
