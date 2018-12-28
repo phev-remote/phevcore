@@ -16,6 +16,29 @@ void phev_pipe_loop(phev_pipe_ctx_t * ctx)
     }
 }
 
+phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * out)
+{
+    LOG_V(APP_TAG,"START - create");
+
+    phev_pipe_settings_t settings = {
+        .ctx = NULL,
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    };
+
+    phev_pipe_ctx_t * ctx = phev_pipe_createPipe(settings);
+    
+    LOG_V(APP_TAG,"END - create");
+
+    return ctx;
+}
 phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
 {
     LOG_V(APP_TAG,"START - createPipe");
