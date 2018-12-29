@@ -506,7 +506,7 @@ void test_phev_pipe_registerEventHandler(void)
     TEST_ASSERT_EQUAL(1,ctx->eventHandlers);
     TEST_ASSERT_EQUAL(test_phev_pipe_event_handler,ctx->eventHandler[0]);
 }
-void test_phev_pipe_createRegisterEvent(void)
+void test_phev_pipe_createRegisterEvent_ack(void)
 {
     uint8_t data[] = {0,1,2,3,4,5};
 
@@ -529,6 +529,33 @@ void test_phev_pipe_createRegisterEvent(void)
 
     TEST_ASSERT_NOT_NULL(event);
     TEST_ASSERT_EQUAL(PHEV_PIPE_REG_UPDATE_ACK,event->event);
+    TEST_ASSERT_EQUAL(0x12,((phevMessage_t *) event->data)->reg);
+
+    TEST_ASSERT_EQUAL_MEMORY(message->data,((phevMessage_t *) event->data)->data,message->length);
+}
+void test_phev_pipe_createRegisterEvent_update(void)
+{
+    uint8_t data[] = {0,1,2,3,4,5};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phevMessage_t * message = phev_core_createMessage(0x6f,REQUEST_TYPE,0x12,data, sizeof(data));
+
+    phevPipeEvent_t * event = phev_pipe_createRegisterEvent(ctx,message);
+
+    TEST_ASSERT_NOT_NULL(event);
+    TEST_ASSERT_EQUAL(PHEV_PIPE_REG_UPDATE,event->event);
     TEST_ASSERT_EQUAL(0x12,((phevMessage_t *) event->data)->reg);
 
     TEST_ASSERT_EQUAL_MEMORY(message->data,((phevMessage_t *) event->data)->data,message->length);

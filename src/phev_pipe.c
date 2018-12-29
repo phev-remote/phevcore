@@ -420,13 +420,19 @@ phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevM
 {
     phevPipeEvent_t * event = NULL; 
 
-    if(phevMessage->command == RESP_CMD && phevMessage->type == RESPONSE_TYPE)
+    if(phevMessage->command == RESP_CMD) 
     {
         event = malloc(sizeof(phevPipeEvent_t));
-        event->event = PHEV_PIPE_REG_UPDATE_ACK;
         event->data = (void *) phev_core_copyMessage(phevMessage);
-        event->length = sizeof(phevMessage_t);
+        event->length = sizeof(phevMessage_t);    
+        if(phevMessage->type == RESPONSE_TYPE)
+        {
+            event->event = PHEV_PIPE_REG_UPDATE_ACK;   
+        } else {
+            event->event = PHEV_PIPE_REG_UPDATE;
+        }
     }
+    
     return event;
 }
 void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
@@ -438,9 +444,9 @@ void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
     if(phevCtx->eventHandlers > 0)
     {
         
-        //phevPipeEvent_t * registerEvent = phev_pipe_createRegisterEvent(phevCtx, phevMessage);
+        phevPipeEvent_t * registerEvent = phev_pipe_createRegisterEvent(phevCtx, phevMessage);
     
-        //phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
+        phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
 
         phevPipeEvent_t * evt = phev_pipe_messageToEvent(phevCtx,phevMessage);
         
