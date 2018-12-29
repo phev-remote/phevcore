@@ -424,7 +424,7 @@ phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevM
     {
         event = malloc(sizeof(phevPipeEvent_t));
         event->event = PHEV_PIPE_REG_UPDATE_ACK;
-        event->data = (uint8_t *) phevMessage;
+        event->data = (void *) phev_core_copyMessage(phevMessage);
         event->length = sizeof(phevMessage_t);
     }
     return event;

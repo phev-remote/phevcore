@@ -49,7 +49,7 @@ typedef struct phevPipeEvent_t
 {
     int event;
     size_t length;
-    uint8_t * data;
+    void * data;
 } phevPipeEvent_t;
 
 typedef struct phevVinEvent_t
