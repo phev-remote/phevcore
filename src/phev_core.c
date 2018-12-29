@@ -234,3 +234,16 @@ message_t * phev_core_convertToMessage(phevMessage_t *message)
         
     return out;
 }
+
+phevMessage_t * phev_core_copyMessage(phevMessage_t * message)
+{   
+    phevMessage_t * out = malloc(sizeof(phevMessage_t));
+    out->data = malloc(message->length);
+    out->command = message->command;
+    out->reg = message->reg;
+    out->type = message->type;
+    out->length = message->length;
+    memcpy(out->data,message->data,out->length);
+
+    return out;
+}

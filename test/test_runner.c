@@ -38,6 +38,7 @@ int main()
     RUN_TEST(test_phev_head_lights_on_message);
     RUN_TEST(test_phev_mac_response);
     RUN_TEST(test_phev_message_to_phev_message_and_back);
+    RUN_TEST(test_phev_core_copyMessage);
 
 //  PHEV_REGISTER
 

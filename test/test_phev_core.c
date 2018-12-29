@@ -291,3 +291,20 @@ void test_phev_message_to_phev_message_and_back(void)
      TEST_ASSERT_EQUAL_HEX8_ARRAY(message, msg->data, sizeof(message));
     
 }
+
+void test_phev_core_copyMessage(void)
+{
+    uint8_t data[] = {0x01,0x04,0x01,0x01,0x00,0x35};
+
+    phevMessage_t  * msg = phev_core_createMessage(0x6f, RESPONSE_TYPE, 0xaa, data, sizeof(data));
+    
+    phevMessage_t * copy = phev_core_copyMessage(msg);
+
+    TEST_ASSERT_NOT_NULL(copy);
+    TEST_ASSERT_EQUAL(0x6f,copy->command);
+    TEST_ASSERT_EQUAL(RESPONSE_TYPE,copy->type);
+    TEST_ASSERT_EQUAL(0xaa,copy->reg);
+    TEST_ASSERT_EQUAL(sizeof(data),copy->length);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(data, copy->data, sizeof(data));
+    
+}
