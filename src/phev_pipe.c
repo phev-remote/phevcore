@@ -128,7 +128,11 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     ctx->pipe = msg_pipe(pipe_settings);
 
     ctx->errorHandler = settings.errorHandler;
-    ctx->eventHandler = NULL;
+    ctx->eventHandlers = 0;
+    for(int i=0;i<PHEV_PIPE_MAX_EVENT_HANDLERS;i++) 
+    {
+        ctx->eventHandler[i] = NULL;
+    } 
     ctx->connected = false;
     ctx->ctx = settings.ctx;
     
@@ -324,6 +328,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
         LOG_D(APP_TAG,"Ignoring ping");
         return NULL;
     } 
+
     switch(phevMessage->reg)
     {
         case KO_WF_VIN_INFO_EVR: {
@@ -388,26 +393,59 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     LOG_V(APP_TAG,"END - messageToEvent");
     return event;
 }
+void phev_pipe_sendEventToHandlers(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
+{
+    LOG_V(APP_TAG,"START - sendEventToHandlers");
+    
+    if(event != NULL)
+    {
+        LOG_D(APP_TAG,"Sending event ID %d",event->event);
+        if(ctx->eventHandlers > 0)
+        {
+            for(int i=0;i<PHEV_PIPE_MAX_EVENT_HANDLERS;i++)
+            {
+                if(ctx->eventHandler[i] != NULL)
+                {
+                    LOG_D(APP_TAG,"Calling event handler %d",i);
+                    ctx->eventHandler[i](ctx, event);
+                }
+            }
+        }    
+    } else {
+        LOG_D(APP_TAG,"Not sending NULL event");
+    }
+    LOG_V(APP_TAG,"END - sendEventToHandlers");
+}
+phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevMessage_t * phevMessage)
+{
+    phevPipeEvent_t * event = NULL; 
+
+    if(phevMessage->command == RESP_CMD && phevMessage->type == RESPONSE_TYPE)
+    {
+        event = malloc(sizeof(phevPipeEvent_t));
+        event->event = PHEV_PIPE_REG_UPDATE_ACK;
+        event->data = (uint8_t *) phevMessage;
+        event->length = sizeof(phevMessage_t);
+    }
+    return event;
+}
 void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
 {
     LOG_V(APP_TAG,"START - sendEvent");
     
     phev_pipe_ctx_t * phevCtx = (phev_pipe_ctx_t *) ctx;
 
-    if(phevCtx->eventHandler != NULL)
+    if(phevCtx->eventHandlers > 0)
     {
+        
+        //phevPipeEvent_t * registerEvent = phev_pipe_createRegisterEvent(phevCtx, phevMessage);
+    
+        //phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
+
         phevPipeEvent_t * evt = phev_pipe_messageToEvent(phevCtx,phevMessage);
         
-        if(evt != NULL)
-        {
-            LOG_D(APP_TAG,"Sending event ID %d",evt->event);
-            if(phevCtx->eventHandler)
-            {
-                phevCtx->eventHandler(phevCtx, evt);
-            }    
-        } else {
-            LOG_D(APP_TAG,"Not sending event");
-        }
+        phev_pipe_sendEventToHandlers(phevCtx, evt);
+        
     }
     
     LOG_V(APP_TAG,"END - sendEvent");
@@ -440,11 +478,43 @@ message_t * phev_pipe_outputEventTransformer(void * ctx, message_t * message)
 
 void phev_pipe_registerEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_t eventHandler) 
 {
-    ctx->eventHandler = eventHandler;
+    LOG_V(APP_TAG,"START - registerEventHandler");
+    
+    if(ctx->eventHandlers < PHEV_PIPE_MAX_EVENT_HANDLERS)
+    {
+        for(int i=0;i< PHEV_PIPE_MAX_EVENT_HANDLERS;i++)
+        {
+            if(ctx->eventHandler[i] == NULL)
+            {
+                LOG_D(APP_TAG,"Registered handler number %d",ctx->eventHandler[i]);
+                ctx->eventHandler[ctx->eventHandlers++] = eventHandler;
+                return;
+            }
+        }
+        LOG_E(APP_TAG,"Cannot register handler no free slots found");
+
+    } else {
+        LOG_E(APP_TAG,"Cannot register handler max handlers %d reached", PHEV_PIPE_MAX_EVENT_HANDLERS);
+    }
+    LOG_V(APP_TAG,"END - registerEventHandler");
+    
 }
 void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_t eventHandler)
 {
-    ctx->eventHandler = NULL;
+    LOG_V(APP_TAG,"START - deregisterEventHandler");
+    
+    for(int i=0;i<PHEV_PIPE_MAX_EVENT_HANDLERS;i++) 
+    {
+        if(ctx->eventHandler[i] == eventHandler)
+        {   
+            LOG_D(APP_TAG,"Deregistered handler number %d",ctx->eventHandler[i]);
+            ctx->eventHandler[i--] = NULL;
+            return;
+        }
+    }
+
+    LOG_V(APP_TAG,"END - deregisterEventHandler");
+    
 }
 
 messageBundle_t * phev_pipe_outputSplitter(void * ctx, message_t * message)
@@ -540,4 +610,3 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const ui
     msg_pipe_outboundPublish(ctx->pipe,  message);
     LOG_V(APP_TAG,"END - updateRegister");
 }
-

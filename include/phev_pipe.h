@@ -5,8 +5,15 @@
 #include "msg_pipe.h"
 #include "phev_core.h"
 
+#define PHEV_PIPE_MAX_EVENT_HANDLERS 10
+
+#ifndef PHEV_CONNECT_WAIT_TIME
 #define PHEV_CONNECT_WAIT_TIME (1000)
+#endif
+
+#ifndef PHEV_CONNECT_MAX_RETRIES
 #define PHEV_CONNECT_MAX_RETRIES (5)
+#endif
 
 #ifdef _WIN32
 //  For Windows (32- and 64-bit)
@@ -35,6 +42,7 @@ enum {
     PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO,
     PHEV_PIPE_REG_DISP,
     PHEV_PIPE_MAX_REGISTRATIONS,
+    PHEV_PIPE_REG_UPDATE_ACK,
 };
 
 typedef struct phevPipeEvent_t 
@@ -58,7 +66,8 @@ typedef void (* phevErrorHandler_t)(phevError_t * error);
 
 typedef struct phev_pipe_ctx_t {
     msg_pipe_ctx_t * pipe;
-    phevPipeEventHandler_t eventHandler;
+    phevPipeEventHandler_t eventHandler[PHEV_PIPE_MAX_EVENT_HANDLERS];
+    int eventHandlers;
     phevErrorHandler_t errorHandler;
     time_t lastPingTime;
     uint8_t currentPing;
@@ -95,6 +104,8 @@ void phev_pipe_resetPing(phev_pipe_ctx_t *);
 void phev_pipe_start(phev_pipe_ctx_t * ctx, uint8_t * mac);
 void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac);
 void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
+phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevMessage_t * phevMessage);
+
 //void phev_pipe_sendCommand(phev_core_command_t);
 
 #endif
