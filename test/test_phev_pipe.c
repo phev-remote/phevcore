@@ -420,6 +420,10 @@ void test_phev_pipe_waitForConnection_should_timeout(void)
 }
 void test_phev_pipe_waitForConnection(void)
 {
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+    
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
@@ -440,4 +444,32 @@ void test_phev_pipe_waitForConnection(void)
     phev_pipe_waitForConnection(ctx);
 
     TEST_ASSERT_TRUE(ctx->connected);
+}
+void test_phev_pipe_updateRegister(void)
+{
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = NULL;
+
+    const uint8_t expected[] = {0xf6,0x04,0x00,0x10,0x01,0x0b};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+
+    phev_pipe_updateRegister(ctx, 0x10, 1);
+
+    TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
+    TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
+    
 }

@@ -94,6 +94,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *);
 void phev_pipe_resetPing(phev_pipe_ctx_t *);
 void phev_pipe_start(phev_pipe_ctx_t * ctx, uint8_t * mac);
 void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac);
+void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
 //void phev_pipe_sendCommand(phev_core_command_t);
 
 #endif

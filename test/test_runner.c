@@ -70,6 +70,7 @@ int main()
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
     RUN_TEST(test_phev_pipe_waitForConnection);
     RUN_TEST(test_phev_pipe_sendMac);
+    RUN_TEST(test_phev_pipe_updateRegister);
 
     return UNITY_END();
 }

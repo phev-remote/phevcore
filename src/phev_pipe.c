@@ -531,5 +531,13 @@ void phev_pipe_resetPing(phev_pipe_ctx_t * ctx)
     ctx->lastPingTime = 0;
     LOG_V(APP_TAG,"END - resetPing");
 }
+void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value)
+{
+    LOG_V(APP_TAG,"START - updateRegister");
+    phevMessage_t * update = phev_core_simpleRequestCommandMessage(reg,value);
+    message_t *message = phev_core_convertToMessage(update);
 
+    msg_pipe_outboundPublish(ctx->pipe,  message);
+    LOG_V(APP_TAG,"END - updateRegister");
+}
 
