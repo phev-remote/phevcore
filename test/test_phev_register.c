@@ -1,5 +1,12 @@
 #include <string.h>
 #include "unity.h"
+#ifndef PHEV_CONNECT_WAIT_TIME
+#define PHEV_CONNECT_WAIT_TIME (1)
+#endif
+#ifndef PHEV_CONNECT_MAX_RETRIES
+#define PHEV_CONNECT_MAX_RETRIES 2
+#endif
+
 #include "phev_register.h"
 #include "msg_core.h"
 #include "msg_pipe.h"
@@ -23,14 +30,14 @@ static uint8_t vin_event_registrations = 0;
 static int test_register_max_reg = 0;
             
 
-uint8_t startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
-uint8_t startMsgMaxReg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x03,0xf3 };
-uint8_t startMsgResponse[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
-uint8_t AAMsgResponse[] = {0x6f,0x04,0x01,0xaa,0x00,0x1e};
-uint8_t reg[] = {0x6f,0x04,0x00,0x2a,0x00,0x9d};
-uint8_t firmware[] = {0x6f,0x10,0x00,0xc0,0x30,0x30,0x31,0x46,0x30,0x32,0x30,0x30,0x30,0x30,0x01,0x00,0x00,0x39};
-uint8_t remoteSecurityInfo[] = {0x6f,0x06,0x00,0x03,0x01,0x11,0x63,0xed};
-uint8_t regDisplayResponse[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
+static uint8_t test_phev_register_startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
+static uint8_t test_phev_register_startMsgMaxReg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x03,0xf3 };
+static uint8_t test_phev_register_startMsgResponse[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
+static uint8_t test_phev_register_AAMsgResponse[] = {0x6f,0x04,0x01,0xaa,0x00,0x1e};
+static uint8_t test_phev_register_reg[] = {0x6f,0x04,0x00,0x2a,0x00,0x9d};
+static uint8_t test_phev_register_firmware[] = {0x6f,0x10,0x00,0xc0,0x30,0x30,0x31,0x46,0x30,0x32,0x30,0x30,0x30,0x30,0x01,0x00,0x00,0x39};
+static uint8_t test_phev_register_remoteSecurityInfo[] = {0x6f,0x06,0x00,0x03,0x01,0x11,0x63,0xed};
+static uint8_t test_phev_register_regDisplayResponse[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
 
 
 void test_phev_register_complete(void)
@@ -215,7 +222,7 @@ void test_phev_register_should_send_init(void)
 {  
     const uint8_t expected[] = {0xf6,0x0a,0x00,0x01,0x2f,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xd3,0xf6,0x04,0x00,0xaa,0x00,0xa4};
     
-    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsg,sizeof(startMsg));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_startMsg,sizeof(test_phev_register_startMsg));
 
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
     
@@ -236,7 +243,7 @@ void test_phev_register_should_send_init_request(void)
 {  
     const uint8_t expected[] = {0xf6,0x0a,0x00,0x01,0x2f,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xd3,0xf6,0x04,0x00,0xaa,0x00,0xa4};
     
-    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsg,sizeof(startMsg));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_startMsg,sizeof(test_phev_register_startMsg));
 
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
     
@@ -295,7 +302,7 @@ void test_phev_register_getVin(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsg,sizeof(startMsg));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_startMsg,sizeof(test_phev_register_startMsg));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -315,7 +322,7 @@ void test_phev_register_should_error_when_too_many_registrations(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsgMaxReg,sizeof(startMsgMaxReg));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_startMsgMaxReg,sizeof(test_phev_register_startMsgMaxReg));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -335,7 +342,7 @@ void test_phev_register_should_get_start_ack(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsgResponse,sizeof(startMsgResponse));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_startMsgResponse,sizeof(test_phev_register_startMsgResponse));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -354,7 +361,7 @@ void test_phev_register_should_get_aa_ack(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(AAMsgResponse,sizeof(AAMsgResponse));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_AAMsgResponse,sizeof(test_phev_register_AAMsgResponse));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -373,7 +380,7 @@ void test_phev_register_should_get_registration(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(reg,sizeof(reg));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_reg,sizeof(test_phev_register_reg));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -392,7 +399,7 @@ void test_phev_register_should_get_ecu_version(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(firmware,sizeof(firmware));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_firmware,sizeof(test_phev_register_firmware));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -411,7 +418,7 @@ void test_phev_register_should_get_remote_security_present(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(remoteSecurityInfo,sizeof(remoteSecurityInfo));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_remoteSecurityInfo,sizeof(test_phev_register_remoteSecurityInfo));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -430,7 +437,7 @@ void test_phev_register_should_get_reg_disp(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    test_phev_register_inHandlerSend = msg_utils_createMsg(regDisplayResponse,sizeof(regDisplayResponse));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(test_phev_register_regDisplayResponse,sizeof(test_phev_register_regDisplayResponse));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
@@ -508,41 +515,41 @@ message_t * test_phev_register_inHandlerOutE2E(messagingClient_t *client)
         case 0: {
             printf("Sending start message\n");
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(startMsg,sizeof(startMsg));
+            return msg_utils_createMsg(test_phev_register_startMsg,sizeof(test_phev_register_startMsg));
         }
         case 1: {
             printf("Sending start message response\n");
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(startMsgResponse,sizeof(startMsgResponse));
+            return msg_utils_createMsg(test_phev_register_startMsgResponse,sizeof(test_phev_register_startMsgResponse));
         }
         case 2: {
             printf("Sending AA message ack\n");
             
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(AAMsgResponse,sizeof(AAMsgResponse));
+            return msg_utils_createMsg(test_phev_register_AAMsgResponse,sizeof(test_phev_register_AAMsgResponse));
         }
         case 3: {
             printf("Sending registration message\n");
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(reg,sizeof(reg));
+            return msg_utils_createMsg(test_phev_register_reg,sizeof(test_phev_register_reg));
         }
         case 4: {
             printf("Sending firmware message\n");
             
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(firmware,sizeof(firmware));
+            return msg_utils_createMsg(test_phev_register_firmware,sizeof(test_phev_register_firmware));
         }
         case 5: {
             printf("Sending remote sec info message\n");
             
             test_phev_register_e2e_out_handler_stage ++;
-            return msg_utils_createMsg(remoteSecurityInfo,sizeof(remoteSecurityInfo));
+            return msg_utils_createMsg(test_phev_register_remoteSecurityInfo,sizeof(test_phev_register_remoteSecurityInfo));
         }
         case 6: {
             printf("Sending reg display message\n");
             
             test_phev_register_e2e_out_handler_stage = 7;
-            return msg_utils_createMsg(regDisplayResponse,sizeof(regDisplayResponse));
+            return msg_utils_createMsg(test_phev_register_regDisplayResponse,sizeof(test_phev_register_regDisplayResponse));
         }  
         default: {
             return NULL;
@@ -611,5 +618,4 @@ void test_phev_register_end_to_end(void)
     TEST_ASSERT_EQUAL(6,test_phev_register_e2e_out_handler_out_stage);
     TEST_ASSERT_EQUAL(true,ctx->registrationComplete);
 
-   
 }

@@ -72,7 +72,9 @@ int main()
     RUN_TEST(test_phev_pipe_waitForConnection);
     RUN_TEST(test_phev_pipe_sendMac);
     RUN_TEST(test_phev_pipe_updateRegister);
+    RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
     RUN_TEST(test_phev_pipe_registerEventHandler);
+    RUN_TEST(test_phev_pipe_register_multiple_registerEventHandlers);
     RUN_TEST(test_phev_pipe_createRegisterEvent_ack);
     RUN_TEST(test_phev_pipe_createRegisterEvent_update);
     
