@@ -17,3 +17,6 @@ add_library(msg_core STATIC
 )
 
 target_include_directories(msg_core PUBLIC msg-core/include)
+
+add_library(cjson STATIC cJSON/cJSON.c)
+target_include_directories(cjson PUBLIC cJSON)

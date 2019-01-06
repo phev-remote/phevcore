@@ -6,6 +6,7 @@ target_link_libraries(test_runner
     msg_core
     phev_core
     Unity
+    cjson
 )
 
 add_test(test_phev_core test_runner)

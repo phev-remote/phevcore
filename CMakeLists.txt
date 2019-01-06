@@ -7,8 +7,9 @@ add_library(phev_core STATIC
     src/phev_register.c
     src/phev_pipe.c
     src/phev_core.c
+    src/phev_service.c
 )
-target_link_libraries(phev_core msg_core)
+target_link_libraries(phev_core msg_core cjson)
 
 include(CTest)
 

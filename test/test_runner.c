@@ -1,10 +1,12 @@
 #define LOGGING_OFF
-#define LOGGING_OFF
+//#define TEST_TIMEOUTS
 
 #include "unity.h"
 #include "test_phev_core.c"
 #include "test_phev_register.c"
 #include "test_phev_pipe.c"
+#include "test_phev_service.c"
+
 
 int main()
 {
@@ -68,8 +70,10 @@ int main()
     RUN_TEST(test_phev_pipe_commandResponder);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
     RUN_TEST(test_phev_pipe_no_input_connection);
+#ifdef TEST_TIMEOUTS
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
     RUN_TEST(test_phev_pipe_waitForConnection);
+#endif
     RUN_TEST(test_phev_pipe_sendMac);
     RUN_TEST(test_phev_pipe_updateRegister);
     RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
@@ -78,5 +82,16 @@ int main()
     RUN_TEST(test_phev_pipe_createRegisterEvent_ack);
     RUN_TEST(test_phev_pipe_createRegisterEvent_update);
     
+
+// PHEV SERVICE
+
+    RUN_TEST(test_phev_service_validateCommand);
+    RUN_TEST(test_phev_service_validateCommand_empty);
+    RUN_TEST(test_phev_service_validateCommand_invalidJson);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_invalid);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_valid);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_reg_out_of_range);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_value_out_of_range);
+
     return UNITY_END();
 }
