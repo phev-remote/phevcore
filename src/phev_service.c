@@ -154,3 +154,11 @@ phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command)
         return NULL;
     }
 }
+message_t * phev_service_jsonInputTransformer(message_t * message)
+{
+    if(message)
+    {
+        return phev_core_convertToMessage(phev_service_jsonCommandToPhevMessage(message->data));
+    }
+    return NULL;
+}

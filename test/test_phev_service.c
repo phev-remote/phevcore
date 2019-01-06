@@ -69,6 +69,14 @@ void test_phev_service_validateCommand_updateRegister_valid(void)
 
     TEST_ASSERT_TRUE(ret);
 }
+void test_phev_service_validateCommand_updateRegister_multiple(void)
+{
+    const char * command = "{ \"updateRegister\" :  { \"reg\" : 1, \"value\" : 255 }, \"updateRegister\" :  { \"reg\" : 2, \"value\" : 255 } }";
+
+    bool ret = phev_service_validateCommand(command);
+
+    TEST_ASSERT_TRUE(ret);
+}
 void test_phev_service_validateCommand_updateRegister_reg_out_of_range(void)
 {
     const char * command = "{ \"updateRegister\" :  { \"reg\" : 555, \"value\" : 255 } }";
