@@ -99,10 +99,11 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     msg_pipe_chain_t * inputChain = malloc(sizeof(msg_pipe_chain_t));
     msg_pipe_chain_t * outputChain = malloc(sizeof(msg_pipe_chain_t));
 
-    inputChain->inputTransformer = NULL;
+    
+    inputChain->inputTransformer = settings.inputInputTransformer;
     inputChain->splitter = settings.inputSplitter;
     inputChain->filter = NULL;
-    inputChain->outputTransformer = NULL;
+    inputChain->outputTransformer = settings.inputOutputTransformer;
     inputChain->responder = settings.inputResponder;
     inputChain->aggregator = NULL;
     inputChain->respondOnce = true;

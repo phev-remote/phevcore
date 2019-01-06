@@ -1,6 +1,34 @@
 #include <stdint.h>
+#include "phev_pipe.h"
 #include "phev_service.h"
+#include "logger.h"
 #include "cJSON.h"
+
+const static char * APP_TAG = "PHEV_SERVICE";
+
+phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out)
+{
+    LOG_V(APP_TAG,"START - createPipe");
+
+    phev_pipe_settings_t settings = {
+        .ctx = NULL,
+        .in = in,
+        .out = out,
+        .inputInputTransformer = NULL,
+        .inputOutputTransformer = NULL,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    };
+
+    phev_pipe_ctx_t * ctx = phev_pipe_createPipe(settings);
+
+    LOG_V(APP_TAG,"END - createPipe");
+}
 
 
 bool phev_service_checkByte(uint16_t num)

@@ -92,6 +92,8 @@ typedef struct phev_pipe_settings_t {
     msg_pipe_splitter_t outputSplitter;
     msg_pipe_responder_t inputResponder;
     msg_pipe_responder_t outputResponder;
+    msg_pipe_transformer_t inputInputTransformer;
+    msg_pipe_transformer_t inputOutputTransformer;
     msg_pipe_transformer_t outputInputTransformer;
     msg_pipe_transformer_t outputOutputTransformer;
     msg_pipe_connectHook_t preConnectHook;

@@ -97,6 +97,6 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOff);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
-    
+    RUN_TEST(test_phev_service_createPipe);
     return UNITY_END();
 }

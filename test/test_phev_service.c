@@ -2,6 +2,30 @@
 #include "unity.h"
 #include "phev_service.h"
 
+void test_phev_service_outHandlerIn(messagingClient_t *client, message_t *message) 
+{
+    return;
+}
+
+message_t * test_phev_service_inHandlerIn(messagingClient_t *client) 
+{
+    return NULL;
+}
+
+void test_phev_service_outHandlerOut(messagingClient_t *client, message_t *message) 
+{
+    return;
+}
+
+message_t * test_phev_service_inHandlerOut(messagingClient_t *client) 
+{
+    message_t * message = NULL;
+    //if(test_pipe_global_in_message) {
+    //    message = msg_utils_copyMsg(test_pipe_global_in_message);
+    //}
+    
+    return message;
+}
 void test_phev_service_validateCommand(void)
 {
     const char * command = "{ \"updateRegister\" : { \"reg\" : 1, \"value\" : 255 } }";
@@ -110,4 +134,22 @@ void test_phev_service_jsonCommandToPhevMessage_invalid_operation(void)
 
     TEST_ASSERT_NULL(message);
     
+}
+void test_phev_service_createPipe(void)
+{
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_ctx_t * ctx = phev_service_createPipe(in,out);
+
+    TEST_ASSERT_NOT_NULL(ctx);
 }
