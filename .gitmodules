@@ -6,3 +6,6 @@
 	path = external/msg-core
 	url = https://github.com/papawattu/msg-core.git
 	branch = master
+[submodule "external/cJSON"]
+	path = external/cJSON
+	url = https://github.com/DaveGamble/cJSON.git
