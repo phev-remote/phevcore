@@ -126,6 +126,28 @@ void test_phev_service_jsonCommandToPhevMessage_headLightsOff(void)
     TEST_ASSERT_EQUAL(2,message->data[0]);
     
 }
+void test_phev_service_jsonCommandToPhevMessage_airConOn(void)
+{
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\" } }";
+    
+    phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL(4,message->reg);
+    TEST_ASSERT_EQUAL(1,message->data[0]);
+    
+}
+void test_phev_service_jsonCommandToPhevMessage_airConOff(void)
+{
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"off\" } }";
+    
+    phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL(4,message->reg);
+    TEST_ASSERT_EQUAL(2,message->data[0]);
+    
+}
 void test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue(void)
 {
     const char * command = "{ \"operation\" :  { \"headLights\" : \"dim\" } }";
@@ -160,4 +182,15 @@ void test_phev_service_createPipe(void)
     phev_pipe_ctx_t * ctx = phev_service_createPipe(in,out);
 
     TEST_ASSERT_NOT_NULL(ctx);
+}
+void test_phev_service_jsonInputTransformer(void)
+{
+    const uint8_t expected[] = {0xf6,0x04,0x00,0x0a,0x01,0x05};
+    const char * command = "{ \"operation\" :  { \"headLights\" : \"on\" } }";
+    
+
+    message_t * message = phev_service_jsonInputTransformer(NULL,msg_utils_createMsg(command, strlen(command)));
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL_MEMORY(expected, message->data, sizeof(expected));
 }

@@ -1,4 +1,4 @@
-#define LOGGING_OFF
+//#define LOGGING_OFF
 //#define TEST_TIMEOUTS
 
 #include "unity.h"
@@ -97,7 +97,10 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOn);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOff);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOff);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
     RUN_TEST(test_phev_service_createPipe);
+    RUN_TEST(test_phev_service_jsonInputTransformer);
     return UNITY_END();
 }

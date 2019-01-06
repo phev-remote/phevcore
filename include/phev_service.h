@@ -9,6 +9,7 @@
 #define PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON "value"
 
 #define PHEV_SERVICE_OPERATION_HEADLIGHTS_JSON "headLights"
+#define PHEV_SERVICE_OPERATION_AIRCON_JSON "airCon"
 
 #define PHEV_SERVICE_ON_JSON "on"
 #define PHEV_SERVICE_OFF_JSON "off"
@@ -17,5 +18,6 @@
 bool phev_service_validateCommand(const char * command);
 phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command);
 phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out);
+message_t * phev_service_jsonInputTransformer(void *, message_t *);
 
 #endif
