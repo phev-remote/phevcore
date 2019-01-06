@@ -28,6 +28,7 @@ phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClien
     phev_pipe_ctx_t * ctx = phev_pipe_createPipe(settings);
 
     LOG_V(APP_TAG,"END - createPipe");
+    return ctx;
 }
 
 
