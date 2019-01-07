@@ -134,7 +134,7 @@ void test_phev_service_jsonCommandToPhevMessage_airConOn(void)
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL(4,message->reg);
-    TEST_ASSERT_EQUAL(1,message->data[0]);
+    TEST_ASSERT_EQUAL(2,message->data[0]);
     
 }
 void test_phev_service_jsonCommandToPhevMessage_airConOff(void)
@@ -145,7 +145,7 @@ void test_phev_service_jsonCommandToPhevMessage_airConOff(void)
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL(4,message->reg);
-    TEST_ASSERT_EQUAL(2,message->data[0]);
+    TEST_ASSERT_EQUAL(1,message->data[0]);
     
 }
 void test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue(void)

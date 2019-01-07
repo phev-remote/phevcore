@@ -1,6 +1,7 @@
 #ifndef _PHEV_PIPE_H_
 #define _PHEV_PIPE_H_
 #include <time.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include "msg_core.h"
 #include "msg_pipe.h"
@@ -18,23 +19,26 @@
 
 #ifdef _WIN32
 //  For Windows (32- and 64-bit)
-#   include <windows.h>
-#   define SLEEP(msecs) Sleep(msecs)
+#include <windows.h>
+#define SLEEP(msecs) Sleep(msecs)
 #elif __unix
 //  For linux, OSX, and other unixes
-#   define _POSIX_C_SOURCE 199309L // or greater
-#   include <time.h>
-#   define SLEEP(msecs) do {            \
-        struct timespec ts;             \
-        ts.tv_sec = msecs/1000;         \
-        ts.tv_nsec = msecs%1000*1000;   \
-        nanosleep(&ts, NULL);           \
-        } while (0)
+#define _POSIX_C_SOURCE 199309L // or greater
+#include <time.h>
+#define SLEEP(msecs)                      \
+    do                                    \
+    {                                     \
+        struct timespec ts;               \
+        ts.tv_sec = msecs / 1000;         \
+        ts.tv_nsec = msecs % 1000 * 1000; \
+        nanosleep(&ts, NULL);             \
+    } while (0)
 #else
-#   error "Unknown system"
+#error "Unknown system"
 #endif
 
-enum {
+enum
+{
     PHEV_PIPE_GOT_VIN,
     PHEV_PIPE_AA_ACK,
     PHEV_PIPE_START_ACK,
@@ -47,11 +51,11 @@ enum {
     PHEV_PIPE_REG_UPDATE_ACK,
 };
 
-typedef struct phevPipeEvent_t 
+typedef struct phevPipeEvent_t
 {
     int event;
     size_t length;
-    void * data;
+    void *data;
 } phevPipeEvent_t;
 
 typedef struct phevVinEvent_t
@@ -63,31 +67,34 @@ typedef struct phevVinEvent_t
 
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
 typedef void phevError_t;
-typedef int (* phevPipeEventHandler_t)(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event);
-typedef void (* phevErrorHandler_t)(phevError_t * error);
-typedef void (* phev_pipe_updateRegisterCallback_t)(phev_pipe_ctx_t * ctx, uint8_t reg);
+typedef int (*phevPipeEventHandler_t)(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
+typedef void (*phevErrorHandler_t)(phevError_t *error);
+typedef void (*phev_pipe_updateRegisterCallback_t)(phev_pipe_ctx_t *ctx, uint8_t reg);
 
-typedef struct phev_pipe_updateRegisterCtx_t {
+typedef struct phev_pipe_updateRegisterCtx_t
+{
     phev_pipe_updateRegisterCallback_t callbacks[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     uint8_t registers[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     size_t numberOfCallbacks;
 } phev_pipe_updateRegisterCtx_t;
 
-typedef struct phev_pipe_ctx_t {
-    msg_pipe_ctx_t * pipe;
+typedef struct phev_pipe_ctx_t
+{
+    msg_pipe_ctx_t *pipe;
     phevPipeEventHandler_t eventHandler[PHEV_PIPE_MAX_EVENT_HANDLERS];
     int eventHandlers;
     phevErrorHandler_t errorHandler;
     time_t lastPingTime;
     uint8_t currentPing;
     bool connected;
-    phev_pipe_updateRegisterCtx_t * updateRegisterCallbacks;
-    void * ctx;
+    phev_pipe_updateRegisterCtx_t *updateRegisterCallbacks;
+    void *ctx;
 } phev_pipe_ctx_t;
 
-typedef struct phev_pipe_settings_t {
-    messagingClient_t * in;
-    messagingClient_t * out;
+typedef struct phev_pipe_settings_t
+{
+    messagingClient_t *in;
+    messagingClient_t *out;
     msg_pipe_splitter_t inputSplitter;
     msg_pipe_splitter_t outputSplitter;
     msg_pipe_responder_t inputResponder;
@@ -98,27 +105,26 @@ typedef struct phev_pipe_settings_t {
     msg_pipe_transformer_t outputOutputTransformer;
     msg_pipe_connectHook_t preConnectHook;
     phevErrorHandler_t errorHandler;
-    void * ctx;
+    void *ctx;
 } phev_pipe_settings_t;
 
 void phev_pipe_loop(phev_pipe_ctx_t *);
-phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * out);
-phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t);
-void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx);
-message_t * phev_pipe_outputChainInputTransformer(void *, message_t *);
-message_t * phev_pipe_outputEventTransformer(void *, message_t *);
+phev_pipe_ctx_t *phev_pipe_create(messagingClient_t *in, messagingClient_t *out);
+phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t);
+void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx);
+message_t *phev_pipe_outputChainInputTransformer(void *, message_t *);
+message_t *phev_pipe_outputEventTransformer(void *, message_t *);
 void phev_pipe_registerEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
 void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
-message_t * phev_pipe_commandResponder(void *, message_t *);
-messageBundle_t * phev_pipe_outputSplitter(void *, message_t *);
+message_t *phev_pipe_commandResponder(void *, message_t *);
+messageBundle_t *phev_pipe_outputSplitter(void *, message_t *);
 void phev_pipe_ping(phev_pipe_ctx_t *);
 void phev_pipe_resetPing(phev_pipe_ctx_t *);
-void phev_pipe_start(phev_pipe_ctx_t * ctx, uint8_t * mac);
-void phev_pipe_sendMac(phev_pipe_ctx_t * ctx, uint8_t * mac);
+void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac);
+void phev_pipe_sendMac(phev_pipe_ctx_t *ctx, uint8_t *mac);
 void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
-void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback);
-
-phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevMessage_t * phevMessage);
+void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback);
+phevPipeEvent_t *phev_pipe_createRegisterEvent(phev_pipe_ctx_t *phevCtx, phevMessage_t *phevMessage);
 
 //void phev_pipe_sendCommand(phev_core_command_t);
 

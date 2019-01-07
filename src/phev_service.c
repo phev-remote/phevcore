@@ -4,114 +4,111 @@
 #include "logger.h"
 #include "cJSON.h"
 
-const static char * APP_TAG = "PHEV_SERVICE";
+const static char *APP_TAG = "PHEV_SERVICE";
 
-phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out)
+phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_t *out)
 {
-    LOG_V(APP_TAG,"START - createPipe");
+    LOG_V(APP_TAG, "START - createPipe");
 
     phev_pipe_settings_t settings = {
         .ctx = NULL,
         .in = in,
         .out = out,
         .inputInputTransformer = phev_service_jsonInputTransformer,
-        .inputOutputTransformer = NULL,
+        .inputOutputTransformer = phev_service_jsonOutputTransformer,
         .inputSplitter = NULL,
         .outputSplitter = NULL,
         .inputResponder = NULL,
-        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
-        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .outputResponder = (msg_pipe_responder_t)phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t)phev_pipe_outputEventTransformer,
         .preConnectHook = NULL,
-        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+        .outputInputTransformer = (msg_pipe_transformer_t)phev_pipe_outputChainInputTransformer,
     };
 
-    phev_pipe_ctx_t * ctx = phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
 
-    LOG_V(APP_TAG,"END - createPipe");
+    LOG_V(APP_TAG, "END - createPipe");
     return ctx;
 }
-
 
 bool phev_service_checkByte(uint16_t num)
 {
     return (num >= 0 && num < 256);
 }
-uint8_t phev_service_getJsonByte(cJSON * json, char * option) 
+uint8_t phev_service_getJsonByte(cJSON *json, char *option)
 {
-    cJSON * value = cJSON_GetObjectItemCaseSensitive(json, option);
-    
-    if(value != NULL)
+    cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
+
+    if (value != NULL)
     {
-        return ((uint8_t) value->valueint) & 0xff;
+        return ((uint8_t)value->valueint) & 0xff;
     }
     return 0;
 }
 
-uint16_t phev_service_getJsonInt(cJSON * json, char * option) 
+uint16_t phev_service_getJsonInt(cJSON *json, char *option)
 {
-    cJSON * value = cJSON_GetObjectItemCaseSensitive(json, option);
-    
-    if(value != NULL)
+    cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
+
+    if (value != NULL)
     {
         return value->valueint;
     }
     return 0;
 }
-bool phev_service_validateCheckOnOrOff(const char * str)
+bool phev_service_validateCheckOnOrOff(const char *str)
 {
-    if(str)
+    if (str)
     {
-        if(strcmp(str, PHEV_SERVICE_ON_JSON) == 0)
+        if (strcmp(str, PHEV_SERVICE_ON_JSON) == 0)
         {
             return true;
         }
-        
-        if(strcmp(str, PHEV_SERVICE_OFF_JSON) == 0)
+
+        if (strcmp(str, PHEV_SERVICE_OFF_JSON) == 0)
         {
             return true;
         }
     }
-    
+
     return false;
 }
-bool phev_service_validateCommand(const char * command)
+bool phev_service_validateCommand(const char *command)
 {
-    cJSON * json = cJSON_Parse(command);
-    
-    if(json == NULL)
+    cJSON *json = cJSON_Parse(command);
+
+    if (json == NULL)
     {
         return false;
     }
 
-    cJSON * update = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_UPDATE_REGISTER_JSON);
+    cJSON *update = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_UPDATE_REGISTER_JSON);
 
-    cJSON * operation = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_OPERATION_JSON);
+    cJSON *operation = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_OPERATION_JSON);
 
-    if(update != NULL)
+    if (update != NULL)
     {
-        cJSON * reg = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON);
+        cJSON *reg = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON);
 
-        cJSON * value = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON);
-    
+        cJSON *value = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON);
 
-        if(value != NULL && reg != NULL)
+        if (value != NULL && reg != NULL)
         {
             return phev_service_checkByte(reg->valueint) && phev_service_checkByte(value->valueint);
         }
-        
     }
 
-    if(operation != NULL)
+    if (operation != NULL)
     {
-        cJSON * headLights = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_HEADLIGHTS_JSON);
-        
-        if(headLights)
+        cJSON *headLights = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_HEADLIGHTS_JSON);
+
+        if (headLights)
         {
             return phev_service_validateCheckOnOrOff(headLights->valuestring);
         }
-        cJSON * airCon = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_AIRCON_JSON);
+        cJSON *airCon = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_AIRCON_JSON);
 
-        if(airCon)
+        if (airCon)
         {
             return phev_service_validateCheckOnOrOff(airCon->valuestring);
         }
@@ -119,67 +116,72 @@ bool phev_service_validateCommand(const char * command)
 
     return false;
 }
-phevMessage_t * phev_service_operationHandler(cJSON * operation)
+phevMessage_t *phev_service_operationHandler(cJSON *operation)
 {
-    cJSON * headLights = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_HEADLIGHTS_JSON);
+    cJSON *headLights = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_HEADLIGHTS_JSON);
 
-    if(headLights)
+    if (headLights)
     {
-        if(strcmp(headLights->valuestring, PHEV_SERVICE_ON_JSON) == 0)
+        if (strcmp(headLights->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 1);
         }
-        if(strcmp(headLights->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
+        if (strcmp(headLights->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
         {
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 2);
         }
         return NULL;
     }
 
-    cJSON * airCon = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_AIRCON_JSON);
+    cJSON *airCon = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_AIRCON_JSON);
 
-    if(airCon)
+    if (airCon)
     {
-        if(strcmp(airCon->valuestring, PHEV_SERVICE_ON_JSON) == 0)
-        {
-            return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 1);
-        }
-        if(strcmp(airCon->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
+        if (strcmp(airCon->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
             return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 2);
+        }
+        if (strcmp(airCon->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
+        {
+            return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 1);
         }
         return NULL;
     }
     return NULL;
 }
-phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command)
+phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)
 {
-    if(phev_service_validateCommand(command))
+    if (phev_service_validateCommand(command))
     {
-        cJSON * json = cJSON_Parse(command);
-    
-        cJSON * update = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_UPDATE_REGISTER_JSON);
+        cJSON *json = cJSON_Parse(command);
 
-        cJSON * operation = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_OPERATION_JSON);
+        cJSON *update = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_UPDATE_REGISTER_JSON);
 
-        if(update) 
+        cJSON *operation = cJSON_GetObjectItemCaseSensitive(json, PHEV_SERVICE_OPERATION_JSON);
+
+        if (update)
         {
-            return phev_core_simpleRequestCommandMessage(phev_service_getJsonByte(update,PHEV_SERVICE_UPDATE_REGISTER_REG_JSON)
-                                                    ,phev_service_getJsonByte(update,PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON));
+            return phev_core_simpleRequestCommandMessage(phev_service_getJsonByte(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON), phev_service_getJsonByte(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON));
         }
-        if(operation)
+        if (operation)
         {
             return phev_service_operationHandler(operation);
         }
-    } else {
+    }
+    else
+    {
         return NULL;
     }
 }
-message_t * phev_service_jsonInputTransformer(void * ctx, message_t * message)
+message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
-    if(message)
+    if (message)
     {
         return phev_core_convertToMessage(phev_service_jsonCommandToPhevMessage(message->data));
     }
+    return NULL;
+}
+message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
+{
     return NULL;
 }

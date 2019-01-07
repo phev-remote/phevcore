@@ -19,5 +19,5 @@ bool phev_service_validateCommand(const char * command);
 phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command);
 phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out);
 message_t * phev_service_jsonInputTransformer(void *, message_t *);
-
+message_t * phev_service_jsonOutputTransformer(void *, message_t *);
 #endif
