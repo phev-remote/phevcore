@@ -23,7 +23,7 @@
 #define SLEEP(msecs) Sleep(msecs)
 #elif __unix
 //  For linux, OSX, and other unixes
-#define _POSIX_C_SOURCE 199309L // or greater
+#define _POSIX_C_SOURCE 200809L // or greater
 #include <time.h>
 #define SLEEP(msecs)                      \
     do                                    \
