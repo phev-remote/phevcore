@@ -102,5 +102,12 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
     RUN_TEST(test_phev_service_createPipe);
     RUN_TEST(test_phev_service_jsonInputTransformer);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register); 
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_reg);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_length);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
     return UNITY_END();
 }

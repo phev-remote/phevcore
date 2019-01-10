@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include "unity.h"
+#include "cJSON.h"
 #include "phev_service.h"
 
 void test_phev_service_outHandlerIn(messagingClient_t *client, message_t *message) 
@@ -193,4 +194,119 @@ void test_phev_service_jsonInputTransformer(void)
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_MEMORY(expected, message->data, sizeof(expected));
+}
+void test_phev_service_jsonOutputTransformer_updated_register(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+
+    TEST_ASSERT_NOT_NULL(outputedJson);
+    TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister"));
+    
+}
+void test_phev_service_jsonOutputTransformer_updated_register_reg(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+    const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    const cJSON * reg = cJSON_GetObjectItemCaseSensitive(updatedRegister,"register");
+
+    TEST_ASSERT_NOT_NULL(reg);
+    TEST_ASSERT_EQUAL(10,reg->valueint);
+    
+}
+void test_phev_service_jsonOutputTransformer_updated_register_length(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+    const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    const cJSON * length = cJSON_GetObjectItemCaseSensitive(updatedRegister,"length");
+
+    TEST_ASSERT_NOT_NULL(length);
+    TEST_ASSERT_EQUAL(1,length->valueint);
+    
+}
+void test_phev_service_jsonOutputTransformer_updated_register_data(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0xff,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    const cJSON * item = NULL;
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+    const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    const cJSON * data = cJSON_GetObjectItemCaseSensitive(updatedRegister,"data");
+
+    int i = 0;
+
+    TEST_ASSERT_NOT_NULL(data);
+    
+    cJSON_ArrayForEach(item, data)
+    {
+        TEST_ASSERT_NOT_NULL(item);
+        TEST_ASSERT_EQUAL(255,item->valueint);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(1,i);
+}
+void test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items(void)
+{
+    const uint8_t numbers[] = {0xff,0xcc,0x55};
+    const uint8_t message[] = {0x6f,0x06,0x00,0x0a,0xff,0xcc,0x55,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    const cJSON * item = NULL;
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+    const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    const cJSON * data = cJSON_GetObjectItemCaseSensitive(updatedRegister,"data");
+    int i = 0;
+
+    TEST_ASSERT_NOT_NULL(data);
+    cJSON_ArrayForEach(item, data)
+    {
+        TEST_ASSERT_NOT_NULL(item);
+        TEST_ASSERT_EQUAL(numbers[i++],item->valueint);
+    }
+    TEST_ASSERT_EQUAL(i,3);
+    
+}
+void test_phev_service_jsonOutputTransformer_updated_register_ack(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    TEST_ASSERT_NOT_NULL(out);
+    
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+
+    TEST_ASSERT_NOT_NULL(outputedJson);
+    TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(outputedJson,"updateRegisterAck"));
+    
+}
+void test_phev_service_jsonOutputTransformer_updated_register_ack_register(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x05};
+    
+    message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
+
+    TEST_ASSERT_NOT_NULL(out);
+    
+    const cJSON * outputedJson = cJSON_Parse(out->data);
+    const cJSON * updatedRegisterAck = cJSON_GetObjectItemCaseSensitive(outputedJson,"updateRegisterAck");
+    const cJSON * reg = cJSON_GetObjectItemCaseSensitive(updatedRegisterAck,"register");
+
+    TEST_ASSERT_NOT_NULL(reg);
+    TEST_ASSERT_EQUAL(0x0a, reg->valueint);
+    
 }

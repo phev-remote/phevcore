@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "phev_pipe.h"
 #include "phev_service.h"
+#include "msg_utils.h"
 #include "logger.h"
 #include "cJSON.h"
 
@@ -181,7 +182,112 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
     }
     return NULL;
 }
+
+cJSON * phev_service_updatedRegister(cJSON * json, phevMessage_t * phevMessage)
+{
+    cJSON * updatedRegister = cJSON_CreateObject();
+    if(updatedRegister == NULL) 
+    {
+        return NULL;
+    } 
+    
+    cJSON_AddItemToObject(json, PHEV_SERVICE_UPDATED_REGISTER_JSON, updatedRegister);
+    
+    cJSON * reg = cJSON_CreateNumber(phevMessage->reg);
+    if(reg == NULL) 
+    {
+        return NULL;
+    }
+    
+    cJSON_AddItemToObject(updatedRegister, "register", reg);  
+    
+    cJSON * length = cJSON_CreateNumber(phevMessage->length);
+    if(length == NULL) 
+    {
+        return NULL;
+    }
+
+    cJSON_AddItemToObject(updatedRegister, "length", length);  
+
+    
+    cJSON * data = cJSON_CreateArray();
+    if(data == NULL) 
+    {
+        return NULL;
+    }
+    cJSON_AddItemToObject(updatedRegister, "data", data);  
+
+    for(int i=0; i < phevMessage->length; i++)
+    {
+        cJSON * item = cJSON_CreateNumber(phevMessage->data[i]);
+        if (item == NULL)
+        {
+            return NULL;
+        }
+        cJSON_AddItemToArray(data, item);
+    }
+    return json;
+}
+cJSON * phev_service_updateRegisterAck(cJSON * json, phevMessage_t * phevMessage)
+{
+    cJSON * updatedRegisterAck = cJSON_CreateObject();
+    if(updatedRegisterAck == NULL) 
+    {
+        return NULL;
+    } 
+    
+    cJSON_AddItemToObject(json, PHEV_SERVICE_UPDATED_REGISTER_ACK_JSON, updatedRegisterAck);
+    
+    cJSON * reg = cJSON_CreateNumber(phevMessage->reg);
+    if(reg == NULL) 
+    {
+        return NULL;
+    }
+    
+    cJSON_AddItemToObject(updatedRegisterAck, "register", reg);  
+    
+    return json;
+}
+
 message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
 {
-    return NULL;
+    LOG_V(APP_TAG,"START - jsonOutputTransformer");
+    phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
+    phev_core_decodeMessage(message->data,message->length, phevMessage);
+    char * output;
+    cJSON * out = NULL;
+
+    if(phevMessage->command != 0x6f) 
+    {
+        return NULL;
+    }
+    
+    cJSON * response = cJSON_CreateObject();
+    if(response == NULL) 
+    {
+        return NULL;
+    } 
+    
+    if(phevMessage->type == REQUEST_TYPE)
+    {
+        out = phev_service_updatedRegister(response,phevMessage);
+    } else {
+        out = phev_service_updateRegisterAck(response,phevMessage);
+    }
+    
+    if(!out) 
+    {
+        return NULL;
+    }
+    
+    output = cJSON_Print(out); 
+
+    message_t * outputMessage = msg_utils_createMsg((uint8_t *) output, strlen(output));
+    LOG_BUFFER_HEXDUMP(APP_TAG,outputMessage->data,outputMessage->length,LOG_DEBUG);
+    cJSON_Delete(response);
+
+    free(output);
+    LOG_V(APP_TAG,"END - jsonOutputTransformer");
+    
+    return outputMessage;
 }
