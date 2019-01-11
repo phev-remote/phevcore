@@ -6,6 +6,7 @@
 #include "test_phev_register.c"
 #include "test_phev_pipe.c"
 #include "test_phev_service.c"
+#include "test_phev_store.c"
 
 
 int main()
@@ -109,5 +110,16 @@ int main()
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
+
+//  PHEV_STORE
+
+    RUN_TEST(test_phev_store_create_store);
+    RUN_TEST(test_phev_store_add_to_store);
+    RUN_TEST(test_phev_store_get_from_store);
+    RUN_TEST(test_phev_store_get_from_store_not_found);
+    RUN_TEST(test_phev_store_update_store);
+    RUN_TEST(test_phev_store_store_compare);
+    RUN_TEST(test_phev_store_compare_not_same);
+    RUN_TEST(test_phev_store_compare_not_set);
     return UNITY_END();
 }

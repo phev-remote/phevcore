@@ -619,8 +619,6 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const ui
     LOG_V(APP_TAG,"END - updateRegister");
 }
 
-phev_pipe_updateRegisterCallback_t cb;
-
 int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
     LOG_V(APP_TAG,"START - updateRegisterEventHandler");

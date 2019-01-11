@@ -2,13 +2,13 @@
 #include "phev_store.h"
 #include "logger.h"
 
-void test_create_store(void)
+void test_phev_store_create_store(void)
 {
     phevStore_t * store = phev_store_create();
 
     TEST_ASSERT_NOT_NULL(store);
 }
-void test_add_to_store(void)
+void test_phev_store_add_to_store(void)
 {
 
     const uint8_t data[] = {1,2,3,4};
@@ -21,7 +21,7 @@ void test_add_to_store(void)
 
     TEST_ASSERT_EQUAL(1,ret);
 } 
-void test_get_from_store(void)
+void test_phev_store_get_from_store(void)
 {
     const uint8_t data[] = {1,2,3,4};
 
@@ -36,7 +36,7 @@ void test_get_from_store(void)
     TEST_ASSERT_EQUAL_MEMORY(data,msg2->data,4);
 
 } 
-void test_get_from_store_not_found(void)
+void test_phev_store_get_from_store_not_found(void)
 {
     phevStore_t * store = phev_store_create();
 
@@ -45,7 +45,7 @@ void test_get_from_store_not_found(void)
     TEST_ASSERT_NULL(msg2);
 
 } 
-void test_update_store(void)
+void test_phev_store_update_store(void)
 {
     const uint8_t data[] = {1,2,3,4};
 
@@ -69,7 +69,7 @@ void test_update_store(void)
 
     TEST_ASSERT_EQUAL_MEMORY(replacementData,msg2->data,4);
 }
-void test_store_compare(void)
+void test_phev_store_store_compare(void)
 {
     const uint8_t data[] = {1,2,3,4};
 
@@ -84,7 +84,7 @@ void test_store_compare(void)
     TEST_ASSERT_EQUAL(0,ret);
 
 } 
-void test_store_compare_not_same(void)
+void test_phev_store_compare_not_same(void)
 {
     const uint8_t data[] = {1,2,3,4};
 
@@ -99,7 +99,7 @@ void test_store_compare_not_same(void)
     TEST_ASSERT_NOT_EQUAL(0,ret);
 
 } 
-void test_store_compare_not_set(void)
+void test_phev_store_compare_not_set(void)
 {
     const uint8_t data[] = {1,2,3,4};
 
