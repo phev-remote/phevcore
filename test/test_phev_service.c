@@ -207,6 +207,36 @@ void test_phev_service_jsonOutputTransformer_updated_register(void)
     TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister"));
     
 }
+void test_phev_service_jsonOutputTransformer_not_updated_register(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
+    
+    const uint8_t data[] = {1};
+
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    phev_model_setRegister(ctx->model,10,data,1);
+    
+    message_t * out = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+
+    TEST_ASSERT_NULL(out);
+    
+}
+void test_phev_service_jsonOutputTransformer_has_updated_register(void)
+{
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x02,0x05};
+    
+    const uint8_t data[] = {1};
+
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    phev_model_setRegister(ctx->model,10,data,1);
+    
+    message_t * out = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+
+    TEST_ASSERT_NOT_NULL(out);
+    
+}
 void test_phev_service_jsonOutputTransformer_updated_register_reg(void)
 {
     const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
@@ -317,4 +347,133 @@ void test_phev_service_init(void)
     TEST_ASSERT_NOT_NULL(ctx);
     TEST_ASSERT_NOT_NULL(ctx->model);
     
+}
+void test_phev_service_get_battery_level()
+{
+    const uint8_t data[] = {50};
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    phev_model_setRegister(ctx->model,29,data,1);
+    int level = phev_service_getBatteryLevel(ctx);
+
+    TEST_ASSERT_EQUAL(50,level);
+}
+void test_phev_service_get_battery_level_not_set()
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    int level = phev_service_getBatteryLevel(ctx);
+
+    TEST_ASSERT_EQUAL(-1,level);
+}
+void test_phev_service_statusAsJson()
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    TEST_ASSERT_NOT_NULL(json);
+
+}
+void test_phev_service_statusAsJson_has_status_object()
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+    
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    TEST_ASSERT_NOT_NULL(status);
+}
+void test_phev_service_statusAsJson_has_battery_object()
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    TEST_ASSERT_NOT_NULL(battery);
+}
+void test_phev_service_statusAsJson_has_no_battery_level()
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "level");
+
+    TEST_ASSERT_NULL(level);
+}
+void test_phev_service_statusAsJson_has_battery_level_correct()
+{
+    const uint8_t data[] = {50};
+
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    phev_model_setRegister(ctx->model,29,data,1);
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "level");
+
+    TEST_ASSERT_EQUAL(50,level->valueint);
+}
+void test_phev_service_outputFilter(void)
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    message_t * message = msg_utils_createMsg(data, sizeof(data));
+
+    bool out = phev_service_outputFilter((void *) ctx, message);
+
+    TEST_ASSERT_TRUE(out);
+}
+void test_phev_service_outputFilter_no_change(void)
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
+    message_t * message = msg_utils_createMsg(inData, sizeof(inData));
+
+    const uint8_t data[] = {1};
+    
+    phev_model_setRegister(ctx->model,10,data,1);
+
+    bool out = phev_service_outputFilter((void *) ctx, message);
+
+    TEST_ASSERT_FALSE(out);
+}
+void test_phev_service_outputFilter_change(void)
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    message_t * message = msg_utils_createMsg(inData, sizeof(inData));
+
+    const uint8_t data[] = {1};
+    
+    phev_model_setRegister(ctx->model,10,data,1);
+
+    bool out = phev_service_outputFilter((void *) ctx, message);
+
+    TEST_ASSERT_TRUE(out);
 }

@@ -14,6 +14,22 @@ phevServiceCtx_t * phev_service_init(void)
     return ctx;
 }
 
+bool phev_service_outputFilter(void *ctx, message_t * message)
+{
+    phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
+    phevMessage_t phevMessage;
+    
+    phev_core_decodeMessage(message->data,message->length, &phevMessage);
+
+    phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
+    
+    if(reg)
+    {
+        return phev_model_compareRegister(serviceCtx->model,phevMessage.reg, phevMessage.data) != 0;
+    }
+    
+    return true;
+}
 phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(APP_TAG, "START - createPipe");
@@ -26,6 +42,7 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .inputOutputTransformer = phev_service_jsonOutputTransformer,
         .inputSplitter = NULL,
         .outputSplitter = NULL,
+        .outputFilter = phev_service_outputFilter,
         .inputResponder = NULL,
         .outputResponder = (msg_pipe_responder_t)phev_pipe_commandResponder,
         .outputOutputTransformer = (msg_pipe_transformer_t)phev_pipe_outputEventTransformer,
@@ -259,7 +276,9 @@ cJSON * phev_service_updateRegisterAck(cJSON * json, phevMessage_t * phevMessage
 message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - jsonOutputTransformer");
+    phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
     phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
+
     phev_core_decodeMessage(message->data,message->length, phevMessage);
     char * output;
     cJSON * out = NULL;
@@ -267,6 +286,21 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
     if(phevMessage->command != 0x6f) 
     {
         return NULL;
+    }
+    
+    if(ctx)
+    {
+        phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage->reg);
+    
+        if(reg)
+        {
+            bool changed = phev_model_compareRegister(serviceCtx->model,phevMessage->reg, phevMessage->data);
+
+            if(!changed) 
+            {
+                return NULL;
+            }
+        }
     }
     
     cJSON * response = cJSON_CreateObject();
@@ -297,4 +331,40 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
     LOG_V(APP_TAG,"END - jsonOutputTransformer");
     
     return outputMessage;
+}
+int phev_service_getBatteryLevel(phevServiceCtx_t * ctx)
+{
+    phevRegister_t * reg = phev_model_getRegister(ctx->model, KO_WF_BATT_LEVEL_INFO_REP_EVR);
+
+    if(reg) 
+    {
+        return (int) reg->data[0];
+    } else {
+        return -1;
+    }
+}
+char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
+{
+
+    cJSON * json = cJSON_CreateObject();
+    cJSON * status = cJSON_CreateObject();
+    cJSON * battery = cJSON_CreateObject();
+
+    if(json && status && battery)
+    {
+        int battLevel = phev_service_getBatteryLevel(ctx);
+
+        if(battLevel >= 0)
+        {
+            cJSON * level = cJSON_CreateNumber((double) battLevel);
+            cJSON_AddItemToObject(battery, PHEV_SERVICE_BATTERY_LEVEL_JSON,level);
+        }
+        cJSON_AddItemToObject(status, PHEV_SERVICE_BATTERY_JSON,battery);
+        cJSON_AddItemToObject(json, PHEV_SERVICE_STATUS_JSON,status);
+        
+    }
+
+    char * out = cJSON_Print(json);
+
+    return out;
 }

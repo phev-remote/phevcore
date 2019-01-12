@@ -102,7 +102,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     
     inputChain->inputTransformer = settings.inputInputTransformer;
     inputChain->splitter = settings.inputSplitter;
-    inputChain->filter = NULL;
+    inputChain->filter = settings.inputFilter;
     inputChain->outputTransformer = settings.inputOutputTransformer;
     inputChain->responder = settings.inputResponder;
     inputChain->aggregator = NULL;
@@ -110,7 +110,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     
     outputChain->inputTransformer = settings.outputInputTransformer;
     outputChain->splitter = settings.outputSplitter;
-    outputChain->filter = NULL; 
+    outputChain->filter = settings.outputFilter; 
     outputChain->outputTransformer = settings.outputOutputTransformer;
     outputChain->responder = settings.outputResponder;
     outputChain->aggregator = NULL;

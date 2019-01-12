@@ -110,7 +110,19 @@ int main()
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_not_updated_register);
+    RUN_TEST(test_phev_service_jsonOutputTransformer_has_updated_register);
     RUN_TEST(test_phev_service_init);
+    RUN_TEST(test_phev_service_get_battery_level);
+    RUN_TEST(test_phev_service_get_battery_level_not_set);
+    RUN_TEST(test_phev_service_statusAsJson);
+    RUN_TEST(test_phev_service_statusAsJson_has_status_object);
+    RUN_TEST(test_phev_service_statusAsJson_has_battery_object);
+    RUN_TEST(test_phev_service_statusAsJson_has_no_battery_level);
+    RUN_TEST(test_phev_service_statusAsJson_has_battery_level_correct);
+    RUN_TEST(test_phev_service_outputFilter);
+    RUN_TEST(test_phev_service_outputFilter_no_change);
+    RUN_TEST(test_phev_service_outputFilter_change);
 
 //  PHEV_MODEL
 
