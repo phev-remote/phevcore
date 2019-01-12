@@ -7,6 +7,13 @@
 
 const static char *APP_TAG = "PHEV_SERVICE";
 
+phevServiceCtx_t * phev_service_init(void)
+{
+    phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
+    ctx->model = phev_model_create();
+    return ctx;
+}
+
 phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(APP_TAG, "START - createPipe");

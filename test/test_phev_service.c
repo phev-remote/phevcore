@@ -310,3 +310,11 @@ void test_phev_service_jsonOutputTransformer_updated_register_ack_register(void)
     TEST_ASSERT_EQUAL(0x0a, reg->valueint);
     
 }
+void test_phev_service_init(void)
+{
+    phevServiceCtx_t * ctx = phev_service_init();
+
+    TEST_ASSERT_NOT_NULL(ctx);
+    TEST_ASSERT_NOT_NULL(ctx->model);
+    
+}
