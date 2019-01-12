@@ -212,14 +212,24 @@ void test_phev_service_jsonOutputTransformer_not_updated_register(void)
     const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
     
     const uint8_t data[] = {1};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init();
-
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     phev_model_setRegister(ctx->model,10,data,1);
     
-    message_t * out = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+    message_t * outmsg = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
 
-    TEST_ASSERT_NULL(out);
+    TEST_ASSERT_NULL(outmsg);
     
 }
 void test_phev_service_jsonOutputTransformer_has_updated_register(void)
@@ -227,14 +237,24 @@ void test_phev_service_jsonOutputTransformer_has_updated_register(void)
     const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x02,0x05};
     
     const uint8_t data[] = {1};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init();
-
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     phev_model_setRegister(ctx->model,10,data,1);
     
-    message_t * out = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+    message_t * outmsg = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
 
-    TEST_ASSERT_NOT_NULL(out);
+    TEST_ASSERT_NOT_NULL(outmsg);
     
 }
 void test_phev_service_jsonOutputTransformer_updated_register_reg(void)
@@ -342,7 +362,19 @@ void test_phev_service_jsonOutputTransformer_updated_register_ack_register(void)
 }
 void test_phev_service_init(void)
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
 
     TEST_ASSERT_NOT_NULL(ctx);
     TEST_ASSERT_NOT_NULL(ctx->model);
@@ -351,7 +383,19 @@ void test_phev_service_init(void)
 void test_phev_service_get_battery_level()
 {
     const uint8_t data[] = {50};
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
 
     phev_model_setRegister(ctx->model,29,data,1);
     int level = phev_service_getBatteryLevel(ctx);
@@ -360,16 +404,38 @@ void test_phev_service_get_battery_level()
 }
 void test_phev_service_get_battery_level_not_set()
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     int level = phev_service_getBatteryLevel(ctx);
 
     TEST_ASSERT_EQUAL(-1,level);
 }
 void test_phev_service_statusAsJson()
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -379,8 +445,19 @@ void test_phev_service_statusAsJson()
 }
 void test_phev_service_statusAsJson_has_status_object()
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
     
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -391,8 +468,19 @@ void test_phev_service_statusAsJson_has_status_object()
 }
 void test_phev_service_statusAsJson_has_battery_object()
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -405,8 +493,19 @@ void test_phev_service_statusAsJson_has_battery_object()
 }
 void test_phev_service_statusAsJson_has_no_battery_level()
 {
-    phevServiceCtx_t * ctx = phev_service_init();
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -422,9 +521,19 @@ void test_phev_service_statusAsJson_has_no_battery_level()
 void test_phev_service_statusAsJson_has_battery_level_correct()
 {
     const uint8_t data[] = {50};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init();
-
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
     phev_model_setRegister(ctx->model,29,data,1);
 
     char * str = phev_service_statusAsJson(ctx);
@@ -441,39 +550,72 @@ void test_phev_service_statusAsJson_has_battery_level_correct()
 }
 void test_phev_service_outputFilter(void)
 {
-    phevServiceCtx_t * ctx = phev_service_init();
-    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
     message_t * message = msg_utils_createMsg(data, sizeof(data));
 
-    bool out = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter((void *) ctx, message);
 
-    TEST_ASSERT_TRUE(out);
+    TEST_ASSERT_TRUE(outbool);
 }
 void test_phev_service_outputFilter_no_change(void)
 {
-    phevServiceCtx_t * ctx = phev_service_init();
-    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
     const uint8_t data[] = {1};
     
     phev_model_setRegister(ctx->model,10,data,1);
 
-    bool out = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter((void *) ctx, message);
 
-    TEST_ASSERT_FALSE(out);
+    TEST_ASSERT_FALSE(outbool);
 }
 void test_phev_service_outputFilter_change(void)
 {
-    phevServiceCtx_t * ctx = phev_service_init();
-    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
     const uint8_t data[] = {1};
     
     phev_model_setRegister(ctx->model,10,data,1);
 
-    bool out = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter((void *) ctx, message);
 
-    TEST_ASSERT_TRUE(out);
+    TEST_ASSERT_TRUE(outbool);
 }

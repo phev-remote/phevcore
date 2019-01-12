@@ -7,10 +7,12 @@
 
 const static char *APP_TAG = "PHEV_SERVICE";
 
-phevServiceCtx_t * phev_service_init(void)
+phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out)
 {
     phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
     ctx->model = phev_model_create();
+    ctx->pipe = phev_service_createPipe(in, out);
+
     return ctx;
 }
 
