@@ -76,7 +76,7 @@ phev_pipe_ctx_t * phev_pipe_create(messagingClient_t * in, messagingClient_t * o
         .in = in,
         .out = out,
         .inputSplitter = NULL,
-        .outputSplitter = NULL,
+        .outputSplitter = phev_pipe_outputSplitter,
         .inputResponder = NULL,
         .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
         .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
@@ -681,3 +681,4 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t r
     LOG_W(APP_TAG,"Cannot add update register handler too many allocated");
     
 }
+

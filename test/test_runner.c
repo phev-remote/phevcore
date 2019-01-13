@@ -129,6 +129,7 @@ int main()
     RUN_TEST(test_phev_service_inputSplitter_two_messages_second);
     RUN_TEST(test_phev_service_end_to_end_operations);
     RUN_TEST(test_phev_service_end_to_end_updated_register);
+    RUN_TEST(test_phev_service_end_to_end_multiple_updated_registers);
 
 //  PHEV_MODEL
 
