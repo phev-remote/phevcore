@@ -397,3 +397,8 @@ char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
 
     return out;
 }
+
+void phev_service_loop(phevServiceCtx_t * ctx)
+{
+    phev_pipe_loop(ctx->pipe);
+}

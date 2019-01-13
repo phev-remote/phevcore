@@ -730,7 +730,7 @@ void test_phev_service_end_to_end_updated_register(void)
 
     phevServiceCtx_t * ctx = phev_service_init(in,out);
 
-    phev_pipe_loop(ctx->pipe);
+    phev_service_loop(ctx);
 
     TEST_ASSERT_NOT_NULL(test_phev_service_global_out_in_message);
     
