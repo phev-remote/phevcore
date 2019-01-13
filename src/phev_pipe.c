@@ -130,9 +130,17 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
 
     ctx->errorHandler = settings.errorHandler;
     ctx->eventHandlers = 0;
+    
     for(int i=0;i<PHEV_PIPE_MAX_EVENT_HANDLERS;i++) 
     {
         ctx->eventHandler[i] = NULL;
+    } 
+    ctx->updateRegisterCallbacks = malloc(sizeof(phev_pipe_updateRegisterCtx_t));
+    ctx->updateRegisterCallbacks->numberOfCallbacks = 0;
+    
+    for(int i=0;i < PHEV_PIPE_MAX_UPDATE_CALLBACKS;i++)
+    {
+            ctx->updateRegisterCallbacks->callbacks[i] == NULL;   
     } 
     ctx->connected = false;
     ctx->ctx = settings.ctx;
@@ -443,6 +451,11 @@ void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
     
     phev_pipe_ctx_t * phevCtx = (phev_pipe_ctx_t *) ctx;
 
+    if(phevCtx == NULL)
+    {
+        LOG_W(APP_TAG,"Context not passed");
+        return;
+    }
     if(phevCtx->eventHandlers > 0)
     {
         
@@ -605,8 +618,11 @@ void phev_pipe_ping(phev_pipe_ctx_t * ctx)
 void phev_pipe_resetPing(phev_pipe_ctx_t * ctx)
 {
     LOG_V(APP_TAG,"START - resetPing");
+    time_t now;
+
+    time(&now);
     ctx->currentPing = 0;
-    ctx->lastPingTime = 0;
+    ctx->lastPingTime = now;
     LOG_V(APP_TAG,"END - resetPing");
 }
 void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value)
@@ -644,17 +660,6 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t 
 void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback)
 {
     LOG_V(APP_TAG,"START - updateRegisterWithCallback");
-
-    if(ctx->updateRegisterCallbacks == NULL)
-    {
-        ctx->updateRegisterCallbacks = malloc(sizeof(phev_pipe_updateRegisterCtx_t));
-        ctx->updateRegisterCallbacks->numberOfCallbacks = 0;
-        for(int i=0;i < PHEV_PIPE_MAX_UPDATE_CALLBACKS;i++)
-        {
-            ctx->updateRegisterCallbacks->callbacks[i] == NULL;   
-        }
-        
-    } 
     
     for(int i=0;i<PHEV_PIPE_MAX_UPDATE_CALLBACKS;i++)
     {

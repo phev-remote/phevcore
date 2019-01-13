@@ -15,10 +15,29 @@ phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *o
 
     return ctx;
 }
+messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
+{
+    messageBundle_t * messages = malloc(sizeof(messageBundle_t));
+    messages->numMessages = 0;
+    cJSON * command = NULL;
 
+    cJSON * json = cJSON_Parse(message->data);
+
+    cJSON_ArrayForEach(command, json)
+    {   
+        cJSON * operation = cJSON_CreateObject();
+        cJSON_AddItemToObject(operation,PHEV_SERVICE_OPERATION_JSON,command);
+        const char * out = cJSON_Print(operation);
+
+        messages->messages[messages->numMessages++] = msg_utils_createMsg(out,strlen(out));
+    }
+
+    return messages;
+}
 bool phev_service_outputFilter(void *ctx, message_t * message)
 {
     phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
+
     phevMessage_t phevMessage;
     
     phev_core_decodeMessage(message->data,message->length, &phevMessage);
@@ -41,15 +60,16 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .in = in,
         .out = out,
         .inputInputTransformer = phev_service_jsonInputTransformer,
-        .inputOutputTransformer = phev_service_jsonOutputTransformer,
-        .inputSplitter = NULL,
+        .inputOutputTransformer = NULL, 
+        .inputSplitter = phev_service_inputSplitter,
         .outputSplitter = NULL,
         .outputFilter = phev_service_outputFilter,
         .inputResponder = NULL,
-        .outputResponder = (msg_pipe_responder_t)phev_pipe_commandResponder,
-        .outputOutputTransformer = (msg_pipe_transformer_t)phev_pipe_outputEventTransformer,
+        .outputResponder = phev_pipe_commandResponder,
+    //    .outputOutputTransformer = phev_pipe_outputEventTransformer,
         .preConnectHook = NULL,
-        .outputInputTransformer = (msg_pipe_transformer_t)phev_pipe_outputChainInputTransformer,
+        .outputInputTransformer = phev_pipe_outputChainInputTransformer,
+        .outputOutputTransformer = phev_service_jsonOutputTransformer,
     };
 
     phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
@@ -278,9 +298,16 @@ cJSON * phev_service_updateRegisterAck(cJSON * json, phevMessage_t * phevMessage
 message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - jsonOutputTransformer");
+
+    
     phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
     phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
 
+    if(serviceCtx != NULL)
+    {
+        phev_pipe_outputEventTransformer(serviceCtx->pipe, message);
+    }
+    
     phev_core_decodeMessage(message->data,message->length, phevMessage);
     char * output;
     cJSON * out = NULL;

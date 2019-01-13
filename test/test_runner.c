@@ -123,6 +123,12 @@ int main()
     RUN_TEST(test_phev_service_outputFilter);
     RUN_TEST(test_phev_service_outputFilter_no_change);
     RUN_TEST(test_phev_service_outputFilter_change);
+    RUN_TEST(test_phev_service_inputSplitter_not_null);
+    RUN_TEST(test_phev_service_inputSplitter_two_messages_num_messages);
+    RUN_TEST(test_phev_service_inputSplitter_two_messages_first);
+    RUN_TEST(test_phev_service_inputSplitter_two_messages_second);
+    RUN_TEST(test_phev_service_end_to_end_operations);
+    RUN_TEST(test_phev_service_end_to_end_updated_register);
 
 //  PHEV_MODEL
 

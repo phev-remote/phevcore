@@ -3,27 +3,38 @@
 #include "cJSON.h"
 #include "phev_service.h"
 
+message_t * test_phev_service_global_in_in_message = NULL;
+message_t * test_phev_service_global_in_out_message = NULL;
+message_t * test_phev_service_global_out_in_message = NULL;
+message_t * test_phev_service_global_out_out_message = NULL;
+
+
 void test_phev_service_outHandlerIn(messagingClient_t *client, message_t *message) 
 {
+    test_phev_service_global_out_in_message = msg_utils_copyMsg(message);
     return;
 }
 
 message_t * test_phev_service_inHandlerIn(messagingClient_t *client) 
 {
-    return NULL;
+    message_t * message = NULL;
+    if(test_phev_service_global_in_in_message) {
+        message = msg_utils_copyMsg(test_phev_service_global_in_in_message);
+    }
+    return message;
 }
-
 void test_phev_service_outHandlerOut(messagingClient_t *client, message_t *message) 
 {
+    test_phev_service_global_out_out_message = msg_utils_copyMsg(message);
     return;
 }
 
 message_t * test_phev_service_inHandlerOut(messagingClient_t *client) 
 {
     message_t * message = NULL;
-    //if(test_pipe_global_in_message) {
-    //    message = msg_utils_copyMsg(test_pipe_global_in_message);
-    //}
+    if(test_phev_service_global_in_out_message) {
+        message = msg_utils_copyMsg(test_phev_service_global_in_out_message);
+    }
     
     return message;
 }
@@ -201,6 +212,8 @@ void test_phev_service_jsonOutputTransformer_updated_register(void)
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
+    TEST_ASSERT_NOT_NULL(out);
+    
     const cJSON * outputedJson = cJSON_Parse(out->data);
 
     TEST_ASSERT_NOT_NULL(outputedJson);
@@ -263,6 +276,8 @@ void test_phev_service_jsonOutputTransformer_updated_register_reg(void)
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
+    TEST_ASSERT_NOT_NULL(out);
+    
     const cJSON * outputedJson = cJSON_Parse(out->data);
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
     const cJSON * reg = cJSON_GetObjectItemCaseSensitive(updatedRegister,"register");
@@ -277,6 +292,8 @@ void test_phev_service_jsonOutputTransformer_updated_register_length(void)
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
+    TEST_ASSERT_NOT_NULL(out);
+    
     const cJSON * outputedJson = cJSON_Parse(out->data);
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
     const cJSON * length = cJSON_GetObjectItemCaseSensitive(updatedRegister,"length");
@@ -291,6 +308,8 @@ void test_phev_service_jsonOutputTransformer_updated_register_data(void)
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
+    TEST_ASSERT_NOT_NULL(out);
+    
     const cJSON * item = NULL;
     const cJSON * outputedJson = cJSON_Parse(out->data);
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
@@ -315,6 +334,8 @@ void test_phev_service_jsonOutputTransformer_updated_register_data_multiple_item
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
+    TEST_ASSERT_NOT_NULL(out);
+    
     const cJSON * item = NULL;
     const cJSON * outputedJson = cJSON_Parse(out->data);
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
@@ -618,4 +639,107 @@ void test_phev_service_outputFilter_change(void)
     bool outbool = phev_service_outputFilter((void *) ctx, message);
 
     TEST_ASSERT_TRUE(outbool);
+}
+void test_phev_service_inputSplitter_not_null(void)
+{
+    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+
+    messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
+
+    TEST_ASSERT_NOT_NULL(messages);
+}
+void test_phev_service_inputSplitter_two_messages_num_messages(void)
+{
+    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+
+    messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
+
+    TEST_ASSERT_EQUAL(2,messages->numMessages);
+}
+void test_phev_service_inputSplitter_two_messages_first(void)
+{
+    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+
+    messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
+    
+    cJSON * msg = cJSON_Parse(messages->messages[0]->data);
+    cJSON * operation = cJSON_GetObjectItemCaseSensitive(msg,"operation");
+    
+    TEST_ASSERT_NOT_NULL(msg);
+    TEST_ASSERT_NOT_NULL(operation);
+    }
+void test_phev_service_inputSplitter_two_messages_second(void)
+{
+    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+
+    messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
+
+    cJSON * msg = cJSON_Parse(messages->messages[1]->data);
+    cJSON * operation = cJSON_GetObjectItemCaseSensitive(msg,"operation");
+
+    TEST_ASSERT_NOT_NULL(msg);
+    TEST_ASSERT_NOT_NULL(operation);
+}
+void test_phev_service_end_to_end_operations(void)
+{
+    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"headLights\" : \"off\" } }";
+    
+    const uint8_t expected[] = {0xf6,0x04,0x00,0x04,0x02,0x00,0xf6,0x04,0x00,0x0a,0x02,0x06};
+
+    test_phev_service_global_in_in_message = msg_utils_createMsg(commands, strlen(commands));
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    
+    phev_pipe_loop(ctx->pipe);
+    TEST_ASSERT_NOT_NULL(test_phev_service_global_out_out_message);
+    TEST_ASSERT_EQUAL_MEMORY(expected, test_phev_service_global_out_out_message->data,sizeof(expected));
+    
+}
+void test_phev_service_end_to_end_updated_register(void)
+{
+    test_phev_service_global_in_in_message = NULL;
+    test_phev_service_global_out_in_message = NULL;
+    
+    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x02,0x79};
+
+    test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+
+    phev_pipe_loop(ctx->pipe);
+
+    TEST_ASSERT_NOT_NULL(test_phev_service_global_out_in_message);
+    
+    cJSON * json = cJSON_Parse(test_phev_service_global_out_in_message->data);
+
+    TEST_ASSERT_NOT_NULL(json);
+
+    cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(json,"updatedRegister");
+
+    TEST_ASSERT_NOT_NULL(updatedRegister);
+
 }

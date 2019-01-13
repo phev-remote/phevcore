@@ -6,6 +6,11 @@ phevModel_t * phev_model_create(void)
 {
     phevModel_t * model = malloc(sizeof(phevModel_t));
 
+    for(int i=0;i<256;i++)
+    {
+        model->registers[i] = NULL;
+    }
+
     return model;
 }
 
@@ -19,8 +24,18 @@ int phev_model_setRegister(phevModel_t * model, uint8_t reg, const uint8_t * dat
 }
 phevRegister_t * phev_model_getRegister(phevModel_t * model, uint8_t reg)
 {
+    phevRegister_t * out = model->registers[reg];
+    if(out == NULL)
+    {   
+        return NULL;
+    } else {
+        if(out->length == 0)
+        {
+            return NULL;
+        }
+    }
 
-    return model->registers[reg];
+    return out;
 }
 int phev_model_compareRegister(phevModel_t * model, uint8_t reg , const uint8_t * data)
 {
