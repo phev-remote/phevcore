@@ -62,7 +62,7 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .inputInputTransformer = phev_service_jsonInputTransformer,
         .inputOutputTransformer = NULL, 
         .inputSplitter = phev_service_inputSplitter,
-        .inputAggregator = phev_service_jsonResponseAggregator,
+        .inputAggregator = NULL,
         .outputAggregator = phev_service_jsonResponseAggregator,
         .outputSplitter = phev_pipe_outputSplitter,
         .outputFilter = phev_service_outputFilter,
