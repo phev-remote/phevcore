@@ -352,6 +352,7 @@ void test_phev_pipe_splitter_two_messages(void)
      
     messageBundle_t * messages = phev_pipe_outputSplitter(NULL, message);
 
+    TEST_ASSERT_NOT_NULL(messages);
     TEST_ASSERT_EQUAL(2, messages->numMessages);
     TEST_ASSERT_EQUAL(6, messages->messages[0]->length);
     TEST_ASSERT_EQUAL(6, messages->messages[1]->length);

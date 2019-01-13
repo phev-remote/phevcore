@@ -99,7 +99,9 @@ typedef struct phev_pipe_settings_t
     messagingClient_t *in;
     messagingClient_t *out;
     msg_pipe_splitter_t inputSplitter;
+    msg_pipe_aggregator_t inputAggregator;
     msg_pipe_splitter_t outputSplitter;
+    msg_pipe_aggregator_t outputAggregator;
     msg_pipe_responder_t inputResponder;
     msg_pipe_responder_t outputResponder;
     msg_pipe_filter_t outputFilter;

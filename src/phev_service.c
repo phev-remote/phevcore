@@ -29,7 +29,7 @@ messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
         cJSON_AddItemToObject(operation,PHEV_SERVICE_OPERATION_JSON,command);
         const char * out = cJSON_Print(operation);
 
-        messages->messages[messages->numMessages++] = msg_utils_createMsg(out,strlen(out));
+        messages->messages[messages->numMessages++] = msg_utils_createMsg(out,strlen(out)+1);
     }
 
     return messages;
@@ -62,6 +62,8 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .inputInputTransformer = phev_service_jsonInputTransformer,
         .inputOutputTransformer = NULL, 
         .inputSplitter = phev_service_inputSplitter,
+        .inputAggregator = phev_service_jsonResponseAggregator,
+        .outputAggregator = phev_service_jsonResponseAggregator,
         .outputSplitter = phev_pipe_outputSplitter,
         .outputFilter = phev_service_outputFilter,
         .inputResponder = NULL,
@@ -351,7 +353,7 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
     
     output = cJSON_Print(out); 
 
-    message_t * outputMessage = msg_utils_createMsg((uint8_t *) output, strlen(output));
+    message_t * outputMessage = msg_utils_createMsg((uint8_t *) output, strlen(output)+1);
     LOG_BUFFER_HEXDUMP(APP_TAG,outputMessage->data,outputMessage->length,LOG_DEBUG);
     cJSON_Delete(response);
 
@@ -400,4 +402,21 @@ char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
 void phev_service_loop(phevServiceCtx_t * ctx)
 {
     phev_pipe_loop(ctx->pipe);
+}
+
+message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle)
+{
+    cJSON * out = cJSON_CreateObject();
+    
+    for(int i=0;i<bundle->numMessages;i++)
+    {
+        cJSON * next = cJSON_Parse(bundle->messages[i]->data);
+
+        cJSON_AddItemToObject(out,next->child->string,next->child);
+    }
+    
+    char * str = cJSON_Print(out);
+    message_t * message = msg_utils_createMsg(str,strlen(str)+1);
+
+    return message;
 }

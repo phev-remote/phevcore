@@ -107,7 +107,7 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
     if(phev_core_validate_buffer(data, len) != 0)
     {
         
-        message_t * message = msg_utils_createMsg(data,len);
+        message_t * message = msg_utils_createMsg(data,data[1] + 2);
 
         LOG_V(APP_TAG,"END - extractMessage");
     

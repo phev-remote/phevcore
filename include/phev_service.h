@@ -41,4 +41,5 @@ char * phev_service_statusAsJson(phevServiceCtx_t * ctx);
 bool phev_service_outputFilter(void *ctx, message_t * message);
 messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message);
 void phev_service_loop(phevServiceCtx_t * ctx);
+message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle);
 #endif

@@ -770,7 +770,7 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
 
     TEST_ASSERT_NOT_NULL(test_phev_service_global_out_in_message);
     
-    printf("%s\n",test_phev_service_global_out_in_message);
+    printf("%s\n",test_phev_service_global_out_in_message->data);
     cJSON * json = cJSON_Parse(test_phev_service_global_out_in_message->data);
 
     TEST_ASSERT_NOT_NULL(json);
@@ -785,5 +785,57 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
         i++;
     }
     TEST_ASSERT_EQUAL(2,i);
+
+}
+void test_phev_service_jsonResponseAggregator(void)
+{
+    const char * msg1 = "{ \"updatedRegister\": {\"register\": 4, \"length\": 1,\"data\": [2] } }";
+    const char * msg2 = "{ \"updatedRegister\": {\"register\": 5, \"length\": 2,\"data\": [5,2] } }";
+
+    message_t * message1 = msg_utils_createMsg(msg1, strlen(msg1));
+    message_t * message2 = msg_utils_createMsg(msg2, strlen(msg2));
+    
+    messageBundle_t * bundle = malloc(sizeof(messageBundle_t));
+
+    bundle->numMessages = 2;
+    bundle->messages[0] = message1;
+    bundle->messages[1] = message2;
+
+    message_t * out = phev_service_jsonResponseAggregator(NULL,bundle);
+
+    TEST_ASSERT_NOT_NULL(out);
+
+    cJSON * json = cJSON_Parse(out->data);
+
+    TEST_ASSERT_NOT_NULL(json);
+    cJSON * item = NULL;
+    int i = 0;
+    cJSON_ArrayForEach(item, json)
+    {
+        TEST_ASSERT_NOT_NULL(item);
+        TEST_ASSERT_EQUAL_STRING("updatedRegister",item->string);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(2,i);
+    
+}
+void test_phev_service_init_settings(void)
+{
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+
+    TEST_ASSERT_NULL(ctx->pipe->pipe->in_chain->aggregator);
+    TEST_ASSERT_NOT_NULL(ctx->pipe->pipe->out_chain->aggregator);
 
 }

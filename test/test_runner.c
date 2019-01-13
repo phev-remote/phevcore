@@ -81,8 +81,7 @@ int main()
     RUN_TEST(test_phev_pipe_registerEventHandler);
     RUN_TEST(test_phev_pipe_register_multiple_registerEventHandlers);
     RUN_TEST(test_phev_pipe_createRegisterEvent_ack);
-    RUN_TEST(test_phev_pipe_createRegisterEvent_update);
-    
+    RUN_TEST(test_phev_pipe_createRegisterEvent_update);    
 
 // PHEV SERVICE
 
@@ -127,9 +126,11 @@ int main()
     RUN_TEST(test_phev_service_inputSplitter_two_messages_num_messages);
     RUN_TEST(test_phev_service_inputSplitter_two_messages_first);
     RUN_TEST(test_phev_service_inputSplitter_two_messages_second);
-    RUN_TEST(test_phev_service_end_to_end_operations);
+//    RUN_TEST(test_phev_service_end_to_end_operations);
     RUN_TEST(test_phev_service_end_to_end_updated_register);
     RUN_TEST(test_phev_service_end_to_end_multiple_updated_registers);
+    RUN_TEST(test_phev_service_jsonResponseAggregator);
+    RUN_TEST(test_phev_service_init_settings);
 
 //  PHEV_MODEL
 
@@ -141,5 +142,6 @@ int main()
     RUN_TEST(test_phev_model_register_compare);
     RUN_TEST(test_phev_model_register_compare_not_same);
     RUN_TEST(test_phev_model_compare_not_set);
+
     return UNITY_END();
 }
