@@ -736,12 +736,22 @@ void test_phev_service_end_to_end_updated_register(void)
     
     cJSON * json = cJSON_Parse(test_phev_service_global_out_in_message->data);
 
-    TEST_ASSERT_NOT_NULL(json);
+    TEST_ASSERT_NOT_NULL_MESSAGE(json,"Invalid json");
 
-    cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(json,"updatedRegister");
+    cJSON * responses = cJSON_GetObjectItemCaseSensitive(json,"responses");
 
-    TEST_ASSERT_NOT_NULL(updatedRegister);
-
+    cJSON * item = NULL;
+    TEST_ASSERT_NOT_NULL_MESSAGE(responses,"Responses");
+    int i=0;
+    cJSON_ArrayForEach(item, responses)
+    {
+        TEST_ASSERT_NOT_NULL_MESSAGE(item,"No array items");
+        cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(item,"updatedRegister");
+        TEST_ASSERT_NOT_NULL(updatedRegister);
+        i++;
+    }
+ 
+    TEST_ASSERT_EQUAL(1,i);
 }
 void test_phev_service_end_to_end_multiple_updated_registers(void)
 {
@@ -770,18 +780,21 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
 
     TEST_ASSERT_NOT_NULL(test_phev_service_global_out_in_message);
     
-    printf("%s\n",test_phev_service_global_out_in_message->data);
     cJSON * json = cJSON_Parse(test_phev_service_global_out_in_message->data);
 
-    TEST_ASSERT_NOT_NULL(json);
+    TEST_ASSERT_NOT_NULL_MESSAGE(json,"json");
+
+    cJSON * responses = cJSON_GetObjectItemCaseSensitive(json,"responses");
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(responses,"Checking responses");
 
     int i = 0;
     
     cJSON * item = NULL;
 
-    cJSON_ArrayForEach(item, json)
+    cJSON_ArrayForEach(item, responses)
     {
-        TEST_ASSERT_NOT_NULL(item);
+        TEST_ASSERT_NOT_NULL_MESSAGE(item,"No array items");
         i++;
     }
     TEST_ASSERT_EQUAL(2,i);
@@ -808,12 +821,17 @@ void test_phev_service_jsonResponseAggregator(void)
     cJSON * json = cJSON_Parse(out->data);
 
     TEST_ASSERT_NOT_NULL(json);
+    
+    cJSON * responses = cJSON_GetObjectItemCaseSensitive(json,"responses");
+
+    TEST_ASSERT_NOT_NULL(responses);
+
     cJSON * item = NULL;
     int i = 0;
-    cJSON_ArrayForEach(item, json)
+    cJSON_ArrayForEach(item, responses)
     {
         TEST_ASSERT_NOT_NULL(item);
-        TEST_ASSERT_EQUAL_STRING("updatedRegister",item->string);
+        TEST_ASSERT_EQUAL_STRING("updatedRegister",item->child->string);
         i++;
     }
     TEST_ASSERT_EQUAL(2,i);

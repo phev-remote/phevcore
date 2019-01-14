@@ -407,12 +407,16 @@ void phev_service_loop(phevServiceCtx_t * ctx)
 message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle)
 {
     cJSON * out = cJSON_CreateObject();
+
+    cJSON * responses = cJSON_CreateArray();
+    
+    cJSON_AddItemToObject(out, "responses", responses);
     
     for(int i=0;i<bundle->numMessages;i++)
     {
         cJSON * next = cJSON_Parse(bundle->messages[i]->data);
 
-        cJSON_AddItemToObject(out,next->child->string,next->child);
+        cJSON_AddItemToArray(responses, next);
     }
     
     char * str = cJSON_Print(out);
