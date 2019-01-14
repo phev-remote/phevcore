@@ -23,12 +23,24 @@ messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
 
     cJSON * json = cJSON_Parse(message->data);
 
-    cJSON_ArrayForEach(command, json)
-    {   
-        cJSON * operation = cJSON_CreateObject();
-        cJSON_AddItemToObject(operation,PHEV_SERVICE_OPERATION_JSON,command);
-        const char * out = cJSON_Print(operation);
+    if(!json)
+    {
+        LOG_W(APP_TAG,"Not valid JSON");
+        return NULL;
+    }
 
+    cJSON * requests = cJSON_GetObjectItemCaseSensitive(json,"requests");
+
+    if(!requests)
+    {
+        LOG_W(APP_TAG,"Not valid JSON requests");
+        return NULL;
+    }
+    
+    
+    cJSON_ArrayForEach(command, requests)
+    {   
+        const char * out = cJSON_Print(command);
         messages->messages[messages->numMessages++] = msg_utils_createMsg(out,strlen(out)+1);
     }
 
@@ -411,7 +423,7 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
     cJSON * responses = cJSON_CreateArray();
     
     cJSON_AddItemToObject(out, "responses", responses);
-    
+
     for(int i=0;i<bundle->numMessages;i++)
     {
         cJSON * next = cJSON_Parse(bundle->messages[i]->data);

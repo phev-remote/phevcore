@@ -295,10 +295,17 @@ void test_phev_service_jsonOutputTransformer_updated_register_length(void)
     TEST_ASSERT_NOT_NULL(out);
     
     const cJSON * outputedJson = cJSON_Parse(out->data);
+    
+    TEST_ASSERT_NOT_NULL(outputedJson);
+
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    
+    TEST_ASSERT_NOT_NULL(updatedRegister);
+    
     const cJSON * length = cJSON_GetObjectItemCaseSensitive(updatedRegister,"length");
 
     TEST_ASSERT_NOT_NULL(length);
+
     TEST_ASSERT_EQUAL(1,length->valueint);
     
 }
@@ -312,7 +319,13 @@ void test_phev_service_jsonOutputTransformer_updated_register_data(void)
     
     const cJSON * item = NULL;
     const cJSON * outputedJson = cJSON_Parse(out->data);
+
+    TEST_ASSERT_NOT_NULL(outputedJson);
+    
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    
+    TEST_ASSERT_NOT_NULL(updatedRegister);
+    
     const cJSON * data = cJSON_GetObjectItemCaseSensitive(updatedRegister,"data");
 
     int i = 0;
@@ -338,11 +351,18 @@ void test_phev_service_jsonOutputTransformer_updated_register_data_multiple_item
     
     const cJSON * item = NULL;
     const cJSON * outputedJson = cJSON_Parse(out->data);
+
+    TEST_ASSERT_NOT_NULL(outputedJson);
+    
     const cJSON * updatedRegister = cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister");
+    
+    TEST_ASSERT_NOT_NULL(updatedRegister);
+
     const cJSON * data = cJSON_GetObjectItemCaseSensitive(updatedRegister,"data");
     int i = 0;
 
     TEST_ASSERT_NOT_NULL(data);
+    
     cJSON_ArrayForEach(item, data)
     {
         TEST_ASSERT_NOT_NULL(item);
@@ -374,7 +394,13 @@ void test_phev_service_jsonOutputTransformer_updated_register_ack_register(void)
     TEST_ASSERT_NOT_NULL(out);
     
     const cJSON * outputedJson = cJSON_Parse(out->data);
+    
+    TEST_ASSERT_NOT_NULL(outputedJson);
+    
     const cJSON * updatedRegisterAck = cJSON_GetObjectItemCaseSensitive(outputedJson,"updateRegisterAck");
+    
+    TEST_ASSERT_NOT_NULL(updatedRegisterAck);
+    
     const cJSON * reg = cJSON_GetObjectItemCaseSensitive(updatedRegisterAck,"register");
 
     TEST_ASSERT_NOT_NULL(reg);
@@ -642,7 +668,7 @@ void test_phev_service_outputFilter_change(void)
 }
 void test_phev_service_inputSplitter_not_null(void)
 {
-    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+    const char * commands = "{ \"requests\" : [{ \"operation\" :  { \"airCon\" : \"on\" } }, {\"operation\" :  { \"airCon\" : \"off\" } } ] }";
 
     messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
 
@@ -650,19 +676,26 @@ void test_phev_service_inputSplitter_not_null(void)
 }
 void test_phev_service_inputSplitter_two_messages_num_messages(void)
 {
-    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+    const char * commands = "{ \"requests\" : [{ \"operation\" :  { \"airCon\" : \"on\" } }, { \"operation\" :  { \"airCon\" : \"off\" } } ] }";
 
     messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
 
+    TEST_ASSERT_NOT_NULL(messages);
     TEST_ASSERT_EQUAL(2,messages->numMessages);
 }
 void test_phev_service_inputSplitter_two_messages_first(void)
 {
-    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+    const char * commands = "{ \"requests\" : [{ \"operation\" :  { \"airCon\" : \"on\" } }, { \"operation\" :  { \"airCon\" : \"off\" } } ] }";
 
     messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
     
+    TEST_ASSERT_NOT_NULL(messages);
+    TEST_ASSERT_EQUAL(2,messages->numMessages);
+    
     cJSON * msg = cJSON_Parse(messages->messages[0]->data);
+    
+    TEST_ASSERT_NOT_NULL(msg);
+    
     cJSON * operation = cJSON_GetObjectItemCaseSensitive(msg,"operation");
     
     TEST_ASSERT_NOT_NULL(msg);
@@ -670,19 +703,24 @@ void test_phev_service_inputSplitter_two_messages_first(void)
     }
 void test_phev_service_inputSplitter_two_messages_second(void)
 {
-    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"airCon\" : \"off\" } }";
+    const char * commands = "{ \"requests\": [{ \"operation\" :  { \"airCon\" : \"on\" } }, {\"operation\" :  { \"airCon\" : \"off\" } } ] }";
 
     messageBundle_t * messages = phev_service_inputSplitter(NULL, msg_utils_createMsg(commands, strlen(commands)));
 
-    cJSON * msg = cJSON_Parse(messages->messages[1]->data);
-    cJSON * operation = cJSON_GetObjectItemCaseSensitive(msg,"operation");
+    TEST_ASSERT_NOT_NULL(messages);
+    TEST_ASSERT_EQUAL(2,messages->numMessages);
 
+    cJSON * msg = cJSON_Parse(messages->messages[1]->data);
+
+    TEST_ASSERT_NOT_NULL(msg);
+    cJSON * operation = cJSON_GetObjectItemCaseSensitive(msg,"operation");
+    
     TEST_ASSERT_NOT_NULL(msg);
     TEST_ASSERT_NOT_NULL(operation);
 }
 void test_phev_service_end_to_end_operations(void)
 {
-    const char * commands = "{ \"operation\" :  { \"airCon\" : \"on\" }, \"operation\" :  { \"headLights\" : \"off\" } }";
+    const char * commands = "{ \"requests\": [{ \"operation\" :  { \"airCon\" : \"on\" } }, { \"operation\" :  { \"headLights\" : \"off\" } } ] }";
     
     const uint8_t expected[] = {0xf6,0x04,0x00,0x04,0x02,0x00,0xf6,0x04,0x00,0x0a,0x02,0x06};
 
