@@ -963,3 +963,52 @@ void test_phev_service_register_complete_called(void)
     TEST_ASSERT_NOT_NULL(regCtx);
     TEST_ASSERT_EQUAL(1, test_phev_service_complete_callback_called);
 }
+void test_phev_service_complete_resets_transfomers_callback(phevRegisterCtx_t * ctx)
+{
+    test_phev_service_complete_callback_called ++;
+}
+
+void test_phev_service_register_complete_resets_transformers(void)
+{
+    test_phev_service_complete_callback_called = 0;
+    test_phev_service_global_in_in_message = NULL;
+    test_phev_service_global_out_in_message = NULL;
+
+    const uint8_t message[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
+
+    test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    const char mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_initForRegistration(in,out);
+
+    phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
+
+    regCtx->startAck = true;
+    regCtx->aaAck = true;
+    regCtx->registrationRequest = true;
+    regCtx->ecu = true;
+    regCtx->remoteSecurity = true;
+    regCtx->vin = strdup("1234");
+
+    phev_service_loop(ctx);
+
+    ctx = phev_service_resetPipeAfterRegistration(ctx);
+
+    TEST_ASSERT_NOT_NULL(ctx);
+    TEST_ASSERT_EQUAL(1, test_phev_service_complete_callback_called);
+    TEST_ASSERT_NOT_NULL(ctx->pipe->pipe->in_chain);
+    TEST_ASSERT_EQUAL(phev_service_jsonInputTransformer,ctx->pipe->pipe->in_chain->inputTransformer);
+    TEST_ASSERT_EQUAL(phev_service_jsonOutputTransformer, ctx->pipe->pipe->out_chain->outputTransformer);
+}

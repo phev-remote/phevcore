@@ -28,11 +28,13 @@
 typedef struct phevServiceCtx_t {
     phevModel_t * model;
     phev_pipe_ctx_t * pipe;
+    phevRegistrationComplete_t registrationCompleteCallback;
 } phevServiceCtx_t;
 
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);
 phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out);
 phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
+phevServiceCtx_t * phev_service_resetPipeAfterRegistration(phevServiceCtx_t * ctx);
 bool phev_service_validateCommand(const char * command);
 phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command);
 phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out);

@@ -16,6 +16,7 @@ typedef struct phevRegisterSettings_t {
     uint8_t mac[MAC_ADDR_SIZE];
     phevRegistrationComplete_t complete;
     phevErrorHandler_t errorHandler;
+    void * ctx;
 } phevRegisterSettings_t;
 
 typedef struct phevRegisterCtx_t {
@@ -31,6 +32,7 @@ typedef struct phevRegisterCtx_t {
     bool remoteSecurity;
     bool registrationAck;
     bool registrationComplete;
+    void * ctx;
         
 } phevRegisterCtx_t;
 
