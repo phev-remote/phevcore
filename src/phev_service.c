@@ -7,12 +7,65 @@
 
 const static char *APP_TAG = "PHEV_SERVICE";
 
+int phev_service_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
+{
+    switch(event->event) 
+    {
+        case PHEV_PIPE_AA_ACK: {
+            break;
+        }
+        default: {
+
+        }
+    }
+    return 0;
+}
+
+phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings)
+{
+    phevServiceCtx_t * ctx = NULL;
+
+    if(settings.registerDevice) 
+    {
+        ctx = phev_service_initForRegistration(settings.in,settings.out);
+    } else {
+        ctx = phev_service_init(settings.in,settings.out);    
+    }
+
+    ctx->yieldHandler = settings.yieldHandler;
+    ctx->exit = false;
+    memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
+    if(settings.eventHandler)
+    {
+        phev_pipe_registerEventHandler(ctx->pipe,settings.eventHandler);    
+    }
+    
+    phev_pipe_registerEventHandler(ctx->pipe,phev_service_eventHandler);
+
+    return ctx;
+}
+
+void phev_service_start(phevServiceCtx_t * ctx)
+{
+
+    phev_pipe_start(ctx->pipe,ctx->mac);
+
+    while(!ctx->exit)
+    {
+        phev_service_loop(ctx);
+        if(ctx->yieldHandler)
+        {
+            ctx->yieldHandler(ctx);
+        }
+    }
+}
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out)
 {
     phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
     
     ctx->model = phev_model_create();
-    ctx->pipe = phev_service_createPipe(in, out);
+    ctx->pipe = phev_service_createPipe(ctx, in, out);
+    ctx->pipe->ctx = ctx;
 
     return ctx;
 }
@@ -21,7 +74,7 @@ phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messa
     phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
     
     ctx->model = phev_model_create();
-    ctx->pipe = phev_service_createPipeRegister(in, out);
+    ctx->pipe = phev_service_createPipeRegister(ctx, in, out);
 
     return ctx;
 }
@@ -73,11 +126,12 @@ bool phev_service_outputFilter(void *ctx, message_t * message)
     
     return true;
 }
-phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_t *out)
+phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t * ctx, messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(APP_TAG, "START - createPipe");
 
     phev_pipe_settings_t settings = {
+        .ctx = ctx,
         .in = in,
         .out = out,
         .inputInputTransformer = phev_service_jsonInputTransformer,
@@ -94,17 +148,18 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .outputOutputTransformer = phev_service_jsonOutputTransformer,
     };
 
-    phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(settings);
 
     LOG_V(APP_TAG, "END - createPipe");
-    return ctx;
+    return pipe;
 }
 
-phev_pipe_ctx_t *phev_service_createPipeRegister(messagingClient_t *in, messagingClient_t *out)
+phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t * ctx, messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(APP_TAG, "START - createPipeRegister");
 
     phev_pipe_settings_t settings = {
+        .ctx = ctx,
         .in = in,
         .out = out,
         .inputInputTransformer = NULL,
@@ -121,10 +176,10 @@ phev_pipe_ctx_t *phev_service_createPipeRegister(messagingClient_t *in, messagin
         .outputOutputTransformer = phev_pipe_outputEventTransformer,
     };
 
-    phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(settings);
 
     LOG_V(APP_TAG, "END - createPipeRegister");
-    return ctx;
+    return pipe;
 }
 
 bool phev_service_checkByte(uint16_t num)
@@ -490,7 +545,7 @@ void phev_service_registrationCompleteCallback(phevRegisterCtx_t * ctx)
 
 phevServiceCtx_t * phev_service_resetPipeAfterRegistration(phevServiceCtx_t * ctx)
 {
-    phev_pipe_ctx_t * pipe = phev_service_createPipe(ctx->pipe->pipe->in,ctx->pipe->pipe->out);
+    phev_pipe_ctx_t * pipe = phev_service_createPipe(ctx,ctx->pipe->pipe->in,ctx->pipe->pipe->out);
     
     ctx->pipe = pipe;
     

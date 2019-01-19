@@ -191,7 +191,7 @@ void test_phev_service_createPipe(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx = phev_service_createPipe(in,out);
+    phev_pipe_ctx_t * ctx = phev_service_createPipe(NULL,in,out);
 
     TEST_ASSERT_NOT_NULL(ctx);
 }
@@ -1011,4 +1011,41 @@ void test_phev_service_register_complete_resets_transformers(void)
     TEST_ASSERT_NOT_NULL(ctx->pipe->pipe->in_chain);
     TEST_ASSERT_EQUAL(phev_service_jsonInputTransformer,ctx->pipe->pipe->in_chain->inputTransformer);
     TEST_ASSERT_EQUAL(phev_service_jsonOutputTransformer, ctx->pipe->pipe->out_chain->outputTransformer);
+}
+void test_phev_service_create(void)
+{
+    test_phev_service_complete_callback_called = 0;
+    test_phev_service_global_in_in_message = NULL;
+    test_phev_service_global_out_in_message = NULL;
+
+    const uint8_t message[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
+
+    test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    TEST_ASSERT_NOT_NULL(ctx);
 }
