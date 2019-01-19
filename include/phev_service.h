@@ -4,7 +4,7 @@
 #include "phev_core.h"
 #include "phev_pipe.h"
 #include "phev_model.h"
-#include "cJSON.h"
+#include "phev_register.h"
 
 #define PHEV_SERVICE_UPDATE_REGISTER_JSON "updateRegister"
 #define PHEV_SERVICE_OPERATION_JSON "operation"
@@ -31,9 +31,12 @@ typedef struct phevServiceCtx_t {
 } phevServiceCtx_t;
 
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);
+phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out);
+phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
 bool phev_service_validateCommand(const char * command);
 phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command);
 phev_pipe_ctx_t * phev_service_createPipe(messagingClient_t * in, messagingClient_t * out);
+phev_pipe_ctx_t * phev_service_createPipeRegister(messagingClient_t * in, messagingClient_t * out);
 message_t * phev_service_jsonInputTransformer(void *, message_t *);
 message_t * phev_service_jsonOutputTransformer(void *, message_t *);
 int phev_service_getBatteryLevel(phevServiceCtx_t * ctx);

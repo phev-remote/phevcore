@@ -15,6 +15,14 @@ phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *o
 
     return ctx;
 }
+phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out)
+{
+    phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
+    ctx->model = NULL;
+    ctx->pipe = phev_service_createPipeRegister(in, out);
+
+    return ctx;
+}
 messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
 {
     messageBundle_t * messages = malloc(sizeof(messageBundle_t));
@@ -68,7 +76,6 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
     LOG_V(APP_TAG, "START - createPipe");
 
     phev_pipe_settings_t settings = {
-        .ctx = NULL,
         .in = in,
         .out = out,
         .inputInputTransformer = phev_service_jsonInputTransformer,
@@ -83,6 +90,33 @@ phev_pipe_ctx_t *phev_service_createPipe(messagingClient_t *in, messagingClient_
         .preConnectHook = NULL,
         .outputInputTransformer = phev_pipe_outputChainInputTransformer,
         .outputOutputTransformer = phev_service_jsonOutputTransformer,
+    };
+
+    phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
+
+    LOG_V(APP_TAG, "END - createPipe");
+    return ctx;
+}
+
+phev_pipe_ctx_t *phev_service_createPipeRegister(messagingClient_t *in, messagingClient_t *out)
+{
+    LOG_V(APP_TAG, "START - createPipe");
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputInputTransformer = NULL,
+        .inputOutputTransformer = NULL, 
+        .inputSplitter = NULL,
+        .inputAggregator = NULL,
+        .outputAggregator = NULL,
+        .outputSplitter = phev_pipe_outputSplitter,
+        .outputFilter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = phev_pipe_commandResponder,
+        .preConnectHook = NULL,
+        .outputInputTransformer = phev_pipe_outputChainInputTransformer,
+        .outputOutputTransformer = phev_pipe_outputEventTransformer,
     };
 
     phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
@@ -435,4 +469,25 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
     message_t * message = msg_utils_createMsg(str,strlen(str)+1);
 
     return message;
+}
+
+void phev_service_errorHandler(phevError_t * error)
+{
+
+}
+phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete)
+{
+    phevRegisterSettings_t settings = {
+        .pipe = ctx->pipe,
+        .complete = (phevRegistrationComplete_t) complete,
+        .errorHandler = (phevErrorHandler_t) phev_service_errorHandler,
+    };
+    
+    memcpy(&settings.mac, mac, 6);
+
+    phevRegisterCtx_t * regCtx = phev_register_init(settings);
+
+    //regCtx->pipe->pipe->out_chain->filter = NULL;
+    
+    return regCtx;
 }

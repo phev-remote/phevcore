@@ -131,6 +131,8 @@ int main()
     RUN_TEST(test_phev_service_end_to_end_multiple_updated_registers);
     RUN_TEST(test_phev_service_jsonResponseAggregator);
     RUN_TEST(test_phev_service_init_settings);
+    RUN_TEST(test_phev_service_register);
+    RUN_TEST(test_phev_service_register_complete_called);
 
 //  PHEV_MODEL
 
