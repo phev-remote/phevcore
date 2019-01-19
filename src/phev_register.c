@@ -83,7 +83,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             //phev_register_sendRegister(ctx);
             break;
         }
-        case PHEV_PIPE_AA_ACK: {
+        case PHEV_PIPE_CONNECTED: {
             LOG_I(TAG,"AA acknowledged");
             regCtx->aaAck = true;
             break;

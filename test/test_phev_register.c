@@ -137,7 +137,7 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
             test_register_start_ack ++;
             break;
         }
-        case PHEV_PIPE_AA_ACK: {
+        case PHEV_PIPE_CONNECTED: {
             test_register_aa_ack ++;
             break;
         }

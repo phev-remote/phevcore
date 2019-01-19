@@ -11,7 +11,7 @@ int phev_service_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
     switch(event->event) 
     {
-        case PHEV_PIPE_AA_ACK: {
+        case PHEV_PIPE_CONNECTED: {
             break;
         }
         default: {

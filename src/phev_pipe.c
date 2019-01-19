@@ -243,7 +243,7 @@ phevPipeEvent_t * phev_pipe_AAResponseEvent(void)
     LOG_V(APP_TAG,"START - AAResponseEvent");
     phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
 
-    event->event = PHEV_PIPE_AA_ACK,
+    event->event = PHEV_PIPE_CONNECTED,
     event->data =  NULL;
     event->length = 0;
     LOG_D(APP_TAG,"Created Event ID %d",event->event);
