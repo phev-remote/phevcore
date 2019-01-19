@@ -49,6 +49,7 @@ typedef struct phevServiceCtx_t {
 } phevServiceCtx_t;
 
 phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings);
+void phev_service_start(phevServiceCtx_t * ctx);
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);
 phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out);
 phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
