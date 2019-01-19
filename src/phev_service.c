@@ -111,7 +111,8 @@ messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
 }
 bool phev_service_outputFilter(void *ctx, message_t * message)
 {
-    phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
+    
+    phevServiceCtx_t * serviceCtx = ((phev_pipe_ctx_t *) ctx)->ctx;
 
     phevMessage_t phevMessage;
     
