@@ -240,7 +240,7 @@ void test_phev_service_jsonOutputTransformer_not_updated_register(void)
     phevServiceCtx_t * ctx = phev_service_init(in,out);
     phev_model_setRegister(ctx->model,10,data,1);
     
-    message_t * outmsg = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+    message_t * outmsg = phev_service_jsonOutputTransformer(ctx->pipe,msg_utils_createMsg(message, sizeof(message)));
 
     TEST_ASSERT_NULL(outmsg);
     
@@ -265,7 +265,7 @@ void test_phev_service_jsonOutputTransformer_has_updated_register(void)
     phevServiceCtx_t * ctx = phev_service_init(in,out);
     phev_model_setRegister(ctx->model,10,data,1);
     
-    message_t * outmsg = phev_service_jsonOutputTransformer(ctx,msg_utils_createMsg(message, sizeof(message)));
+    message_t * outmsg = phev_service_jsonOutputTransformer(ctx->pipe,msg_utils_createMsg(message, sizeof(message)));
 
     TEST_ASSERT_NOT_NULL(outmsg);
     
@@ -611,8 +611,7 @@ void test_phev_service_outputFilter(void)
 
     phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
     message_t * message = msg_utils_createMsg(data, sizeof(data));
-
-    bool outbool = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter(ctx->pipe, message);
 
     TEST_ASSERT_TRUE(outbool);
 }
@@ -637,7 +636,7 @@ void test_phev_service_outputFilter_no_change(void)
     
     phev_model_setRegister(ctx->model,10,data,1);
 
-    bool outbool = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter(ctx->pipe, message);
 
     TEST_ASSERT_FALSE(outbool);
 }
@@ -662,7 +661,7 @@ void test_phev_service_outputFilter_change(void)
     
     phev_model_setRegister(ctx->model,10,data,1);
 
-    bool outbool = phev_service_outputFilter((void *) ctx, message);
+    bool outbool = phev_service_outputFilter(ctx->pipe, message);
 
     TEST_ASSERT_TRUE(outbool);
 }

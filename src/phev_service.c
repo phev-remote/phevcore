@@ -404,14 +404,16 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - jsonOutputTransformer");
 
-    
-    phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx;
-    phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
+    phevServiceCtx_t * serviceCtx = NULL;
 
-    if(serviceCtx != NULL)
+    if(ctx != NULL)
     {
+        serviceCtx = ((phev_pipe_ctx_t *) ctx)->ctx;
+    
         phev_pipe_outputEventTransformer(serviceCtx->pipe, message);
+    
     }
+    phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
     
     phev_core_decodeMessage(message->data,message->length, phevMessage);
     char * output;
@@ -422,7 +424,7 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
         return NULL;
     }
     
-    if(ctx)
+    if(serviceCtx)
     {
         phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage->reg);
     
