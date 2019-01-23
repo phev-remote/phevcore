@@ -591,7 +591,7 @@ void test_phev_service_statusAsJson_has_battery_level_correct()
 
     cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
 
-    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "level");
+    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "soc");
 
     TEST_ASSERT_EQUAL(50,level->valueint);
 }

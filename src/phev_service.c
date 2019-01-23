@@ -493,7 +493,7 @@ char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
         if(battLevel >= 0)
         {
             cJSON * level = cJSON_CreateNumber((double) battLevel);
-            cJSON_AddItemToObject(battery, PHEV_SERVICE_BATTERY_LEVEL_JSON,level);
+            cJSON_AddItemToObject(battery, PHEV_SERVICE_BATTERY_SOC_JSON,level);
         }
         cJSON_AddItemToObject(status, PHEV_SERVICE_BATTERY_JSON,battery);
         cJSON_AddItemToObject(json, PHEV_SERVICE_STATUS_JSON,status);

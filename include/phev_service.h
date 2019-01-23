@@ -22,7 +22,7 @@
 
 #define PHEV_SERVICE_STATUS_JSON "status"
 #define PHEV_SERVICE_BATTERY_JSON "battery"
-#define PHEV_SERVICE_BATTERY_LEVEL_JSON "level"
+#define PHEV_SERVICE_BATTERY_SOC_JSON "soc"
 
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
