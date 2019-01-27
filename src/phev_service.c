@@ -84,7 +84,7 @@ messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
     messages->numMessages = 0;
     cJSON * command = NULL;
 
-    cJSON * json = cJSON_Parse(message->data);
+    cJSON * json = cJSON_Parse((char *) message->data);
 
     if(!json)
     {
@@ -104,7 +104,7 @@ messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
     cJSON_ArrayForEach(command, requests)
     {   
         const char * out = cJSON_Print(command);
-        messages->messages[messages->numMessages++] = msg_utils_createMsg(out,strlen(out)+1);
+        messages->messages[messages->numMessages++] = msg_utils_createMsg((uint8_t *) out,strlen(out)+1);
     }
 
     return messages;
@@ -324,12 +324,13 @@ phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)
     {
         return NULL;
     }
+    return NULL;
 }
 message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
     if (message)
     {
-        return phev_core_convertToMessage(phev_service_jsonCommandToPhevMessage(message->data));
+        return phev_core_convertToMessage(phev_service_jsonCommandToPhevMessage((char *) message->data));
     }
     return NULL;
 }
@@ -520,13 +521,13 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
 
     for(int i=0;i<bundle->numMessages;i++)
     {
-        cJSON * next = cJSON_Parse(bundle->messages[i]->data);
+        cJSON * next = cJSON_Parse((char *) bundle->messages[i]->data);
 
         cJSON_AddItemToArray(responses, next);
     }
     
     char * str = cJSON_Print(out);
-    message_t * message = msg_utils_createMsg(str,strlen(str)+1);
+    message_t * message = msg_utils_createMsg((uint8_t) str,strlen(str)+1);
 
     return message;
 }

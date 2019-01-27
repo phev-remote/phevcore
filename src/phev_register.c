@@ -133,4 +133,5 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
                 ((phevRegisterCtx_t *) ctx->ctx)->complete(regCtx);
         }
     }
+    return 0;
 }

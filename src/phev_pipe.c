@@ -140,7 +140,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     
     for(int i=0;i < PHEV_PIPE_MAX_UPDATE_CALLBACKS;i++)
     {
-            ctx->updateRegisterCallbacks->callbacks[i] == NULL;   
+        ctx->updateRegisterCallbacks->callbacks[i] = NULL;   
     } 
     ctx->connected = false;
     ctx->ctx = settings.ctx;
@@ -507,7 +507,7 @@ void phev_pipe_registerEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_
         {
             if(ctx->eventHandler[i] == NULL)
             {
-                LOG_D(APP_TAG,"Registered handler number %d",ctx->eventHandler[i]);
+                LOG_D(APP_TAG,"Registered handler");
                 ctx->eventHandler[ctx->eventHandlers++] = eventHandler;
                 return;
             }
@@ -528,7 +528,7 @@ void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandle
     {
         if(ctx->eventHandler[i] == eventHandler)
         {   
-            LOG_D(APP_TAG,"Deregistered handler number %d",ctx->eventHandler[i]);
+            LOG_D(APP_TAG,"Deregistered handler");
             ctx->eventHandler[i--] = NULL;
             return;
         }
@@ -646,8 +646,8 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t 
             if(ctx->updateRegisterCallbacks->callbacks[i] != NULL && ctx->updateRegisterCallbacks->registers[i] == ((phevMessage_t *) event->data)->reg)
             {
                 ctx->updateRegisterCallbacks->callbacks[i](ctx,ctx->updateRegisterCallbacks->registers[i]);
-                ctx->updateRegisterCallbacks->callbacks[i] == NULL;
-                ctx->updateRegisterCallbacks->registers[i] == 0;
+                ctx->updateRegisterCallbacks->callbacks[i] = NULL;
+                ctx->updateRegisterCallbacks->registers[i] = 0;
                 
                 ctx->updateRegisterCallbacks->numberOfCallbacks--;
             }

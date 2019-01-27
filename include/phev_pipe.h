@@ -36,6 +36,10 @@
         ts.tv_nsec = msecs % 1000 * 1000; \
         nanosleep(&ts, NULL);             \
     } while (0)
+#elif __XTENSA__
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#define SLEEP(msec) vTaskDelay(msec)
 #else
 #error "Unknown system"
 #endif
