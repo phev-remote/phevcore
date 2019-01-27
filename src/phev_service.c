@@ -23,6 +23,7 @@ int phev_service_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 
 phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings)
 {
+    LOG_V(APP_TAG, "START - create");
     phevServiceCtx_t * ctx = NULL;
 
     if(settings.registerDevice) 
@@ -41,13 +42,16 @@ phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings)
     }
     
     phev_pipe_registerEventHandler(ctx->pipe,phev_service_eventHandler);
-
+    
+    LOG_V(APP_TAG, "END - create");
+    
     return ctx;
 }
 
 void phev_service_start(phevServiceCtx_t * ctx)
 {
-
+    LOG_V(APP_TAG, "START - start");
+    
     phev_pipe_start(ctx->pipe,ctx->mac);
 
     while(!ctx->exit)
@@ -58,24 +62,33 @@ void phev_service_start(phevServiceCtx_t * ctx)
             ctx->yieldHandler(ctx);
         }
     }
+    LOG_V(APP_TAG, "END - start");
+    
 }
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out)
 {
+    LOG_V(APP_TAG, "START - init");
+    
     phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
     
     ctx->model = phev_model_create();
     ctx->pipe = phev_service_createPipe(ctx, in, out);
     ctx->pipe->ctx = ctx;
 
+    LOG_V(APP_TAG, "END - init");
+    
     return ctx;
 }
 phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out)
 {
+    LOG_V(APP_TAG, "START - initForRegistration");
     phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
     
     ctx->model = phev_model_create();
     ctx->pipe = phev_service_createPipeRegister(ctx, in, out);
 
+    LOG_V(APP_TAG, "END - initForRegistration");
+    
     return ctx;
 }
 messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
@@ -508,7 +521,12 @@ char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
 
 void phev_service_loop(phevServiceCtx_t * ctx)
 {
+    LOG_V(APP_TAG, "START - loop");
+    
     phev_pipe_loop(ctx->pipe);
+    
+    LOG_V(APP_TAG, "END - loop");
+    
 }
 
 message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle)
@@ -527,7 +545,7 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
     }
     
     char * str = cJSON_Print(out);
-    message_t * message = msg_utils_createMsg((uint8_t) str,strlen(str)+1);
+    message_t * message = msg_utils_createMsg((uint8_t *) str,strlen(str)+1);
 
     return message;
 }
