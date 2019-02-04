@@ -106,7 +106,7 @@ void phev_config_parseUpdateConfig(phevConfig_t * config, cJSON * update)
 }
 void phev_config_parseConnectionConfig(phevConfig_t * config, cJSON * connection)
 {
-    config->connectionConfig.host = phev_core_strdup(phev_config_getConfigString(connection, CONNECTION_CONFIG_HOST));
+    config->connectionConfig.host = strdup(phev_config_getConfigString(connection, CONNECTION_CONFIG_HOST));
     config->connectionConfig.port = phev_config_getConfigInt(connection, CONNECTION_CONFIG_PORT);
 
     strcpy(config->connectionConfig.carConnectionWifi.ssid, phev_config_getConfigString(connection, CONNECTION_CONFIG_SSID)); 
