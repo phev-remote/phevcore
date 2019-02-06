@@ -40,7 +40,7 @@ phevRegister_t * phev_model_getRegister(phevModel_t * model, uint8_t reg)
 int phev_model_compareRegister(phevModel_t * model, uint8_t reg , const uint8_t * data)
 {
     phevRegister_t * out = phev_model_getRegister(model,reg);
-    if(out)
+    if(out && data)
     {
         return memcmp(data,out->data,out->length);
     }

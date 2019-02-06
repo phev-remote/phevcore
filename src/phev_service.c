@@ -130,34 +130,34 @@ bool phev_service_outputFilter(void *ctx, message_t * message)
     
     phev_core_decodeMessage(message->data,message->length, &phevMessage);
 
-    LOG_I(APP_TAG,"Reg %d", phevMessage.reg);
+    LOG_D(APP_TAG,"Reg %d", phevMessage.reg);
     
     phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
     
     if(reg)
     {
-        LOG_I(APP_TAG,"Register aleady set");
+        LOG_D(APP_TAG,"Register aleady set");
         bool same = phev_model_compareRegister(serviceCtx->model,phevMessage.reg, phevMessage.data) != 0;
         if(!same) {
-            LOG_I(APP_TAG,"Setting Reg %d", phevMessage.reg);
+            LOG_D(APP_TAG,"Setting Reg %d", phevMessage.reg);
     
             phev_model_setRegister(serviceCtx->model,phevMessage.reg,phevMessage.data,phevMessage.length);
 
             reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
-            LOG_I(APP_TAG,"Comp Set Reg %d", phevMessage.reg);
+            LOG_D(APP_TAG,"Comp Set Reg %d", phevMessage.reg);
     
         }
-        LOG_I(APP_TAG,"Is same %d", same);
+        LOG_D(APP_TAG,"Is same %d", same);
 
         return !same;
     }
-    LOG_I(APP_TAG,"Setting Reg %d", phevMessage.reg);
+    LOG_D(APP_TAG,"Setting Reg %d", phevMessage.reg);
     
     phev_model_setRegister(serviceCtx->model,phevMessage.reg,phevMessage.data,phevMessage.length);
     
     reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
     
-    LOG_I(APP_TAG,"Set Reg %d", phevMessage.reg);
+    LOG_D(APP_TAG,"Set Reg %d", phevMessage.reg);
     
     return true;
 }
@@ -310,10 +310,14 @@ phevMessage_t *phev_service_operationHandler(cJSON *operation)
     {
         if (strcmp(headLights->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
+            LOG_D(APP_TAG,"Sending head lights on command");
+            
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 1);
         }
         if (strcmp(headLights->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
         {
+            LOG_D(APP_TAG,"Sending head lights off command");
+            
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 2);
         }
         return NULL;
@@ -325,10 +329,13 @@ phevMessage_t *phev_service_operationHandler(cJSON *operation)
     {
         if (strcmp(airCon->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
+            LOG_I(APP_TAG,"Sending air con on command");
+            
             return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 2);
         }
         if (strcmp(airCon->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
         {
+            LOG_I(APP_TAG,"Sending air con off command");
             return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 1);
         }
         return NULL;
