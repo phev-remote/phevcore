@@ -219,7 +219,7 @@ void test_phev_service_jsonOutputTransformer_updated_register(void)
     TEST_ASSERT_NOT_NULL(outputedJson);
     TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(outputedJson,"updatedRegister"));
     
-}
+} // Filter now does this
 void test_phev_service_jsonOutputTransformer_not_updated_register(void)
 {
     const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
@@ -244,7 +244,7 @@ void test_phev_service_jsonOutputTransformer_not_updated_register(void)
 
     TEST_ASSERT_NULL(outmsg);
     
-}
+} 
 void test_phev_service_jsonOutputTransformer_has_updated_register(void)
 {
     const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x02,0x05};
@@ -629,7 +629,8 @@ void test_phev_service_outputFilter_no_change(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
     const uint8_t data[] = {1};

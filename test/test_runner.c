@@ -109,7 +109,7 @@ int main()
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
     RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_not_updated_register);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_not_updated_register);
     RUN_TEST(test_phev_service_jsonOutputTransformer_has_updated_register);
     RUN_TEST(test_phev_service_init);
     RUN_TEST(test_phev_service_get_battery_level);

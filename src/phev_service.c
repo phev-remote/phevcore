@@ -137,19 +137,20 @@ bool phev_service_outputFilter(void *ctx, message_t * message)
     if(reg)
     {
         LOG_D(APP_TAG,"Register aleady set");
-        bool same = phev_model_compareRegister(serviceCtx->model,phevMessage.reg, phevMessage.data) != 0;
-        if(!same) {
+        int same = phev_model_compareRegister(serviceCtx->model,phevMessage.reg, phevMessage.data) != 0;
+        if(same != 0) {
             LOG_D(APP_TAG,"Setting Reg %d", phevMessage.reg);
     
             phev_model_setRegister(serviceCtx->model,phevMessage.reg,phevMessage.data,phevMessage.length);
 
             reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
             LOG_D(APP_TAG,"Comp Set Reg %d", phevMessage.reg);
+            return true;
     
         }
         LOG_D(APP_TAG,"Is same %d", same);
 
-        return !same;
+        return false;
     }
     LOG_D(APP_TAG,"Setting Reg %d", phevMessage.reg);
     
@@ -465,7 +466,7 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
     {
         return NULL;
     }
-    
+    /*  DONT THINK WE NEED THIS AS FILTER NOW IMPLEMENTED
     if(serviceCtx)
     {
         phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage->reg);
@@ -480,7 +481,7 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
             }
         }
     }
-    
+    */
     cJSON * response = cJSON_CreateObject();
     if(response == NULL) 
     {
