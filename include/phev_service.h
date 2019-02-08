@@ -66,4 +66,8 @@ bool phev_service_outputFilter(void *ctx, message_t * message);
 messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message);
 void phev_service_loop(phevServiceCtx_t * ctx);
 message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle);
+
+phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const uint8_t reg);
+void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length);
+
 #endif

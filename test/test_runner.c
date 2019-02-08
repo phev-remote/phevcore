@@ -135,6 +135,9 @@ int main()
     RUN_TEST(test_phev_service_register_complete_called);
     RUN_TEST(test_phev_service_register_complete_resets_transformers);
     RUN_TEST(test_phev_service_create);
+    RUN_TEST(test_phev_service_getRegister);
+    RUN_TEST(test_phev_service_setRegister);
+    
 
 //  PHEV_MODEL
 

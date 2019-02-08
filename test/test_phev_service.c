@@ -1049,3 +1049,85 @@ void test_phev_service_create(void)
 
     TEST_ASSERT_NOT_NULL(ctx);
 }
+
+void test_phev_service_getRegister(void)
+{
+    const uint8_t expectedData[] = {1,2,3,4,5,6};
+    uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    ctx->model->registers[1] = malloc(sizeof(phevRegister_t) + sizeof(expectedData));
+    ctx->model->registers[1]->length = sizeof(expectedData);
+    memcpy(ctx->model->registers[1]->data,expectedData,sizeof(expectedData));
+
+    TEST_ASSERT_NOT_NULL(ctx);
+
+    phevRegister_t * reg = phev_service_getRegister(ctx, 1);
+
+    TEST_ASSERT_NOT_NULL(reg);
+
+    TEST_ASSERT_EQUAL_MEMORY(expectedData, reg->data, sizeof(expectedData));
+}
+void test_phev_service_setRegister(void)
+{
+    const uint8_t expectedData[] = {1,2,3,4,5,6};
+    uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    TEST_ASSERT_NOT_NULL(ctx);
+
+    phev_service_setRegister(ctx,2,expectedData,sizeof(expectedData));
+
+    phevRegister_t * reg = phev_service_getRegister(ctx, 2);
+
+    TEST_ASSERT_NOT_NULL(reg);
+
+    TEST_ASSERT_EQUAL_MEMORY(expectedData, ctx->model->registers[2]->data, sizeof(expectedData));
+    
+}
