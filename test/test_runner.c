@@ -141,6 +141,7 @@ int main()
     RUN_TEST(test_phev_service_create);
     RUN_TEST(test_phev_service_getRegister);
     RUN_TEST(test_phev_service_setRegister);
+    RUN_TEST(test_phev_service_getRegisterJson);
     
 
 //  PHEV_MODEL

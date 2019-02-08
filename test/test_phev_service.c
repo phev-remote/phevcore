@@ -1212,3 +1212,45 @@ void test_phev_service_setRegister(void)
     TEST_ASSERT_EQUAL_MEMORY(expectedData, ctx->model->registers[2]->data, sizeof(expectedData));
     
 }
+void test_phev_service_getRegisterJson(void)
+{
+    const uint8_t data[] = {0,1,2,3,4};
+    const char * expectedJson = "{ \"register\" : 1, \"data\" : [0,1,2,3,4] }";
+    uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    ctx->model->registers[1] = malloc(sizeof(phevRegister_t) + sizeof(data));
+    ctx->model->registers[1]->length = sizeof(data);
+    memcpy(ctx->model->registers[1]->data,data,sizeof(data));
+
+    TEST_ASSERT_NOT_NULL(ctx);
+
+    char * out = phev_service_getRegisterJson(ctx, 1);
+
+    TEST_ASSERT_NOT_NULL(out);
+
+    TEST_ASSERT_EQUAL_STRING(expectedJson, out, strlen(expectedJson));
+}
