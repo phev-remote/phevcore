@@ -401,6 +401,7 @@ phevMessage_t *phev_service_updateRegisterHandler(cJSON * update)
             return phev_core_simpleRequestCommandMessage(reg->valueint & 0xff, value->valueint & 0xff);
         }
     }
+    return NULL;
 }
 phevMessage_t *phev_service_operationHandler(cJSON *operation)
 {
