@@ -1215,7 +1215,7 @@ void test_phev_service_setRegister(void)
 void test_phev_service_getRegisterJson(void)
 {
     const uint8_t data[] = {0,1,2,3,4};
-    const char * expectedJson = "{ \"register\" : 1, \"data\" : [0,1,2,3,4] }";
+    const char * expectedJson = "{\"register\":1,\"data\":[0,1,2,3,4]}";
     uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
 
     messagingSettings_t inSettings = {
@@ -1248,9 +1248,9 @@ void test_phev_service_getRegisterJson(void)
 
     TEST_ASSERT_NOT_NULL(ctx);
 
-    char * out = phev_service_getRegisterJson(ctx, 1);
+    char * json = phev_service_getRegisterJson(ctx, 1);
 
-    TEST_ASSERT_NOT_NULL(out);
+    TEST_ASSERT_NOT_NULL(json);
 
-    TEST_ASSERT_EQUAL_STRING(expectedJson, out, strlen(expectedJson));
+    TEST_ASSERT_EQUAL_STRING(expectedJson, json);
 }

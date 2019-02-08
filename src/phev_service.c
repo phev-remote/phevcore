@@ -748,6 +748,36 @@ phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const ui
     LOG_V(TAG, "END - getRegister");
     return out;
 }
+char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg)
+{
+    LOG_V(TAG, "START - getRegisterJson");
+    cJSON * json = NULL;
+    phevRegister_t * out = phev_model_getRegister(ctx->model,reg);
+
+    if(out == NULL)
+    {
+        LOG_D(TAG,"getRegister - register not found");
+        return NULL;
+    }
+
+    json = cJSON_CreateObject();
+    cJSON * regJson = cJSON_CreateNumber((double) reg);
+    cJSON * data = cJSON_CreateArray();
+
+    for(int i=0;i<out->length;i++)
+    {
+        cJSON * item = cJSON_CreateNumber(out->data[i]);
+        cJSON_AddItemToArray(data,item);
+    }
+
+    cJSON_AddItemToObject(json,PHEV_SERVICE_REGISTER_JSON,regJson);
+    cJSON_AddItemToObject(json,PHEV_SERVICE_REGISTER_DATA_JSON,data);
+    
+    char * ret = cJSON_PrintUnformatted(json);
+
+    LOG_V(TAG, "END - getRegisterJson");
+    return ret;
+}
 void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length)
 {
     LOG_V(TAG, "START - setRegister");

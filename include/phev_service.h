@@ -24,6 +24,10 @@
 #define PHEV_SERVICE_BATTERY_JSON "battery"
 #define PHEV_SERVICE_BATTERY_SOC_JSON "soc"
 
+#define PHEV_SERVICE_REGISTER_JSON "register"
+#define PHEV_SERVICE_REGISTER_DATA_JSON "data"
+
+
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
 typedef void (* phev_service_yieldHandler_t)(phevServiceCtx_t *);
@@ -69,5 +73,6 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
 
 phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const uint8_t reg);
 void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length);
+char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg);
 
 #endif
