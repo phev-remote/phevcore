@@ -226,13 +226,40 @@ uint8_t phev_service_getJsonByte(cJSON *json, char *option)
 {
     cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
 
-    if (value != NULL)
+    if (value != NULL && cJSON_IsNumber(value))
     {
         return ((uint8_t)value->valueint) & 0xff;
     }
     return 0;
 }
+uint8_t * phev_service_getJsonByteArray(cJSON *json, char *option, uint8_t ** data)
+{
+    cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
 
+    if(value)
+    {
+        if(cJSON_IsArray(value))
+        {
+            return NULL;
+        } else {
+            if(cJSON_IsNumber(value))
+            {
+                if(phev_service_checkByte(value->valueint))
+                {
+                    *data = malloc(1);
+                    *data[0] = value->valueint;
+                    return *data;
+                }
+                else {
+                    return NULL;
+                }    
+            } else {
+                return NULL;
+            } 
+        }
+    }
+    return NULL;
+}
 uint16_t phev_service_getJsonInt(cJSON *json, char *option)
 {
     cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
@@ -281,7 +308,30 @@ bool phev_service_validateCommand(const char *command)
 
         if (value != NULL && reg != NULL)
         {
-            return phev_service_checkByte(reg->valueint) && phev_service_checkByte(value->valueint);
+            if(phev_service_checkByte(reg->valueint) == false)
+            {
+                return false;
+            }
+            if(cJSON_IsArray(value))
+            {
+                cJSON * val = NULL;
+                cJSON_ArrayForEach(val, value)
+                {
+                    if(cJSON_IsNumber(val))
+                    {
+                        if(phev_service_checkByte(val->valueint) == false)
+                        {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return phev_service_checkByte(value->valueint);
+            }
+            
         }
     }
 
@@ -302,6 +352,55 @@ bool phev_service_validateCommand(const char *command)
     }
 
     return false;
+}
+phevMessage_t *phev_service_updateRegisterHandler(cJSON * update)
+{
+    if(update == NULL)
+    {
+        LOG_W(TAG,"Update register called with null json object");
+        return NULL;
+    }
+    cJSON *reg = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON);
+    cJSON *value = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON);
+
+    if(!reg)
+    {   
+        LOG_W(TAG,"Register not in update request");
+        return NULL;
+    }
+    if(!value)
+    {   
+        LOG_W(TAG,"Value not in update request");
+        return NULL;
+    }
+    if(cJSON_IsArray(value))
+    {
+        //printf("Is array");
+        cJSON * val = NULL;
+        size_t size = cJSON_GetArraySize(value);
+        uint8_t * data = malloc(size);
+        int i = 0;
+        cJSON_ArrayForEach(val,value)
+        {
+            if(cJSON_IsNumber(val))
+            {
+                //printf("Is number %d\n",val->valueint);
+        
+                data[i++] = val->valueint;
+                //printf("\nData %d\n",data[i-1]);
+            } else {
+                LOG_W(TAG,"Update register has invalid value");
+                return NULL;
+            }   
+        }
+    
+        return phev_core_commandMessage(reg->valueint,data,size);
+    } else {
+        if(cJSON_IsNumber(value))
+        {
+            return phev_core_simpleRequestCommandMessage(reg->valueint & 0xff, value->valueint & 0xff);
+        }
+    }
 }
 phevMessage_t *phev_service_operationHandler(cJSON *operation)
 {
@@ -355,7 +454,7 @@ phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)
 
         if (update)
         {
-            return phev_core_simpleRequestCommandMessage(phev_service_getJsonByte(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON), phev_service_getJsonByte(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON));
+            return phev_service_updateRegisterHandler(update);
         }
         if (operation)
         {
@@ -372,7 +471,15 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
     if (message)
     {
-        return phev_core_convertToMessage(phev_service_jsonCommandToPhevMessage((char *) message->data));
+        phevMessage_t * phevMessage = phev_service_jsonCommandToPhevMessage((char *) message->data);
+        if(phevMessage) {
+            message_t * out = phev_core_convertToMessage(phevMessage);
+
+            if(out)
+            {
+                return out;
+            }    
+        }
     }
     return NULL;
 }

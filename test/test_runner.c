@@ -91,9 +91,13 @@ int main()
     RUN_TEST(test_phev_service_validateCommand_updateRegister_invalid);
     RUN_TEST(test_phev_service_validateCommand_updateRegister_valid);
     RUN_TEST(test_phev_service_validateCommand_updateRegister_multiple);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_data_array);
+    RUN_TEST(test_phev_service_validateCommand_updateRegister_data_array_invalid);
     RUN_TEST(test_phev_service_validateCommand_updateRegister_reg_out_of_range);
     RUN_TEST(test_phev_service_validateCommand_updateRegister_value_out_of_range);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_updateRegister);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_updateRegister_data_array);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_updateRegister_data_array_invalid);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOn);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOff);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
