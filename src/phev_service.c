@@ -49,7 +49,7 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
     
     if (settings.eventHandler)
     {
-        phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
+        //phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
     }
 
     phev_pipe_registerEventHandler(ctx->pipe, phev_service_eventHandler);
