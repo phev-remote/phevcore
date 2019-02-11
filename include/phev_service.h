@@ -30,7 +30,7 @@
 
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
-typedef void (* phev_service_yieldHandler_t)(phevServiceCtx_t *);
+typedef void (* phevServiceYieldHandler_t)(phevServiceCtx_t *);
 
 typedef struct phevServiceSettings_t {
     messagingClient_t * in;
@@ -39,7 +39,7 @@ typedef struct phevServiceSettings_t {
     phevPipeEventHandler_t eventHandler;
     phevErrorHandler_t errorHandler;
     bool registerDevice;
-    phev_service_yieldHandler_t yieldHandler;
+    phevServiceYieldHandler_t yieldHandler;
 
 } phevServiceSettings_t;
 
@@ -47,7 +47,7 @@ typedef struct phevServiceCtx_t {
     phevModel_t * model;
     phev_pipe_ctx_t * pipe;
     phevRegistrationComplete_t registrationCompleteCallback;
-    phev_service_yieldHandler_t yieldHandler;
+    phevServiceYieldHandler_t yieldHandler;
     uint8_t mac[6];
     bool exit;
 } phevServiceCtx_t;
@@ -70,7 +70,6 @@ bool phev_service_outputFilter(void *ctx, message_t * message);
 messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message);
 void phev_service_loop(phevServiceCtx_t * ctx);
 message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle);
-
 phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const uint8_t reg);
 void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length);
 char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg);

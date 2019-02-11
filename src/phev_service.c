@@ -7,162 +7,175 @@
 
 const static char *TAG = "PHEV_SERVICE";
 
-int phev_service_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
-{
-    switch(event->event) 
-    {
-        case PHEV_PIPE_CONNECTED: {
-            break;
-        }
-        default: {
+const static uint8_t * DEFAULT_MAC = {0,0,0,0,0,0};
 
-        }
+int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
+{
+    switch (event->event)
+    {
+    case PHEV_PIPE_CONNECTED:
+    {
+        break;
+    }
+    default:
+    {
+    }
     }
     return 0;
 }
 
-phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings)
+phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
 {
     LOG_V(TAG, "START - create");
-    phevServiceCtx_t * ctx = NULL;
+    phevServiceCtx_t *ctx = NULL;
 
-    if(settings.registerDevice) 
+    if (settings.registerDevice)
     {
-        ctx = phev_service_initForRegistration(settings.in,settings.out);
-    } else {
-        ctx = phev_service_init(settings.in,settings.out);    
+        ctx = phev_service_initForRegistration(settings.in, settings.out);
+    }
+    else
+    {
+        ctx = phev_service_init(settings.in, settings.out);
     }
 
     ctx->yieldHandler = settings.yieldHandler;
     ctx->exit = false;
-    memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
-    if(settings.eventHandler)
+    if(settings.mac)
     {
-        phev_pipe_registerEventHandler(ctx->pipe,settings.eventHandler);    
+        memcpy(&settings.mac, ctx->mac, 6);
+    } else {
+        memcpy(&settings.mac, DEFAULT_MAC, 6);
     }
     
-    phev_pipe_registerEventHandler(ctx->pipe,phev_service_eventHandler);
-    
+    if (settings.eventHandler)
+    {
+        phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
+    }
+
+    phev_pipe_registerEventHandler(ctx->pipe, phev_service_eventHandler);
+
     LOG_V(TAG, "END - create");
-    
+
     return ctx;
 }
 
-void phev_service_start(phevServiceCtx_t * ctx)
+void phev_service_start(phevServiceCtx_t *ctx)
 {
     LOG_V(TAG, "START - start");
-    
-    phev_pipe_start(ctx->pipe,ctx->mac);
 
-    while(!ctx->exit)
+    phev_pipe_start(ctx->pipe, ctx->mac);
+
+    while (!ctx->exit)
     {
         phev_service_loop(ctx);
-        if(ctx->yieldHandler)
+        if (ctx->yieldHandler)
         {
             ctx->yieldHandler(ctx);
         }
     }
     LOG_V(TAG, "END - start");
-    
 }
-phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out)
+phevServiceCtx_t *phev_service_init(messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(TAG, "START - init");
-    
-    phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
-    
+
+    phevServiceCtx_t *ctx = malloc(sizeof(phevServiceCtx_t));
+
     ctx->model = phev_model_create();
     ctx->pipe = phev_service_createPipe(ctx, in, out);
     ctx->pipe->ctx = ctx;
 
     LOG_V(TAG, "END - init");
-    
+
     return ctx;
 }
-phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out)
+phevServiceCtx_t *phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(TAG, "START - initForRegistration");
-    phevServiceCtx_t * ctx = malloc(sizeof(phevServiceCtx_t));
-    
+    phevServiceCtx_t *ctx = malloc(sizeof(phevServiceCtx_t));
+
     ctx->model = phev_model_create();
     ctx->pipe = phev_service_createPipeRegister(ctx, in, out);
 
     LOG_V(TAG, "END - initForRegistration");
-    
+
     return ctx;
 }
-messageBundle_t * phev_service_inputSplitter(void * ctx, message_t * message)
+messageBundle_t *phev_service_inputSplitter(void *ctx, message_t *message)
 {
-    messageBundle_t * messages = malloc(sizeof(messageBundle_t));
+    messageBundle_t *messages = malloc(sizeof(messageBundle_t));
     messages->numMessages = 0;
-    cJSON * command = NULL;
+    cJSON *command = NULL;
 
-    cJSON * json = cJSON_Parse((char *) message->data);
+    cJSON *json = cJSON_Parse((char *)message->data);
 
-    if(!json)
+    if (!json)
     {
-        LOG_W(TAG,"Not valid JSON");
+        LOG_W(TAG, "Not valid JSON");
         return NULL;
     }
 
-    cJSON * requests = cJSON_GetObjectItemCaseSensitive(json,"requests");
+    cJSON *requests = cJSON_GetObjectItemCaseSensitive(json, "requests");
 
-    if(!requests)
+    if (!requests)
     {
-        LOG_W(TAG,"Not valid JSON requests");
+        LOG_W(TAG, "Not valid JSON requests");
         return NULL;
     }
-    
-    
+
     cJSON_ArrayForEach(command, requests)
-    {   
-        const char * out = cJSON_Print(command);
-        messages->messages[messages->numMessages++] = msg_utils_createMsg((uint8_t *) out,strlen(out)+1);
+    {
+        const char *out = cJSON_Print(command);
+        messages->messages[messages->numMessages++] = msg_utils_createMsg((uint8_t *)out, strlen(out) + 1);
     }
 
     return messages;
 }
-bool phev_service_outputFilter(void *ctx, message_t * message)
+bool phev_service_outputFilter(void *ctx, message_t *message)
 {
-    phevServiceCtx_t * serviceCtx = ((phev_pipe_ctx_t *) ctx)->ctx;
+    phevServiceCtx_t *serviceCtx = ((phev_pipe_ctx_t *)ctx)->ctx;
 
     phevMessage_t phevMessage;
-    
-    phev_core_decodeMessage(message->data,message->length, &phevMessage);
 
-    LOG_D(TAG,"Reg %d", phevMessage.reg);
-    
-    phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
-    
-    if(reg)
+    phev_core_decodeMessage(message->data, message->length, &phevMessage);
+
+    if (phevMessage.command == PING_RESP_CMD || phevMessage.command == START_RESP)
     {
-        LOG_D(TAG,"Register aleady set");
-        int same = phev_model_compareRegister(serviceCtx->model,phevMessage.reg, phevMessage.data) != 0;
-        if(same != 0) {
-            LOG_D(TAG,"Setting Reg %d", phevMessage.reg);
-    
-            phev_model_setRegister(serviceCtx->model,phevMessage.reg,phevMessage.data,phevMessage.length);
-
-            reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
-            LOG_D(TAG,"Comp Set Reg %d", phevMessage.reg);
-            return true;
-    
-        }
-        LOG_D(TAG,"Is same %d", same);
-
+        LOG_D(TAG, "Not sending ping or start response");
         return false;
     }
-    LOG_D(TAG,"Setting Reg %d", phevMessage.reg);
-    
-    phev_model_setRegister(serviceCtx->model,phevMessage.reg,phevMessage.data,phevMessage.length);
-    
-    reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
-    
-    LOG_D(TAG,"Set Reg %d", phevMessage.reg);
-    
+    LOG_D(TAG, "Reg %d", phevMessage.reg);
+
+    if (phevMessage.command == RESP_CMD)
+    {
+        phevRegister_t *reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
+
+        if (reg)
+        {
+            LOG_D(TAG, "Register has previously been set");
+            int same = phev_model_compareRegister(serviceCtx->model, phevMessage.reg, phevMessage.data) != 0;
+            if (same != 0)
+            {
+                LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
+
+                phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
+
+                return true;
+            }
+            LOG_D(TAG, "Is same %d", same);
+
+            return false;
+        } else {
+
+            LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
+
+            phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
+        }
+    }
+
     return true;
 }
-phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t * ctx, messagingClient_t *in, messagingClient_t *out)
+phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(TAG, "START - createPipe");
 
@@ -171,7 +184,7 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t * ctx, messagingClient
         .in = in,
         .out = out,
         .inputInputTransformer = phev_service_jsonInputTransformer,
-        .inputOutputTransformer = NULL, 
+        .inputOutputTransformer = NULL,
         .inputSplitter = phev_service_inputSplitter,
         .inputAggregator = NULL,
         .outputAggregator = phev_service_jsonResponseAggregator,
@@ -184,13 +197,13 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t * ctx, messagingClient
         .outputOutputTransformer = phev_service_jsonOutputTransformer,
     };
 
-    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
 
     LOG_V(TAG, "END - createPipe");
     return pipe;
 }
 
-phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t * ctx, messagingClient_t *in, messagingClient_t *out)
+phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t *ctx, messagingClient_t *in, messagingClient_t *out)
 {
     LOG_V(TAG, "START - createPipeRegister");
 
@@ -199,7 +212,7 @@ phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t * ctx, messagi
         .in = in,
         .out = out,
         .inputInputTransformer = NULL,
-        .inputOutputTransformer = NULL, 
+        .inputOutputTransformer = NULL,
         .inputSplitter = NULL,
         .inputAggregator = NULL,
         .outputAggregator = NULL,
@@ -212,7 +225,7 @@ phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t * ctx, messagi
         .outputOutputTransformer = phev_pipe_outputEventTransformer,
     };
 
-    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
 
     LOG_V(TAG, "END - createPipeRegister");
     return pipe;
@@ -232,30 +245,35 @@ uint8_t phev_service_getJsonByte(cJSON *json, char *option)
     }
     return 0;
 }
-uint8_t * phev_service_getJsonByteArray(cJSON *json, char *option, uint8_t ** data)
+uint8_t *phev_service_getJsonByteArray(cJSON *json, char *option, uint8_t **data)
 {
     cJSON *value = cJSON_GetObjectItemCaseSensitive(json, option);
 
-    if(value)
+    if (value)
     {
-        if(cJSON_IsArray(value))
+        if (cJSON_IsArray(value))
         {
             return NULL;
-        } else {
-            if(cJSON_IsNumber(value))
+        }
+        else
+        {
+            if (cJSON_IsNumber(value))
             {
-                if(phev_service_checkByte(value->valueint))
+                if (phev_service_checkByte(value->valueint))
                 {
                     *data = malloc(1);
                     *data[0] = value->valueint;
                     return *data;
                 }
-                else {
+                else
+                {
                     return NULL;
-                }    
-            } else {
+                }
+            }
+            else
+            {
                 return NULL;
-            } 
+            }
         }
     }
     return NULL;
@@ -308,30 +326,33 @@ bool phev_service_validateCommand(const char *command)
 
         if (value != NULL && reg != NULL)
         {
-            if(phev_service_checkByte(reg->valueint) == false)
+            if (phev_service_checkByte(reg->valueint) == false)
             {
                 return false;
             }
-            if(cJSON_IsArray(value))
+            if (cJSON_IsArray(value))
             {
-                cJSON * val = NULL;
+                cJSON *val = NULL;
                 cJSON_ArrayForEach(val, value)
                 {
-                    if(cJSON_IsNumber(val))
+                    if (cJSON_IsNumber(val))
                     {
-                        if(phev_service_checkByte(val->valueint) == false)
+                        if (phev_service_checkByte(val->valueint) == false)
                         {
                             return false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         return false;
                     }
                 }
                 return true;
-            } else {
+            }
+            else
+            {
                 return phev_service_checkByte(value->valueint);
             }
-            
         }
     }
 
@@ -353,50 +374,54 @@ bool phev_service_validateCommand(const char *command)
 
     return false;
 }
-phevMessage_t *phev_service_updateRegisterHandler(cJSON * update)
+phevMessage_t *phev_service_updateRegisterHandler(cJSON *update)
 {
-    if(update == NULL)
+    if (update == NULL)
     {
-        LOG_W(TAG,"Update register called with null json object");
+        LOG_W(TAG, "Update register called with null json object");
         return NULL;
     }
     cJSON *reg = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_REG_JSON);
     cJSON *value = cJSON_GetObjectItemCaseSensitive(update, PHEV_SERVICE_UPDATE_REGISTER_VALUE_JSON);
 
-    if(!reg)
-    {   
-        LOG_W(TAG,"Register not in update request");
+    if (!reg)
+    {
+        LOG_W(TAG, "Register not in update request");
         return NULL;
     }
-    if(!value)
-    {   
-        LOG_W(TAG,"Value not in update request");
+    if (!value)
+    {
+        LOG_W(TAG, "Value not in update request");
         return NULL;
     }
-    if(cJSON_IsArray(value))
+    if (cJSON_IsArray(value))
     {
         //printf("Is array");
-        cJSON * val = NULL;
+        cJSON *val = NULL;
         size_t size = cJSON_GetArraySize(value);
-        uint8_t * data = malloc(size);
+        uint8_t *data = malloc(size);
         int i = 0;
-        cJSON_ArrayForEach(val,value)
+        cJSON_ArrayForEach(val, value)
         {
-            if(cJSON_IsNumber(val))
+            if (cJSON_IsNumber(val))
             {
                 //printf("Is number %d\n",val->valueint);
-        
+
                 data[i++] = val->valueint;
                 //printf("\nData %d\n",data[i-1]);
-            } else {
-                LOG_W(TAG,"Update register has invalid value");
+            }
+            else
+            {
+                LOG_W(TAG, "Update register has invalid value");
                 return NULL;
-            }   
+            }
         }
-    
-        return phev_core_commandMessage(reg->valueint,data,size);
-    } else {
-        if(cJSON_IsNumber(value))
+
+        return phev_core_commandMessage(reg->valueint, data, size);
+    }
+    else
+    {
+        if (cJSON_IsNumber(value))
         {
             return phev_core_simpleRequestCommandMessage(reg->valueint & 0xff, value->valueint & 0xff);
         }
@@ -411,14 +436,14 @@ phevMessage_t *phev_service_operationHandler(cJSON *operation)
     {
         if (strcmp(headLights->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
-            LOG_D(TAG,"Sending head lights on command");
-            
+            LOG_D(TAG, "Sending head lights on command");
+
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 1);
         }
         if (strcmp(headLights->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
         {
-            LOG_D(TAG,"Sending head lights off command");
-            
+            LOG_D(TAG, "Sending head lights off command");
+
             return phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 2);
         }
         return NULL;
@@ -430,13 +455,13 @@ phevMessage_t *phev_service_operationHandler(cJSON *operation)
     {
         if (strcmp(airCon->valuestring, PHEV_SERVICE_ON_JSON) == 0)
         {
-            LOG_I(TAG,"Sending air con on command");
-            
+            LOG_I(TAG, "Sending air con on command");
+
             return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 2);
         }
         if (strcmp(airCon->valuestring, PHEV_SERVICE_OFF_JSON) == 0)
         {
-            LOG_I(TAG,"Sending air con off command");
+            LOG_I(TAG, "Sending air con off command");
             return phev_core_simpleRequestCommandMessage(KO_WF_MANUAL_AC_ON_RQ_SP, 1);
         }
         return NULL;
@@ -472,56 +497,56 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
     if (message)
     {
-        phevMessage_t * phevMessage = phev_service_jsonCommandToPhevMessage((char *) message->data);
-        if(phevMessage) {
-            message_t * out = phev_core_convertToMessage(phevMessage);
+        phevMessage_t *phevMessage = phev_service_jsonCommandToPhevMessage((char *)message->data);
+        if (phevMessage)
+        {
+            message_t *out = phev_core_convertToMessage(phevMessage);
 
-            if(out)
+            if (out)
             {
                 return out;
-            }    
+            }
         }
     }
     return NULL;
 }
 
-cJSON * phev_service_updatedRegister(cJSON * json, phevMessage_t * phevMessage)
+cJSON *phev_service_updatedRegister(cJSON *json, phevMessage_t *phevMessage)
 {
-    cJSON * updatedRegister = cJSON_CreateObject();
-    if(updatedRegister == NULL) 
+    cJSON *updatedRegister = cJSON_CreateObject();
+    if (updatedRegister == NULL)
     {
         return NULL;
-    } 
-    
+    }
+
     cJSON_AddItemToObject(json, PHEV_SERVICE_UPDATED_REGISTER_JSON, updatedRegister);
-    
-    cJSON * reg = cJSON_CreateNumber(phevMessage->reg);
-    if(reg == NULL) 
-    {
-        return NULL;
-    }
-    
-    cJSON_AddItemToObject(updatedRegister, "register", reg);  
-    
-    cJSON * length = cJSON_CreateNumber(phevMessage->length);
-    if(length == NULL) 
+
+    cJSON *reg = cJSON_CreateNumber(phevMessage->reg);
+    if (reg == NULL)
     {
         return NULL;
     }
 
-    cJSON_AddItemToObject(updatedRegister, "length", length);  
+    cJSON_AddItemToObject(updatedRegister, "register", reg);
 
-    
-    cJSON * data = cJSON_CreateArray();
-    if(data == NULL) 
+    cJSON *length = cJSON_CreateNumber(phevMessage->length);
+    if (length == NULL)
     {
         return NULL;
     }
-    cJSON_AddItemToObject(updatedRegister, "data", data);  
 
-    for(int i=0; i < phevMessage->length; i++)
+    cJSON_AddItemToObject(updatedRegister, "length", length);
+
+    cJSON *data = cJSON_CreateArray();
+    if (data == NULL)
     {
-        cJSON * item = cJSON_CreateNumber(phevMessage->data[i]);
+        return NULL;
+    }
+    cJSON_AddItemToObject(updatedRegister, "data", data);
+
+    for (int i = 0; i < phevMessage->length; i++)
+    {
+        cJSON *item = cJSON_CreateNumber(phevMessage->data[i]);
         if (item == NULL)
         {
             return NULL;
@@ -530,47 +555,46 @@ cJSON * phev_service_updatedRegister(cJSON * json, phevMessage_t * phevMessage)
     }
     return json;
 }
-cJSON * phev_service_updateRegisterAck(cJSON * json, phevMessage_t * phevMessage)
+cJSON *phev_service_updateRegisterAck(cJSON *json, phevMessage_t *phevMessage)
 {
-    cJSON * updatedRegisterAck = cJSON_CreateObject();
-    if(updatedRegisterAck == NULL) 
-    {
-        return NULL;
-    } 
-    
-    cJSON_AddItemToObject(json, PHEV_SERVICE_UPDATED_REGISTER_ACK_JSON, updatedRegisterAck);
-    
-    cJSON * reg = cJSON_CreateNumber(phevMessage->reg);
-    if(reg == NULL) 
+    cJSON *updatedRegisterAck = cJSON_CreateObject();
+    if (updatedRegisterAck == NULL)
     {
         return NULL;
     }
-    
-    cJSON_AddItemToObject(updatedRegisterAck, "register", reg);  
-    
+
+    cJSON_AddItemToObject(json, PHEV_SERVICE_UPDATED_REGISTER_ACK_JSON, updatedRegisterAck);
+
+    cJSON *reg = cJSON_CreateNumber(phevMessage->reg);
+    if (reg == NULL)
+    {
+        return NULL;
+    }
+
+    cJSON_AddItemToObject(updatedRegisterAck, "register", reg);
+
     return json;
 }
 
-message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
+message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
 {
-    LOG_V(TAG,"START - jsonOutputTransformer");
+    LOG_V(TAG, "START - jsonOutputTransformer");
 
-    phevServiceCtx_t * serviceCtx = NULL;
+    phevServiceCtx_t *serviceCtx = NULL;
 
-    if(ctx != NULL)
+    if (ctx != NULL)
     {
-        serviceCtx = ((phev_pipe_ctx_t *) ctx)->ctx;
-    
-        phev_pipe_outputEventTransformer(serviceCtx->pipe, message);
-    
-    }
-    phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
-    
-    phev_core_decodeMessage(message->data,message->length, phevMessage);
-    char * output;
-    cJSON * out = NULL;
+        serviceCtx = ((phev_pipe_ctx_t *)ctx)->ctx;
 
-    if(phevMessage->command != 0x6f) 
+        phev_pipe_outputEventTransformer(serviceCtx->pipe, message);
+    }
+    phevMessage_t *phevMessage = malloc(sizeof(phevMessage_t));
+
+    phev_core_decodeMessage(message->data, message->length, phevMessage);
+    char *output;
+    cJSON *out = NULL;
+
+    if (phevMessage->command != 0x6f)
     {
         return NULL;
     }
@@ -590,201 +614,216 @@ message_t * phev_service_jsonOutputTransformer(void *ctx, message_t * message)
         }
     }
     */
-    cJSON * response = cJSON_CreateObject();
-    if(response == NULL) 
-    {
-        return NULL;
-    } 
-    
-    if(phevMessage->type == REQUEST_TYPE)
-    {
-        out = phev_service_updatedRegister(response,phevMessage);
-    } else {
-        out = phev_service_updateRegisterAck(response,phevMessage);
-    }
-    
-    if(!out) 
+    cJSON *response = cJSON_CreateObject();
+    if (response == NULL)
     {
         return NULL;
     }
-    
-    output = cJSON_Print(out); 
 
-    message_t * outputMessage = msg_utils_createMsg((uint8_t *) output, strlen(output)+1);
-    LOG_BUFFER_HEXDUMP(TAG,outputMessage->data,outputMessage->length,LOG_DEBUG);
+    if (phevMessage->type == REQUEST_TYPE)
+    {
+        out = phev_service_updatedRegister(response, phevMessage);
+    }
+    else
+    {
+        out = phev_service_updateRegisterAck(response, phevMessage);
+    }
+
+    if (!out)
+    {
+        return NULL;
+    }
+
+    output = cJSON_Print(out);
+
+    message_t *outputMessage = msg_utils_createMsg((uint8_t *)output, strlen(output) + 1);
+    LOG_BUFFER_HEXDUMP(TAG, outputMessage->data, outputMessage->length, LOG_DEBUG);
     cJSON_Delete(response);
 
     free(output);
-    LOG_V(TAG,"END - jsonOutputTransformer");
-    
+    LOG_V(TAG, "END - jsonOutputTransformer");
+
     return outputMessage;
 }
-int phev_service_getBatteryLevel(phevServiceCtx_t * ctx)
+int phev_service_getBatteryLevel(phevServiceCtx_t *ctx)
 {
-    LOG_V(TAG,"START - getBatteryLevel");
+    LOG_V(TAG, "START - getBatteryLevel");
 
-    phevRegister_t * reg = phev_model_getRegister(ctx->model, KO_WF_BATT_LEVEL_INFO_REP_EVR);
+    phevRegister_t *reg = phev_model_getRegister(ctx->model, KO_WF_BATT_LEVEL_INFO_REP_EVR);
 
-    LOG_V(TAG,"END - getBatteryLevel");
-    return (reg ? (int) reg->data[0] : -1);
+    LOG_V(TAG, "END - getBatteryLevel");
+    return (reg ? (int)reg->data[0] : -1);
 }
-char * phev_service_statusAsJson(phevServiceCtx_t * ctx)
+char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
 {
 
-    LOG_V(TAG,"START - statusAsJson");
-    cJSON * json = cJSON_CreateObject();
-    cJSON * status = cJSON_CreateObject();
-    cJSON * battery = cJSON_CreateObject();
+    LOG_V(TAG, "START - statusAsJson");
+    cJSON *json = cJSON_CreateObject();
+    cJSON *status = cJSON_CreateObject();
+    cJSON *battery = cJSON_CreateObject();
 
-    if(json && status && battery)
+    if (json && status && battery)
     {
-        LOG_I(TAG,"Battery Request");
-    
+        LOG_I(TAG, "Battery Request");
+
         int battLevel = phev_service_getBatteryLevel(ctx);
 
-        LOG_I(TAG,"Battery level %d",battLevel);
-    
-        if(battLevel >= 0)
+        LOG_I(TAG, "Battery level %d", battLevel);
+
+        if (battLevel >= 0)
         {
-            cJSON * level = cJSON_CreateNumber((double) battLevel);
-            cJSON_AddItemToObject(battery, PHEV_SERVICE_BATTERY_SOC_JSON,level);
+            cJSON *level = cJSON_CreateNumber((double)battLevel);
+            cJSON_AddItemToObject(battery, PHEV_SERVICE_BATTERY_SOC_JSON, level);
         }
-        cJSON_AddItemToObject(status, PHEV_SERVICE_BATTERY_JSON,battery);
-        cJSON_AddItemToObject(json, PHEV_SERVICE_STATUS_JSON,status);
-        
-        char * out = cJSON_Print(json);
-    
-        LOG_I(TAG,"Return json %s",out);        
-        LOG_V(TAG,"END - statusAsJson");
-    
+        cJSON_AddItemToObject(status, PHEV_SERVICE_BATTERY_JSON, battery);
+        cJSON_AddItemToObject(json, PHEV_SERVICE_STATUS_JSON, status);
+
+        char *out = cJSON_Print(json);
+
+        LOG_I(TAG, "Return json %s", out);
+        LOG_V(TAG, "END - statusAsJson");
+
         return out;
-    } else {
+    }
+    else
+    {
         LOG_E(TAG, "Error creating status json obejcts");
-        LOG_V(TAG,"END - statusAsJson");
-    
-        return NULL;    
+        LOG_V(TAG, "END - statusAsJson");
+
+        return NULL;
     }
 }
 
-void phev_service_loop(phevServiceCtx_t * ctx)
+void phev_service_loop(phevServiceCtx_t *ctx)
 {
     LOG_V(TAG, "START - loop");
-    
+
     phev_pipe_loop(ctx->pipe);
-    
+
     LOG_V(TAG, "END - loop");
-    
 }
 
-message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bundle)
+message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundle)
 {
-    cJSON * out = cJSON_CreateObject();
+    cJSON *out = cJSON_CreateObject();
 
-    cJSON * responses = cJSON_CreateArray();
-    
+    cJSON *responses = cJSON_CreateArray();
+
     cJSON_AddItemToObject(out, "responses", responses);
 
-    for(int i=0;i<bundle->numMessages;i++)
+    for (int i = 0; i < bundle->numMessages; i++)
     {
-        cJSON * next = cJSON_Parse((char *) bundle->messages[i]->data);
+        cJSON *next = cJSON_Parse((char *)bundle->messages[i]->data);
 
         cJSON_AddItemToArray(responses, next);
     }
-    
-    char * str = cJSON_Print(out);
-    message_t * message = msg_utils_createMsg((uint8_t *) str,strlen(str)+1);
+
+    char *str = cJSON_Print(out);
+    message_t *message = msg_utils_createMsg((uint8_t *)str, strlen(str) + 1);
 
     return message;
 }
 
-void phev_service_errorHandler(phevError_t * error)
+void phev_service_errorHandler(phevError_t *error)
 {
-
 }
-void phev_service_registrationCompleteCallback(phevRegisterCtx_t * ctx)
+void phev_service_registrationCompleteCallback(phevRegisterCtx_t *ctx)
 {
-    phevServiceCtx_t * serviceCtx = (phevServiceCtx_t *) ctx->ctx;
-    
-    if(serviceCtx->registrationCompleteCallback) 
+    phevServiceCtx_t *serviceCtx = (phevServiceCtx_t *)ctx->ctx;
+
+    if (serviceCtx->registrationCompleteCallback)
     {
         serviceCtx->registrationCompleteCallback(ctx);
     }
-    
 }
 
-phevServiceCtx_t * phev_service_resetPipeAfterRegistration(phevServiceCtx_t * ctx)
+phevServiceCtx_t *phev_service_resetPipeAfterRegistration(phevServiceCtx_t *ctx)
 {
-    phev_pipe_ctx_t * pipe = phev_service_createPipe(ctx,ctx->pipe->pipe->in,ctx->pipe->pipe->out);
-    
+    phev_pipe_ctx_t *pipe = phev_service_createPipe(ctx, ctx->pipe->pipe->in, ctx->pipe->pipe->out);
+
     ctx->pipe = pipe;
-    
+
     return ctx;
 }
-phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete)
+phevRegisterCtx_t *phev_service_register(const char *mac, phevServiceCtx_t *ctx, phevRegistrationComplete_t complete)
 {
     phevRegisterSettings_t settings = {
         .pipe = ctx->pipe,
-        .complete = (phevRegistrationComplete_t) phev_service_registrationCompleteCallback,
-        .errorHandler = (phevErrorHandler_t) phev_service_errorHandler,
+        .complete = (phevRegistrationComplete_t)phev_service_registrationCompleteCallback,
+        .errorHandler = (phevErrorHandler_t)phev_service_errorHandler,
         .ctx = ctx,
     };
-    
-    memcpy(&settings.mac, mac, 6);
+
+    if(settings.mac)
+    {
+        memcpy(&settings.mac, mac, 6);
+    } else {
+        memcpy(&settings.mac, DEFAULT_MAC, 6);
+    }
     ctx->registrationCompleteCallback = complete;
-    phevRegisterCtx_t * regCtx = phev_register_init(settings);
+    phevRegisterCtx_t *regCtx = phev_register_init(settings);
 
     return regCtx;
 }
 
-phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const uint8_t reg)
+phevRegister_t *phev_service_getRegister(const phevServiceCtx_t *ctx, const uint8_t reg)
 {
     LOG_V(TAG, "START - getRegister");
-    
-    phevRegister_t * out = phev_model_getRegister(ctx->model,reg);
 
-    if(out == NULL)
+    phevRegister_t *out = phev_model_getRegister(ctx->model, reg);
+
+    if (out == NULL)
     {
-        LOG_D(TAG,"getRegister - register not found");
+        LOG_D(TAG, "getRegister - register not found");
     }
     LOG_V(TAG, "END - getRegister");
     return out;
 }
-char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg)
+char *phev_service_getRegisterJson(const phevServiceCtx_t *ctx, const uint8_t reg)
 {
     LOG_V(TAG, "START - getRegisterJson");
-    cJSON * json = NULL;
-    phevRegister_t * out = phev_model_getRegister(ctx->model,reg);
+    cJSON *json = NULL;
 
-    if(out == NULL)
+    if (ctx)
     {
-        LOG_D(TAG,"getRegister - register not found");
+        phevRegister_t *out = phev_model_getRegister(ctx->model, reg);
+
+        if (out == NULL)
+        {
+            LOG_I(TAG, "getRegister - register not found");
+            return NULL;
+        }
+
+        json = cJSON_CreateObject();
+        cJSON *regJson = cJSON_CreateNumber((double)reg);
+        cJSON *data = cJSON_CreateArray();
+
+        for (int i = 0; i < out->length; i++)
+        {
+            cJSON *item = cJSON_CreateNumber(out->data[i]);
+            cJSON_AddItemToArray(data, item);
+        }
+
+        cJSON_AddItemToObject(json, PHEV_SERVICE_REGISTER_JSON, regJson);
+        cJSON_AddItemToObject(json, PHEV_SERVICE_REGISTER_DATA_JSON, data);
+
+        char *ret = cJSON_PrintUnformatted(json);
+
+        LOG_V(TAG, "END - getRegisterJson");
+        return ret;
+    }
+    else
+    {
+        LOG_E(TAG, "Phev service context not set");
         return NULL;
     }
-
-    json = cJSON_CreateObject();
-    cJSON * regJson = cJSON_CreateNumber((double) reg);
-    cJSON * data = cJSON_CreateArray();
-
-    for(int i=0;i<out->length;i++)
-    {
-        cJSON * item = cJSON_CreateNumber(out->data[i]);
-        cJSON_AddItemToArray(data,item);
-    }
-
-    cJSON_AddItemToObject(json,PHEV_SERVICE_REGISTER_JSON,regJson);
-    cJSON_AddItemToObject(json,PHEV_SERVICE_REGISTER_DATA_JSON,data);
-    
-    char * ret = cJSON_PrintUnformatted(json);
-
-    LOG_V(TAG, "END - getRegisterJson");
-    return ret;
 }
-void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length)
+void phev_service_setRegister(const phevServiceCtx_t *ctx, const uint8_t reg, const uint8_t *data, const size_t length)
 {
     LOG_V(TAG, "START - setRegister");
-    if(phev_model_setRegister(ctx->model,reg,data,length) != 1)
+    if (phev_model_setRegister(ctx->model, reg, data, length) != 1)
     {
-        LOG_E(TAG,"Failed to set register %d",reg);
+        LOG_E(TAG, "Failed to set register %d", reg);
     }
     LOG_V(TAG, "END - setRegister");
     return;
