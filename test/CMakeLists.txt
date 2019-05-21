@@ -4,7 +4,7 @@ add_executable(test_runner
 
 target_link_libraries(test_runner
     msg_core
-    phev_core
+    phev
     Unity
     cjson
 )

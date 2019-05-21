@@ -1088,6 +1088,47 @@ void test_phev_service_create(void)
 
     TEST_ASSERT_NOT_NULL(ctx);
 }
+void test_phev_service_create_passes_context(void)
+{
+    test_phev_service_complete_callback_called = 0;
+    test_phev_service_global_in_in_message = NULL;
+    test_phev_service_global_out_in_message = NULL;
+
+    const uint8_t message[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
+
+    test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    uint8_t mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
+
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    char customCtx[] = "Hello";
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,
+        .ctx = &customCtx,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    TEST_ASSERT_NOT_NULL(ctx);
+    TEST_ASSERT_EQUAL_STRING(customCtx,ctx->ctx);
+}
 
 void test_phev_service_getRegister(void)
 {
@@ -1114,6 +1155,7 @@ void test_phev_service_getRegister(void)
         .eventHandler = NULL,
         .errorHandler = NULL,
         .yieldHandler = NULL,    
+        .ctx = NULL,
     };
  
     phevServiceCtx_t * ctx = phev_service_create(settings);
@@ -1155,6 +1197,7 @@ void test_phev_service_getAllRegisters(void)
         .eventHandler = NULL,
         .errorHandler = NULL,
         .yieldHandler = NULL,    
+        .ctx = NULL, 
     };
  
     phevServiceCtx_t * ctx = phev_service_create(settings);
@@ -1197,6 +1240,7 @@ void test_phev_service_setRegister(void)
         .eventHandler = NULL,
         .errorHandler = NULL,
         .yieldHandler = NULL,    
+        .ctx = NULL, 
     };
  
     phevServiceCtx_t * ctx = phev_service_create(settings);
@@ -1237,7 +1281,8 @@ void test_phev_service_getRegisterJson(void)
         .registerDevice = false,
         .eventHandler = NULL,
         .errorHandler = NULL,
-        .yieldHandler = NULL,    
+        .yieldHandler = NULL,   
+        .ctx = NULL, 
     };
  
     phevServiceCtx_t * ctx = phev_service_create(settings);

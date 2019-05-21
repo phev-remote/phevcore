@@ -7,7 +7,7 @@
 #include "test_phev_pipe.c"
 #include "test_phev_service.c"
 #include "test_phev_model.c"
-
+#include "test_phev.c"
 
 int main()
 {
@@ -142,6 +142,7 @@ int main()
     RUN_TEST(test_phev_service_getRegister);
     RUN_TEST(test_phev_service_setRegister);
     RUN_TEST(test_phev_service_getRegisterJson);
+    RUN_TEST(test_phev_service_create_passes_context);
     
 
 //  PHEV_MODEL
@@ -154,6 +155,11 @@ int main()
     RUN_TEST(test_phev_model_register_compare);
     RUN_TEST(test_phev_model_register_compare_not_same);
     RUN_TEST(test_phev_model_compare_not_set);
+
+// PHEV
+
+    RUN_TEST(test_phev_init_returns_context);
+    RUN_TEST(test_phev_calls_connect_event);
 
     return UNITY_END();
 }

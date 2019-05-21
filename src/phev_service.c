@@ -7,7 +7,7 @@
 
 const static char *TAG = "PHEV_SERVICE";
 
-const static uint8_t * DEFAULT_MAC = {0,0,0,0,0,0};
+const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
 int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
@@ -40,13 +40,16 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
 
     ctx->yieldHandler = settings.yieldHandler;
     ctx->exit = false;
-    if(settings.mac)
+    ctx->ctx = settings.ctx;
+    if (settings.mac)
     {
         memcpy(&settings.mac, ctx->mac, 6);
-    } else {
+    }
+    else
+    {
         memcpy(&settings.mac, DEFAULT_MAC, 6);
     }
-    
+
     if (settings.eventHandler)
     {
         //phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
@@ -165,7 +168,9 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
             LOG_D(TAG, "Is same %d", same);
 
             return false;
-        } else {
+        }
+        else
+        {
 
             LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
 
@@ -754,10 +759,12 @@ phevRegisterCtx_t *phev_service_register(const char *mac, phevServiceCtx_t *ctx,
         .ctx = ctx,
     };
 
-    if(settings.mac)
+    if (settings.mac)
     {
         memcpy(&settings.mac, mac, 6);
-    } else {
+    }
+    else
+    {
         memcpy(&settings.mac, DEFAULT_MAC, 6);
     }
     ctx->registrationCompleteCallback = complete;

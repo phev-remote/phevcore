@@ -22,6 +22,7 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx)
             return;
         }
     }
+
     ctx->connected = true;
     LOG_V(APP_TAG,"END - waitForConnection");
 }

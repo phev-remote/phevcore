@@ -63,6 +63,7 @@ typedef struct phevPipeEvent_t
     int event;
     size_t length;
     void *data;
+    void * ctx;
 } phevPipeEvent_t;
 
 typedef struct phevVinEvent_t
@@ -70,6 +71,7 @@ typedef struct phevVinEvent_t
     char vin[18];
     uint8_t data;
     uint8_t registrations;
+    void * ctx;
 } phevVinEvent_t;
 
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
