@@ -43,7 +43,6 @@ target_include_directories(phev PUBLIC include)
 install(
     TARGETS
       phev
-      msg_core
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
