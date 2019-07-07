@@ -39,3 +39,12 @@ else()
 endif()
 
 target_include_directories(phev PUBLIC include)
+
+install(
+    TARGETS
+      phev
+      msg_core
+    LIBRARY DESTINATION /usr/local/lib
+    ARCHIVE DESTINATION /usr/local/lib
+    RUNTIME DESTINATION /usr/local/bin
+)
