@@ -48,3 +48,7 @@ install(
     ARCHIVE DESTINATION /usr/local/lib
     RUNTIME DESTINATION /usr/local/bin
 )
+install (FILES
+	include/phev.h
+	DESTINATION include/
+)
