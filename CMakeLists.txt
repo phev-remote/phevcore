@@ -44,9 +44,8 @@ install(
     TARGETS
       phev
       msg_core
-    LIBRARY DESTINATION /usr/local/lib
-    ARCHIVE DESTINATION /usr/local/lib
-    RUNTIME DESTINATION /usr/local/bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
 )
 install (FILES
 	include/phev.h
