@@ -412,7 +412,7 @@ void phev_pipe_sendEventToHandlers(phev_pipe_ctx_t * ctx, phevPipeEvent_t * even
         LOG_D(APP_TAG,"Sending event ID %d",event->event);
         if(ctx->eventHandlers > 0)
         {
-            for(int i=0;i<PHEV_PIPE_MAX_EVENT_HANDLERS;i++)
+            for(int i=0;i< ctx->eventHandlers;i++)
             {
                 if(ctx->eventHandler[i] != NULL)
                 {
