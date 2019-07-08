@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "phev.h"
 #include "phev_pipe.h"
 #include "phev_tcpip.h"
@@ -8,14 +9,39 @@
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;
     phevEventHandler_t eventHandler;
+    void * ctx;
 } phevCtx_t;
 
 
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
-    printf("Hello");
-    phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx)->ctx;
-    phevCtx->eventHandler(NULL);
+    phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
+    
+    
+    if(!phevCtx->eventHandler)
+    {
+        return 0;
+    }
+
+    switch(event->event) {
+        case PHEV_PIPE_CONNECTED: {
+            phevEvent_t ev = {
+                .type = PHEV_CONNECTED,
+            };
+            return phevCtx->eventHandler(&ev);
+        }
+        case PHEV_PIPE_REG_UPDATE: {
+            phevEvent_t ev = {
+                .type = PHEV_REGISTER_UPDATE,
+                .reg = ((phevMessage_t *) event->data)->reg,
+                .data = ((phevMessage_t *) event->data)->data,
+                .length = ((phevMessage_t *) event->data)->length,
+            };
+            return phevCtx->eventHandler(&ev);
+        };
+        
+    }
+    
     
     
     return 0;
@@ -72,7 +98,10 @@ phevCtx_t * phev_init(phevSettings_t settings)
         .ctx = ctx,
      
     };
- 
+
+    ctx->eventHandler = settings.handler;
+    ctx->ctx = settings.ctx;
+
     phevServiceCtx_t * srvCtx = phev_service_create(serviceSettings);
 
     ctx->serviceCtx = srvCtx;
@@ -103,3 +132,7 @@ phevCtx_t * phev_registerDevice(phevSettings_t settings)
 
     return ctx;
 } */
+void phev_start(phevCtx_t * ctx)
+{
+    phev_service_start(ctx->serviceCtx);
+}

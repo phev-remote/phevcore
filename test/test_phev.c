@@ -3,7 +3,7 @@
 
 int test_phev_handler_connectCalled = 0;
 
-void test_phev_handler(phevEvent_t * event)
+int test_phev_handler(phevEvent_t * event)
 {
     test_phev_handler_connectCalled ++;
 }

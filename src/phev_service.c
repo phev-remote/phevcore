@@ -11,6 +11,7 @@ const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
 int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
+    phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
     switch (event->event)
     {
     case PHEV_PIPE_CONNECTED:
@@ -21,6 +22,7 @@ int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     {
     }
     }
+
     return 0;
 }
 
@@ -52,7 +54,7 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
 
     if (settings.eventHandler)
     {
-        //phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
+        phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
     }
 
     phev_pipe_registerEventHandler(ctx->pipe, phev_service_eventHandler);

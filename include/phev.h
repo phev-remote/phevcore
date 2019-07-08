@@ -15,9 +15,12 @@ typedef enum {
 
 typedef struct phevEvent_t {
     phevEventTypes_t type;
+    uint8_t reg;
+    uint8_t * data;
+    size_t length;
 } phevEvent_t;
 
-typedef void (* phevEventHandler_t)(phevEvent_t *);
+typedef int (* phevEventHandler_t)(phevEvent_t *);
 
 typedef struct phevSettings_t {
     char * host;
@@ -29,6 +32,7 @@ typedef struct phevSettings_t {
 } phevSettings_t;
 
 phevCtx_t * phev_init(phevSettings_t settings);
+void phev_start(phevCtx_t * ctx);
 void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
 
 #endif
