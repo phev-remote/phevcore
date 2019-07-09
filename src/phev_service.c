@@ -11,6 +11,8 @@ const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
 int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
+    printf("Hello there\n");
+    /* 
     phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
     switch (event->event)
     {
@@ -22,7 +24,7 @@ int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     {
     }
     }
-
+*/
     return 0;
 }
 
@@ -45,15 +47,16 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
     ctx->ctx = settings.ctx;
     if (settings.mac)
     {
-        memcpy(&settings.mac, ctx->mac, 6);
+        memcpy(ctx->mac, settings.mac, 6);
     }
     else
     {
-        memcpy(&settings.mac, DEFAULT_MAC, 6);
+        memcpy(ctx->mac, DEFAULT_MAC, 6);
     }
 
     if (settings.eventHandler)
     {
+        LOG_D(TAG,"Settings event handler %p",settings.eventHandler);
         phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
     }
 
@@ -593,7 +596,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     {
         serviceCtx = ((phev_pipe_ctx_t *)ctx)->ctx;
 
-        phev_pipe_outputEventTransformer(serviceCtx->pipe, message);
+        phev_pipe_outputEventTransformer(ctx, message);
     }
     phevMessage_t *phevMessage = malloc(sizeof(phevMessage_t));
 

@@ -6,6 +6,8 @@
 
 
 typedef struct phevCtx_t phevCtx_t;
+typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
+typedef struct phevPipeEvent_t phevPipeEvent_t;
 
 typedef enum {
     PHEV_CONNECTED,
@@ -34,5 +36,6 @@ typedef struct phevSettings_t {
 phevCtx_t * phev_init(phevSettings_t settings);
 void phev_start(phevCtx_t * ctx);
 void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
+int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
 
 #endif

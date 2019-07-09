@@ -136,6 +136,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     {
         ctx->eventHandler[i] = NULL;
     } 
+    //memset(ctx->eventHandler,0,sizeof(phevPipeEventHandler_t) * PHEV_PIPE_MAX_EVENT_HANDLERS);
     ctx->updateRegisterCallbacks = malloc(sizeof(phev_pipe_updateRegisterCtx_t));
     ctx->updateRegisterCallbacks->numberOfCallbacks = 0;
     
@@ -412,11 +413,14 @@ void phev_pipe_sendEventToHandlers(phev_pipe_ctx_t * ctx, phevPipeEvent_t * even
         LOG_D(APP_TAG,"Sending event ID %d",event->event);
         if(ctx->eventHandlers > 0)
         {
+            LOG_D(APP_TAG,"Event handers %d",ctx->eventHandlers);
             for(int i=0;i< ctx->eventHandlers;i++)
             {
+                LOG_D(APP_TAG,"Event handler num %d",i);
+            
                 if(ctx->eventHandler[i] != NULL)
                 {
-                    LOG_D(APP_TAG,"Calling event handler %d",i);
+                    LOG_D(APP_TAG,"Calling event handler %d pointer %p",i,ctx->eventHandler[i]);
                     ctx->eventHandler[i](ctx, event);
                 }
             }
@@ -462,9 +466,11 @@ void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
         
         phevPipeEvent_t * registerEvent = phev_pipe_createRegisterEvent(phevCtx, phevMessage);
     
+        LOG_D(APP_TAG,"START - sending register event to handler");
         phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
 
         phevPipeEvent_t * evt = phev_pipe_messageToEvent(phevCtx,phevMessage);
+        LOG_D(APP_TAG,"START - sending message event to handler");
         
         phev_pipe_sendEventToHandlers(phevCtx, evt);
         
@@ -508,7 +514,7 @@ void phev_pipe_registerEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_
         {
             if(ctx->eventHandler[i] == NULL)
             {
-                LOG_D(APP_TAG,"Registered handler");
+                LOG_D(APP_TAG,"Registered handler %p",eventHandler);
                 ctx->eventHandler[ctx->eventHandlers++] = eventHandler;
                 return;
             }

@@ -5,6 +5,9 @@
 #include "phev_tcpip.h"
 #include "phev_service.h"
 #include "msg_tcpip.h"
+#include "logger.h"
+
+const static char *TAG = "PHEV";
 
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;
@@ -16,8 +19,7 @@ typedef struct phevCtx_t {
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
-    
-    
+        
     if(!phevCtx->eventHandler)
     {
         return 0;
@@ -80,6 +82,7 @@ messagingClient_t * createOutgoingMessageClient(const char * host, const uint16_
 
     return out;
 }
+
 phevCtx_t * phev_init(phevSettings_t settings)
 {
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
@@ -98,7 +101,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
         .ctx = ctx,
      
     };
-
+    LOG_D(TAG,"Settings event handler %p", phev_pipeEventHandler);
     ctx->eventHandler = settings.handler;
     ctx->ctx = settings.ctx;
 
