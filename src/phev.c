@@ -4,6 +4,8 @@
 #include "phev_pipe.h"
 #include "phev_tcpip.h"
 #include "phev_service.h"
+#include "phev_register.h"
+
 #include "msg_tcpip.h"
 #include "logger.h"
 
@@ -18,6 +20,8 @@ typedef struct phevCtx_t {
 
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
+    LOG_V(TAG,"START - pipeEventHandler");
+    
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
         
     if(!phevCtx->eventHandler)
@@ -40,37 +44,62 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .length = ((phevMessage_t *) event->data)->length,
             };
             return phevCtx->eventHandler(&ev);
-        };
-        
+        }
+        case PHEV_PIPE_GOT_VIN:
+        {
+            phevVinEvent_t * vinEv = (phevVinEvent_t *) event; 
+            char * vin = malloc(19);
+            strncpy(vin,vinEv->vin,18);
+            phevEvent_t ev = {
+                .type = PHEV_VIN,
+                .data = vin,
+                .length = strlen(vin),
+
+            };
+            return phevCtx->eventHandler(&ev);
+        }
+        case PHEV_PIPE_ECU_VERSION2:
+        {
+            phevEvent_t ev = {
+                .type = PHEV_ECU_VERSION,
+            };
+            return phevCtx->eventHandler(&ev);
+        }
     }
     
     
+    LOG_V(TAG,"END - pipeEventHandler");
     
     return 0;
 }
-void outgoingHandler(messagingClient_t *client, message_t *message)
+void phev_outgoingHandler(messagingClient_t *client, message_t *message)
 {
     //LOG_I(APP_TAG, "Outgoing Handler data");
     //printf("%s\n",message->data);
 }
-message_t *incomingHandler(messagingClient_t *client)
+message_t * phev_incomingHandler(messagingClient_t *client)
 {
     return NULL;
 }
-messagingClient_t * createIncomingMessageClient(void)
+messagingClient_t * phev_createIncomingMessageClient(void)
 {
+    LOG_V(TAG,"START - createIncomingMessageClient");
+    
     messagingSettings_t inSettings = {
-        .incomingHandler = incomingHandler,
-        .outgoingHandler = outgoingHandler,
+        .incomingHandler = phev_incomingHandler,
+        .outgoingHandler = phev_outgoingHandler,
     };
 
     messagingClient_t *in = msg_core_createMessagingClient(inSettings);
-
+    LOG_V(TAG,"END - createIncomingMessageClient");
+    
     return in;
 }
 
-messagingClient_t * createOutgoingMessageClient(const char * host, const uint16_t port)
+messagingClient_t * phev_createOutgoingMessageClient(const char * host, const uint16_t port)
 {
+    LOG_V(TAG,"START - createOutgoingMessageClient");
+    
     tcpIpSettings_t outSettings = {
         .connect = phev_tcpClientConnectSocket,
         .read = phev_tcpClientRead,
@@ -80,15 +109,19 @@ messagingClient_t * createOutgoingMessageClient(const char * host, const uint16_
     };
     messagingClient_t *out = msg_tcpip_createTcpIpClient(outSettings);
 
+    LOG_V(TAG,"END - createOutgoingMessageClient");
+    
     return out;
 }
 
 phevCtx_t * phev_init(phevSettings_t settings)
 {
+    LOG_V(TAG,"START - init");
+    
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
 
-    messagingClient_t * in = createIncomingMessageClient();
-    messagingClient_t * out = createOutgoingMessageClient(settings.host,settings.port);
+    messagingClient_t * in = phev_createIncomingMessageClient();
+    messagingClient_t * out = phev_createOutgoingMessageClient(settings.host,settings.port);
 
     phevServiceSettings_t serviceSettings = {
         .in = in,
@@ -109,20 +142,35 @@ phevCtx_t * phev_init(phevSettings_t settings)
 
     ctx->serviceCtx = srvCtx;
 
+    LOG_V(TAG,"END - init");
+    
     return ctx;
-} /*
+}
+
+void phev_registrationComplete(phevRegisterCtx_t * ctx)
+{
+    phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
+
+    phevEvent_t ev = {
+        .type = PHEV_REGISTRATION_COMPLETE,
+    };
+    phevCtx->eventHandler(&ev);
+
+}
 phevCtx_t * phev_registerDevice(phevSettings_t settings)
 {
+    LOG_V(TAG,"START - registerDevice");
+    
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
 
-    messagingClient_t * in = createIncomingMessageClient();
-    messagingClient_t * out = createOutgoingMessageClient(settings.host,settings.port);
+    messagingClient_t * in = phev_createIncomingMessageClient();
+    messagingClient_t * out = phev_createOutgoingMessageClient(settings.host,settings.port);
 
     phevServiceSettings_t serviceSettings = {
         .in = in,
         .out = out,
         .mac = settings.mac, 
-        .registerDevice = true,
+        .registerDevice = true, 
         .eventHandler = phev_pipeEventHandler,
         .errorHandler = NULL,
         .yieldHandler = NULL,
@@ -133,9 +181,15 @@ phevCtx_t * phev_registerDevice(phevSettings_t settings)
 
     ctx->serviceCtx = srvCtx;
 
+    phev_service_register(serviceSettings.mac, srvCtx, phev_registrationComplete);
+
+    LOG_V(TAG,"END - registerDevice");
+    
     return ctx;
-} */
+} 
 void phev_start(phevCtx_t * ctx)
 {
+    LOG_V(TAG,"START - start");
     phev_service_start(ctx->serviceCtx);
+    LOG_V(TAG,"END - start");
 }
