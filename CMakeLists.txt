@@ -12,6 +12,8 @@ add_library(phev STATIC
     src/phev_tcpip.c
     src/phev.c
 )
+
+find_package(zf_queue)
 # target_link_libraries(phev msg_core cjson)
 
 include(CTest)
@@ -34,7 +36,8 @@ if(WIN32)
 else()
     target_link_libraries (phev LINK_PUBLIC 
         msg_core
-        cjson  
+        cjson
+	zf_queue 
     )
 endif()
 

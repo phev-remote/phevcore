@@ -159,7 +159,7 @@ int main()
 // PHEV
 
     RUN_TEST(test_phev_init_returns_context);
-//    RUN_TEST(test_phev_calls_connect_event);
+    RUN_TEST(test_phev_registrationEndToEnd);
 
     return UNITY_END();
 }

@@ -150,7 +150,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
     if (phevMessage.command == PING_RESP_CMD || phevMessage.command == START_RESP)
     {
         LOG_D(TAG, "Not sending ping or start response");
-        return false;
+        return true;
     }
     LOG_D(TAG, "Reg %d", phevMessage.reg);
 

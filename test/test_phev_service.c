@@ -1299,3 +1299,4 @@ void test_phev_service_getRegisterJson(void)
 
     TEST_ASSERT_EQUAL_STRING(expectedJson, json);
 }
+
