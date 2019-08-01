@@ -13,7 +13,7 @@ add_library(phev STATIC
     src/phev.c
 )
 
-find_package(zf_queue)
+# find_package(zf_queue)
 # target_link_libraries(phev msg_core cjson)
 
 include(CTest)
@@ -37,7 +37,7 @@ else()
     target_link_libraries (phev LINK_PUBLIC 
         msg_core
         cjson
-	zf_queue 
+	#   zf_queue 
     )
 endif()
 
