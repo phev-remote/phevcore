@@ -706,11 +706,11 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
 
 void phev_service_loop(phevServiceCtx_t *ctx)
 {
-    LOG_V(TAG, "START - loop");
+    //LOG_V(TAG, "START - loop");
 
     phev_pipe_loop(ctx->pipe);
 
-    LOG_V(TAG, "END - loop");
+    //LOG_V(TAG, "END - loop");
 }
 
 message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundle)

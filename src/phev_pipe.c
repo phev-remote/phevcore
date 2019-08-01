@@ -609,7 +609,7 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t * ctx)
 void phev_pipe_ping(phev_pipe_ctx_t * ctx)
 {
     LOG_V(APP_TAG,"START - ping");
-    if(((ctx->currentPing + 1) % 30) == 0) 
+    if(((ctx->currentPing) % 30) == 0) 
     {
         phev_pipe_sendTimeSync(ctx);
     }

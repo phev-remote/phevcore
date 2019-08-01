@@ -120,9 +120,23 @@ phevCtx_t * phev_init(phevSettings_t settings)
     
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
 
-    messagingClient_t * in = phev_createIncomingMessageClient();
-    messagingClient_t * out = phev_createOutgoingMessageClient(settings.host,settings.port);
+    messagingClient_t * in = NULL;
+    messagingClient_t * out = NULL;
 
+    if(settings.in) 
+    {
+        in = settings.in;
+    } else {
+        in = phev_createIncomingMessageClient();
+    }
+    
+    if(settings.out) 
+    {
+        out = settings.out;
+    } else {
+        out = phev_createOutgoingMessageClient(settings.host,settings.port);
+    }
+    
     phevServiceSettings_t serviceSettings = {
         .in = in,
         .out = out,
@@ -192,4 +206,8 @@ void phev_start(phevCtx_t * ctx)
     LOG_V(TAG,"START - start");
     phev_service_start(ctx->serviceCtx);
     LOG_V(TAG,"END - start");
+}
+void phev_exit(phevCtx_t * ctx)
+{
+    ctx->serviceCtx->exit = true;
 }

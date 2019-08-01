@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "msg_core.h"
 
 typedef struct phevCtx_t phevCtx_t;
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
@@ -36,11 +37,14 @@ typedef struct phevSettings_t {
     uint8_t * mac;
     phevEventHandler_t handler;
     void * ctx;
+    messagingClient_t * in;
+    messagingClient_t * out;
 } phevSettings_t;
 
 phevCtx_t * phev_init(phevSettings_t settings);
 void phev_start(phevCtx_t * ctx);
 phevCtx_t * phev_registerDevice(phevSettings_t settings);
 void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
+void phev_exit(phevCtx_t * ctx);
 
 #endif
