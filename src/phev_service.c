@@ -11,7 +11,8 @@ const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
 int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
-    printf("Hello there\n");
+
+    LOG_V(TAG, "START - eventHandler");
     /* 
     phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
     switch (event->event)
@@ -25,6 +26,7 @@ int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     }
     }
 */
+    LOG_V(TAG, "END - eventHandler");
     return 0;
 }
 
@@ -773,9 +775,9 @@ phevRegisterCtx_t *phev_service_register(const char *mac, phevServiceCtx_t *ctx,
         memcpy(&settings.mac, DEFAULT_MAC, 6);
     }
     ctx->registrationCompleteCallback = complete;
-    phevRegisterCtx_t *regCtx = phev_register_init(settings);
+    ctx->registrationCtx = phev_register_init(settings);
 
-    return regCtx;
+    return ctx->registrationCtx;
 }
 
 phevRegister_t *phev_service_getRegister(const phevServiceCtx_t *ctx, const uint8_t reg)

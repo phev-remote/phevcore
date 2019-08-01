@@ -4,6 +4,7 @@
 #include "phev_core.h"
 #include "phev_pipe.h"
 #include "phev_register.h"
+#include "phev_service.h"
 
 const char * TAG = "PHEV_REGISTER";
 
@@ -11,13 +12,14 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
 {
     LOG_V(TAG,"START - sendMac");
     
-    phev_pipe_sendMac(ctx, ((phevRegisterCtx_t *) ctx->ctx)->mac);
+    phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
     
     LOG_V(TAG,"END - sendMac");
     
 }
 phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
 {
+    LOG_V(TAG,"START - init");
     phevRegisterCtx_t * ctx = malloc(sizeof(phevRegisterCtx_t));
     memset(ctx,0,sizeof(phevRegisterCtx_t));
 
@@ -27,7 +29,7 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
 
     ctx->vin = NULL;
-    ctx->pipe->ctx = ctx;
+    ctx->pipe->ctx = settings.ctx;
     ctx->startAck = false;
     ctx->aaAck = false;
     ctx->registrationRequest = false;
@@ -45,7 +47,7 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     } else {
         phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
     }
-    
+    LOG_V(TAG,"END - init");
     return ctx;
 }
 void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
@@ -61,7 +63,8 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
 }
 int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
-    phevRegisterCtx_t * regCtx = (phevRegisterCtx_t *) ctx->ctx;
+    LOG_V(TAG,"START - eventHandler");
+    phevRegisterCtx_t * regCtx = ((phevServiceCtx_t *) ctx->ctx)->registrationCtx;
 
     if(regCtx->registrationComplete) 
     {
@@ -91,7 +94,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         case PHEV_PIPE_REGISTRATION: {
             LOG_I(TAG,"Registration");
             regCtx->registrationRequest = true;
-            
+            phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_ECU_VERSION2: {
@@ -104,7 +107,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_I(TAG,"Remote security present info");
             regCtx->remoteSecurity = true;
             
-            phev_register_sendRegister(ctx);
+            //phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_REG_DISP: {
@@ -126,12 +129,14 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
     {
         LOG_I(TAG,"Registration Complete for VIN %s",regCtx->vin);
         regCtx->registrationComplete = true;
-        if(((phevRegisterCtx_t *) ctx->ctx)->complete != NULL)
+        if(regCtx->complete != NULL)
         {
                 LOG_D(TAG,"Calling callback");
 
-                ((phevRegisterCtx_t *) ctx->ctx)->complete(regCtx);
+                regCtx->complete(regCtx);
         }
     }
+    LOG_V(TAG,"END - eventHandler");
+    
     return 0;
 }

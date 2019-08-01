@@ -51,6 +51,7 @@ typedef struct phevServiceCtx_t {
     phevServiceYieldHandler_t yieldHandler;
     uint8_t mac[6];
     bool exit;
+    phevRegisterCtx_t * registrationCtx;
     void * ctx;
 } phevServiceCtx_t;
 

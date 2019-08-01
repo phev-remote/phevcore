@@ -23,6 +23,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     LOG_V(TAG,"START - pipeEventHandler");
     
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
+
         
     if(!phevCtx->eventHandler)
     {
@@ -47,9 +48,11 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         }
         case PHEV_PIPE_GOT_VIN:
         {
-            phevVinEvent_t * vinEv = (phevVinEvent_t *) event; 
+            phevVinEvent_t * vinEv = (phevVinEvent_t *) event->data; 
             char * vin = malloc(19);
+          
             strncpy(vin,vinEv->vin,18);
+            
             phevEvent_t ev = {
                 .type = PHEV_VIN,
                 .data = vin,
@@ -120,6 +123,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
     
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
 
+    phevServiceSettings_t * serviceSettings;
     messagingClient_t * in = NULL;
     messagingClient_t * out = NULL;
 
@@ -137,22 +141,38 @@ phevCtx_t * phev_init(phevSettings_t settings)
         out = phev_createOutgoingMessageClient(settings.host,settings.port);
     }
     
-    phevServiceSettings_t serviceSettings = {
-        .in = in,
-        .out = out,
-        .mac = settings.mac, 
-        .registerDevice = false,
-        .eventHandler = phev_pipeEventHandler,
-        .errorHandler = NULL,
-        .yieldHandler = NULL,
-        .ctx = ctx,
-     
-    };
+    if(settings.registerDevice) 
+    {
+        phevServiceSettings_t s = {
+            .in = in,
+            .out = out,
+            .mac = settings.mac, 
+            .registerDevice = true,
+            .eventHandler = phev_pipeEventHandler,
+            .errorHandler = NULL,
+            .yieldHandler = NULL,
+            .ctx = ctx, 
+        };
+
+        serviceSettings = &s;
+    } else {
+        phevServiceSettings_t s = {
+            .in = in,
+            .out = out,
+            .mac = settings.mac, 
+            .registerDevice = false,
+            .eventHandler = phev_pipeEventHandler,
+            .errorHandler = NULL,
+            .yieldHandler = NULL,
+            .ctx = ctx,
+        };
+        serviceSettings = &s;
+    }
     LOG_D(TAG,"Settings event handler %p", phev_pipeEventHandler);
     ctx->eventHandler = settings.handler;
     ctx->ctx = settings.ctx;
 
-    phevServiceCtx_t * srvCtx = phev_service_create(serviceSettings);
+    phevServiceCtx_t * srvCtx = phev_service_create(*serviceSettings);
 
     ctx->serviceCtx = srvCtx;
 
@@ -175,27 +195,9 @@ phevCtx_t * phev_registerDevice(phevSettings_t settings)
 {
     LOG_V(TAG,"START - registerDevice");
     
-    phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
-
-    messagingClient_t * in = phev_createIncomingMessageClient();
-    messagingClient_t * out = phev_createOutgoingMessageClient(settings.host,settings.port);
-
-    phevServiceSettings_t serviceSettings = {
-        .in = in,
-        .out = out,
-        .mac = settings.mac, 
-        .registerDevice = true, 
-        .eventHandler = phev_pipeEventHandler,
-        .errorHandler = NULL,
-        .yieldHandler = NULL,
-     
-    };
- 
-    phevServiceCtx_t * srvCtx = phev_service_create(serviceSettings);
-
-    ctx->serviceCtx = srvCtx;
-
-    phev_service_register(serviceSettings.mac, srvCtx, phev_registrationComplete);
+    phevCtx_t * ctx = phev_init(settings);
+    
+    phev_service_register(settings.mac, ctx->serviceCtx, phev_registrationComplete);
 
     LOG_V(TAG,"END - registerDevice");
     

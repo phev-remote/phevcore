@@ -8,6 +8,7 @@
 #endif
 
 #include "phev_register.h"
+#include "phev_service.h"
 #include "msg_core.h"
 #include "msg_pipe.h"
 #include "msg_utils.h"
@@ -92,8 +93,10 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * srvCtx = malloc(sizeof(phevServiceCtx_t));
+
     phev_pipe_settings_t settings = {
-        .ctx = NULL,
+        .ctx = srvCtx,
         .in = in,
         .out = out,
         .inputSplitter = NULL,
@@ -105,7 +108,9 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
         .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
     };
 
-    return phev_pipe_createPipe(settings);
+    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(settings);
+
+    return pipe;
 }
 
 void test_phev_register_bootstrap(void)
@@ -167,7 +172,7 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
     }
 }
 // Outgoing tests
-void test_phev_register_should_send_mac_and_aa(void)
+void test_phev_register_should_send_mac_and_aa(void) // TODO: Fixme
 {
     test_phev_register_index = 0;
     test_phev_register_inHandlerSend = NULL;
@@ -178,6 +183,7 @@ void test_phev_register_should_send_mac_and_aa(void)
     phevRegisterSettings_t settings = {
         .pipe = pipe,
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
+        .ctx = pipe->ctx,
     };
     
     memcpy(settings.mac,mac,MAC_ADDR_SIZE);
@@ -189,7 +195,9 @@ void test_phev_register_should_send_mac_and_aa(void)
         .data = "JMAXDGG2WGZ002035",
         .length = 17,
     };
-    
+
+    ((phevServiceCtx_t *) pipe->ctx)->registrationCtx = ctx;
+
     phev_register_eventHandler(pipe ,&event);
 
     TEST_ASSERT_NOT_NULL(test_phev_register_messages[0]);
@@ -208,9 +216,13 @@ void test_phev_register_should_trigger_aa_ack_event(void)
     phevRegisterSettings_t settings = {
         .pipe = pipe,
         .eventHandler = (phevPipeEventHandler_t) test_phev_register_event_handler,
+        .ctx = pipe->ctx,
     };
 
     phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    ((phevServiceCtx_t *) pipe->ctx)->registrationCtx = ctx;
+
 
     msg_pipe_loop(pipe->pipe);
 
@@ -232,6 +244,8 @@ void test_phev_register_should_send_init(void)
     };
 
     phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    ((phevServiceCtx_t *) pipe->ctx)->registrationCtx = ctx;
 
     msg_pipe_loop(pipe->pipe);
 
@@ -273,10 +287,12 @@ void test_phev_register_should_call_complete_when_registered(void)
         .pipe = pipe,
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) test_phev_register_complete,
+        .ctx = pipe->ctx,
     };
 
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
+    ((phevServiceCtx_t *) pipe->ctx)->registrationCtx = ctx;
     ctx->startAck = true;
     ctx->aaAck = true;
     ctx->registrationRequest = true;
@@ -581,8 +597,10 @@ void test_phev_register_end_to_end(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceCtx_t * srvCtx = malloc(sizeof(phevServiceCtx_t));
+
     phev_pipe_settings_t pipeSettings = {
-        .ctx = NULL,
+        .ctx = srvCtx,
         .in = in,
         .out = out,
         .inputSplitter = NULL,
@@ -594,16 +612,20 @@ void test_phev_register_end_to_end(void)
         .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
     };
 
-    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(pipeSettings);
     
+    phev_pipe_ctx_t * pipe = phev_pipe_createPipe(pipeSettings);
+
     phevRegisterSettings_t settings = {
         .pipe = pipe,
         .mac = {0x2f,0x0d,0xc2,0xc2,0x91,0x85},
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) test_phev_register_e2e_complete,
+        .ctx = pipe->ctx,
     };
 
     phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    ((phevServiceCtx_t *) pipe->ctx)->registrationCtx = ctx;
 
     int i = 0;
 
@@ -615,7 +637,7 @@ void test_phev_register_end_to_end(void)
     }
     
     TEST_ASSERT_EQUAL(7,test_phev_register_e2e_out_handler_stage);
-    TEST_ASSERT_EQUAL(6,test_phev_register_e2e_out_handler_out_stage);
+    TEST_ASSERT_EQUAL(5,test_phev_register_e2e_out_handler_out_stage);
     TEST_ASSERT_EQUAL(true,ctx->registrationComplete);
 
 }
