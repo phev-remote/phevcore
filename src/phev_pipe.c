@@ -652,7 +652,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t 
         {
             if(ctx->updateRegisterCallbacks->callbacks[i] != NULL && ctx->updateRegisterCallbacks->registers[i] == ((phevMessage_t *) event->data)->reg)
             {
-                ctx->updateRegisterCallbacks->callbacks[i](ctx,ctx->updateRegisterCallbacks->registers[i]);
+                ctx->updateRegisterCallbacks->callbacks[i](ctx,ctx->updateRegisterCallbacks->registers[i],ctx->updateRegisterCallbacks->ctx[i]);
                 ctx->updateRegisterCallbacks->callbacks[i] = NULL;
                 ctx->updateRegisterCallbacks->registers[i] = 0;
                 
@@ -664,7 +664,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t 
 
     return 0;
 }
-void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback)
+void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback, void * customCtx)
 {
     LOG_V(APP_TAG,"START - updateRegisterWithCallback");
     
@@ -674,6 +674,8 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t * ctx, const uint8_t r
         {
             ctx->updateRegisterCallbacks->callbacks[i] = callback;
             ctx->updateRegisterCallbacks->registers[i] = reg;
+            ctx->updateRegisterCallbacks->ctx[i] = customCtx;
+            
             ctx->updateRegisterCallbacks->numberOfCallbacks++;
             
             phev_pipe_registerEventHandler(ctx,(phevPipeEventHandler_t) phev_pipe_updateRegisterEventHandler);

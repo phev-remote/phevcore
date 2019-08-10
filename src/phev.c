@@ -34,6 +34,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         case PHEV_PIPE_CONNECTED: {
             phevEvent_t ev = {
                 .type = PHEV_CONNECTED,
+                .ctx =  phevCtx,
             };
             return phevCtx->eventHandler(&ev);
         }
@@ -43,6 +44,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .reg = ((phevMessage_t *) event->data)->reg,
                 .data = ((phevMessage_t *) event->data)->data,
                 .length = ((phevMessage_t *) event->data)->length,
+                .ctx =  phevCtx,
             };
             return phevCtx->eventHandler(&ev);
         }
@@ -57,6 +59,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .type = PHEV_VIN,
                 .data = vin,
                 .length = strlen(vin),
+                .ctx =  phevCtx,
 
             };
             return phevCtx->eventHandler(&ev);
@@ -65,6 +68,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         {
             phevEvent_t ev = {
                 .type = PHEV_ECU_VERSION,
+                .ctx =  phevCtx,
             };
             return phevCtx->eventHandler(&ev);
         }
@@ -175,6 +179,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
     phevServiceCtx_t * srvCtx = phev_service_create(*serviceSettings);
 
     ctx->serviceCtx = srvCtx;
+    //ctx->ctx = srvCtx;
 
     LOG_V(TAG,"END - init");
     
@@ -211,5 +216,56 @@ void phev_start(phevCtx_t * ctx)
 }
 void phev_exit(phevCtx_t * ctx)
 {
+    LOG_V(TAG,"START - exit");
+    
     ctx->serviceCtx->exit = true;
+
+    LOG_V(TAG,"START - exit");
+    
+}
+bool phev_running(phevCtx_t * ctx)
+{
+    return !ctx->serviceCtx->exit;
+}
+static void phev_headLightsCallback(phev_pipe_ctx_t *ctx, uint8_t reg, void * customCtx)
+{
+    phevCallBackCtx_t * cbCtx = (phevCallBackCtx_t *) customCtx;
+
+    cbCtx->callback(cbCtx->ctx,NULL);
+
+}
+void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - headLights");
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+    if(on)
+    {
+        LOG_D(TAG,"Switching on head lights");
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, 1,phev_headLightsCallback,cbCtx);
+    } else {
+        LOG_D(TAG,"Switching off head lights"); 
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, 2,phev_headLightsCallback,cbCtx);
+    }
+    LOG_V(TAG,"END - headLights");
+    
+}
+void phev_airCon(phevCtx_t * ctx, bool on)
+{
+    LOG_V(TAG,"START - airCon");
+
+    LOG_V(TAG,"END - airCon");
+    
+}
+int phev_batteryLevel(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - batteryLevel");
+
+    int level = phev_service_getBatteryLevel(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - batteryLevel");
+    return level;
 }
