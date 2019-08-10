@@ -3,7 +3,7 @@
 #include "phev_service.h"
 #include "msg_utils.h"
 #include "logger.h"
-#include "cJSON.h"
+#include "cjson/cJSON.h"
 
 const static char *TAG = "PHEV_SERVICE";
 

@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_C_STANDARD 11)
 
+find_library(MSG_CORE msg_core)
+find_library(CJSON cjson)
+option(BUILD_TESTS "Build the test binaries")
+
 add_library(phev STATIC
     src/phev_register.c
     src/phev_pipe.c
@@ -16,13 +20,15 @@ add_library(phev STATIC
 # find_package(zf_queue)
 # target_link_libraries(phev msg_core cjson)
 
-include(CTest)
+if(${BUILD_TESTS})
+    include(CTest)
+    add_subdirectory(test)
+endif()
 
-add_subdirectory(external) 
+#add_subdirectory(external) 
 
-target_include_directories(msg_core PUBLIC msg_core/include)
+#target_include_directories(msg_core PUBLIC msg_core/include)
 
-add_subdirectory(test)
 
 if(WIN32)
     target_link_libraries(phev LINK_PUBLIC
@@ -35,9 +41,8 @@ if(WIN32)
     )
 else()
     target_link_libraries (phev LINK_PUBLIC 
-        msg_core
-        cjson
-	#   zf_queue 
+        ${MSG_CORE}
+        ${CJSON}
     )
 endif()
 

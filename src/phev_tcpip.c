@@ -1,6 +1,10 @@
 #define _WIN32_WINNT 0x0501
 
 #ifdef __linux__
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
