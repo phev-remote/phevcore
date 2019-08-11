@@ -1,19 +1,47 @@
-# phev-core
+# Phev Remote Core Library 
 
-A libray that can be used to communicate with the Mistushish Outlander PHEV with the Remote WiFi option in the MMC so mainly the GH4 + models.
+A library that can be used to communicate with the Mistushish Outlander PHEV with the Remote WiFi option in the MMC so mainly the GH4 + models.
 
-Device registration and conneting to the car is functional as well as being able to read the car data and swtich on the lights and manual air conditioning.
+Device registration and connecting to the car is functional as well as being able to read the car data and swtich on the lights and manual air conditioning.
 
 More features will be avalable soon.
 
+It requires that the device is connected to the same network as the car, the 192.168.8.x subnet.
+
 # pre-reqs
 
-https://github.com/papawattu/msg-core
+## Messaging core library
 
-The CLI which has been tested on a raspberry pi can be found here
+git clone https://github.com/papawattu/msg-core
+cd msg-core
+mkdir -p build
+cd build
+cmake ..
+make
+sudo make install
 
-https://github.com/phev-remote/adapter
+## cJSON
 
-# TODO
+git clone https://github.com/DaveGamble/cJSON
+cd cJSON
+mkdir -p build
+cd build
+cmake ..
+make
+sudo make install
 
-build instructions
+# Build instructions
+
+git clone https://github.com/phev-remote/phevcore
+cd phevcore
+mkdir -p build
+cd build
+cmake ..
+make
+sudo make install
+
+# The CLI 
+
+Has been tested on a raspberry pi and other linux systems can be found here.
+
+https://github.com/phev-remote/phevcli
