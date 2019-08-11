@@ -253,7 +253,7 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
     LOG_V(TAG,"END - headLights");
     
 }
-void phev_airCon(phevCtx_t * ctx, bool on)
+void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 {
     LOG_V(TAG,"START - airCon");
         phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
