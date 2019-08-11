@@ -256,7 +256,19 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 void phev_airCon(phevCtx_t * ctx, bool on)
 {
     LOG_V(TAG,"START - airCon");
+        phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
 
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+    if(on)
+    {
+        LOG_D(TAG,"Switching on air conditioning");
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, 2,phev_headLightsCallback,cbCtx);
+    } else {
+        LOG_D(TAG,"Switching off air conditioning"); 
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, 1,phev_headLightsCallback,cbCtx);
+    }
     LOG_V(TAG,"END - airCon");
     
 }
