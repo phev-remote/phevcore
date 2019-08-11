@@ -69,4 +69,4 @@ sudo make install
 
 Has been tested on a raspberry pi and other linux systems can be found here.
 
-https://github.com/phev-remote/phevcli
+https://github.com/phev-remote/phevctl
