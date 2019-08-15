@@ -17,6 +17,8 @@
 #define PHEV_CONNECT_MAX_RETRIES (5)
 #endif
 
+#define PHEV_PIPE_ECU_VERSION_SIZE 11
+
 #ifdef _WIN32
 //  For Windows (32- and 64-bit)
 #include <windows.h>

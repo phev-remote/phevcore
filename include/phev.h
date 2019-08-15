@@ -15,10 +15,10 @@
 #define KO_WF_REMOTE_SECURTY_PRSNT_INFO 3
 #define KO_WF_DATE_INFO_SYNC_SP 5
 #define KO_WF_MANUAL_AC_ON_RQ_SP 4
-#define KO_WF_DATE_INFO_SYNC_SP 5
 #define KO_WF_H_LAMP_CONT_SP 10
 #define KO_WF_P_LAMP_CONT_SP 11
 #define KO_WF_BATT_LEVEL_INFO_REP_EVR 29
+#define KO_WF_DATE_INFO_SYNC_EVR 18
 
 typedef struct phevCtx_t phevCtx_t;
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
@@ -28,6 +28,12 @@ typedef struct phevCallBackCtx_t {
     phevCallBack_t callback;
     phevCtx_t * ctx;
 } phevCallBackCtx_t;
+
+typedef struct phevData_t {
+    size_t length;
+    uint8_t data[];
+} phevData_t;
+
 typedef enum {
     PHEV_CONNECTED,
     PHEV_REGISTER_UPDATE,
@@ -35,7 +41,7 @@ typedef enum {
     PHEV_REGISTERED,
     PHEV_REGISTRATION_COMPLETE,
     PHEV_VIN,
-    PHEV_START,
+    PHEV_STARTED,
     PHEV_ECU_VERSION,
     PHEV__MAX_REGISTRATIONS,
 } phevEventTypes_t;
@@ -70,4 +76,5 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
 int phev_batteryLevel(phevCtx_t * ctx);
+phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg);
 #endif

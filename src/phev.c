@@ -38,6 +38,12 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             };
             return phevCtx->eventHandler(&ev);
         }
+        case PHEV_PIPE_START_ACK: {
+            phevEvent_t ev = {
+                .type = PHEV_STARTED,
+                .ctx =phevCtx,
+            };
+        }
         case PHEV_PIPE_REG_UPDATE: {
             phevEvent_t ev = {
                 .type = PHEV_REGISTER_UPDATE,
@@ -66,8 +72,10 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         }
         case PHEV_PIPE_ECU_VERSION2:
         {
+            
             phevEvent_t ev = {
                 .type = PHEV_ECU_VERSION,
+                .data = event->data,
                 .ctx =  phevCtx,
             };
             return phevCtx->eventHandler(&ev);
@@ -280,4 +288,8 @@ int phev_batteryLevel(phevCtx_t * ctx)
 
     LOG_V(TAG,"END - batteryLevel");
     return level;
+}
+phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
+{
+    return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg); 
 }

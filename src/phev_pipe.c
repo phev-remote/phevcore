@@ -286,13 +286,14 @@ phevPipeEvent_t * phev_pipe_registrationEvent(void)
     return event;
 
 }
-phevPipeEvent_t * phev_pipe_ecuVersion2Event(void)
+phevPipeEvent_t * phev_pipe_ecuVersion2Event(uint8_t * data)
 {
     LOG_V(APP_TAG,"START - ecuVersion2Event");
     phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
 
-    event->event = PHEV_PIPE_ECU_VERSION2,
-    event->data =  NULL;
+    event->event = PHEV_PIPE_ECU_VERSION2;
+    event->data = malloc(PHEV_PIPE_ECU_VERSION_SIZE);
+    memcpy(event->data, data, PHEV_PIPE_ECU_VERSION_SIZE);
     event->length = 0;
     LOG_D(APP_TAG,"Created Event ID %d",event->event);
     
@@ -378,7 +379,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
         case KO_WF_ECU_VERSION2_EVR: {
             if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
             {
-                event = phev_pipe_ecuVersion2Event();
+                event = phev_pipe_ecuVersion2Event(phevMessage->data);
             }
             break;
         }
