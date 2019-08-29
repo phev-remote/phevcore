@@ -17,6 +17,11 @@ typedef struct phevCtx_t {
     void * ctx;
 } phevCtx_t;
 
+void * phev_getUserCtx(phevCtx_t * ctx)
+{
+    return ctx->ctx;
+}
+
 
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {

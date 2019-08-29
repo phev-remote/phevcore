@@ -68,6 +68,7 @@ typedef struct phevSettings_t {
 } phevSettings_t;
 
 phevCtx_t * phev_init(phevSettings_t settings);
+void * phev_getUserCtx(phevCtx_t * ctx);
 void phev_start(phevCtx_t * ctx);
 phevCtx_t * phev_registerDevice(phevSettings_t settings);
 void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
