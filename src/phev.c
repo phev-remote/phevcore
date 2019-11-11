@@ -68,7 +68,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             
             phevEvent_t ev = {
                 .type = PHEV_VIN,
-                .data = vin,
+                .data = (unsigned char *) vin,
                 .length = strlen(vin),
                 .ctx =  phevCtx,
 
@@ -215,7 +215,7 @@ phevCtx_t * phev_registerDevice(phevSettings_t settings)
     
     phevCtx_t * ctx = phev_init(settings);
     
-    phev_service_register(settings.mac, ctx->serviceCtx, phev_registrationComplete);
+    phev_service_register((const char *) settings.mac, ctx->serviceCtx, phev_registrationComplete);
 
     LOG_V(TAG,"END - registerDevice");
     

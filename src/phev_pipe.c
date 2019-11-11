@@ -18,7 +18,7 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx)
         retries ++;
         if(retries > PHEV_CONNECT_MAX_RETRIES)
         {
-            LOG_E(APP_TAG,"Max retires reached");
+            LOG_E(APP_TAG,"Max retries reached");
             return;
         }
     }

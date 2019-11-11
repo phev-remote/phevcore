@@ -3,8 +3,11 @@
 #include "phev_service.h"
 #include "msg_utils.h"
 #include "logger.h"
-#include "cjson/cJSON.h"
-
+#ifdef __XTENSA__
+#include "cJSON.h"
+#else
+#include <cjson/cJSON.h>
+#endif
 const static char *TAG = "PHEV_SERVICE";
 
 const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};

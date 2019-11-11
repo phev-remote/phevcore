@@ -1,10 +1,12 @@
+
 #define _WIN32_WINNT 0x0501
 
-#ifdef __linux__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef __linux__
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,20 +21,41 @@
 #include <ws2tcpip.h>
 #endif
 
+#ifdef __XTENSA__
+#include "lwip/opt.h"
+#include "lwip/sockets.h"
+#include "lwip/sys.h"
+#include "lwip/netdb.h"
+#include "lwip/dns.h"
+#include "lwip/netif.h"
+
+#define TCP_READ lwip_read
+#define TCP_WRITE lwip_write
+#define TCP_CONNECT lwip_connect
+#define TCP_SOCKET lwip_socket
+#define TCP_HTONS PP_HTONS
+
+#endif
 #include "phev_tcpip.h"
 #include "logger.h"
 #ifdef _WIN32
 #define TCP_READ recv
 #define TCP_WRITE send
-#else
-#define TCP_READ read
-#define TCP_WRITE write
-#endif
-
 #define TCP_CONNECT connect
 #define TCP_SOCKET socket
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
+
+#else
+#define TCP_READ read
+#define TCP_WRITE write
+#define TCP_CONNECT connect
+#define TCP_SOCKET socket
+#define TCP_HTONS htons
+#define TCP_READ_TIMEOUT 1000
+
+#endif
+
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
@@ -44,12 +67,14 @@ void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
 
 static int tcp_poll_read(int soc, int timeout_ms)
 {
+    int ret;
     fd_set readset;
     FD_ZERO(&readset);
     FD_SET(soc, &readset);
     struct timeval timeout;
     my_ms_to_timeval(timeout_ms, &timeout);
-    return select(soc + 1, &readset, NULL, NULL, &timeout);
+    ret = select(soc + 1, &readset, NULL, NULL, &timeout);
+    return ret;
 }
 static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
 {
