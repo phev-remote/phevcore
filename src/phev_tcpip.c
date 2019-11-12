@@ -46,7 +46,7 @@
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 
-#else
+#elif __linux__
 #define TCP_READ read
 #define TCP_WRITE write
 #define TCP_CONNECT connect
@@ -59,7 +59,7 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
-void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
+static void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
 {
     tv->tv_sec = timeout_ms / 1000;
     tv->tv_usec = (timeout_ms - (tv->tv_sec * 1000)) * 1000;

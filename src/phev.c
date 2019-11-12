@@ -28,8 +28,8 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     LOG_V(TAG,"START - pipeEventHandler");
     
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
+    
 
-        
     if(!phevCtx->eventHandler)
     {
         return 0;
@@ -41,6 +41,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .type = PHEV_CONNECTED,
                 .ctx =  phevCtx,
             };
+            
             return phevCtx->eventHandler(&ev);
         }
         case PHEV_PIPE_START_ACK: {
@@ -48,6 +49,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .type = PHEV_STARTED,
                 .ctx =phevCtx,
             };
+            return phevCtx->eventHandler(&ev);
         }
         case PHEV_PIPE_REG_UPDATE: {
             phevEvent_t ev = {
@@ -77,10 +79,13 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         }
         case PHEV_PIPE_ECU_VERSION2:
         {
-            
+            char * version = malloc(11);
+
+            strncpy(version,event->data,10);
             phevEvent_t ev = {
                 .type = PHEV_ECU_VERSION,
-                .data = event->data,
+                .data = (uint8_t *) version,
+                .length = strlen(version),
                 .ctx =  phevCtx,
             };
             return phevCtx->eventHandler(&ev);

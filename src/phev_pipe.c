@@ -120,7 +120,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     msg_pipe_settings_t pipe_settings = {
         .in = settings.in,
         .out = settings.out,
-        .lazyConnect = 0,
+        .lazyConnect = false,
         .user_context = ctx,
         .in_chain = inputChain,
         .out_chain = outputChain,
