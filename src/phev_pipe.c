@@ -398,7 +398,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             break;
         }
         default: {
-            LOG_E(APP_TAG,"Register not handled");
+            LOG_W(APP_TAG,"Register not handled %x",phevMessage->reg);
         }
     }
     
