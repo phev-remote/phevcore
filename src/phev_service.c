@@ -481,6 +481,21 @@ phevMessage_t *phev_service_operationHandler(cJSON *operation)
         }
         return NULL;
     }
+
+    cJSON *update = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_UPDATE_JSON);
+
+    if (update)
+    {
+        if (cJSON_IsBool(update) && cJSON_IsTrue(update))
+        {
+            LOG_I(TAG, "Sending update command");
+
+            return phev_core_simpleRequestCommandMessage(KO_WF_EV_UPDATE_SP, 3);
+        }
+        return NULL;
+    }
+
+    
     return NULL;
 }
 phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)

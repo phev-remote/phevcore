@@ -37,6 +37,7 @@
 #define KO_WF_DATE_INFO_SYNC_SP 5
 #define KO_WF_H_LAMP_CONT_SP 10
 #define KO_WF_P_LAMP_CONT_SP 11
+#define KO_WF_EV_UPDATE_SP 6
 #define KO_WF_BATT_LEVEL_INFO_REP_EVR 29
 /*
 enum commands_t  {
