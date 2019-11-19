@@ -14,6 +14,14 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t * ctx)
     while(!(ctx->pipe->in->connected && ctx->pipe->out->connected))
     {
         LOG_I(APP_TAG,"Not connected waiting...");
+        if(!ctx->pipe->in->connected) 
+        {
+            msg_pipe_in_connect(ctx);
+        }
+        if(!ctx->pipe->out->connected) 
+        {
+            msg_pipe_out_connect(ctx);
+        }
         SLEEP(PHEV_CONNECT_WAIT_TIME);
         retries ++;
         if(retries > PHEV_CONNECT_MAX_RETRIES)
