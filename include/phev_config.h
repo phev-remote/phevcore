@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "phev_core.h"
 #ifdef __XTENSA__
-#include "cjson.h"
+#include "cJSON.h"
 #else
 #include <cjson/cJSON.h>
 #endif
