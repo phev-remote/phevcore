@@ -1,7 +1,7 @@
 language: c
+services:
+    - docker
+    
 script:
-    - mkdir -p build
-    - cd build
-    - cmake ..
-    - make
-    - ctest --verbose
+    - docker build -t papawattu/phevcore .
+    - docker run papawattu/phevcore
