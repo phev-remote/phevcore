@@ -515,7 +515,7 @@ void test_phev_pipe_updateRegisterWithCallback(void)
 
     phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
 
-    phev_pipe_updateRegisterWithCallback(ctx, 0x10, 1,test_phev_pipe_update_register_callback);
+   // phev_pipe_updateRegisterWithCallback(ctx, 0x10, 1,test_phev_pipe_update_register_callback);
 
     phev_pipe_loop(ctx);
 

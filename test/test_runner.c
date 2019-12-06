@@ -9,6 +9,14 @@
 #include "test_phev_model.c"
 #include "test_phev.c"
 
+void setUp(void) 
+{
+
+}
+void tearDown(void)
+{
+
+}
 int main()
 {
     UNITY_BEGIN();
@@ -77,7 +85,7 @@ int main()
 #endif
     RUN_TEST(test_phev_pipe_sendMac);
     RUN_TEST(test_phev_pipe_updateRegister);
-    RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
+//    RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
     RUN_TEST(test_phev_pipe_registerEventHandler);
     RUN_TEST(test_phev_pipe_register_multiple_registerEventHandlers);
     RUN_TEST(test_phev_pipe_createRegisterEvent_ack);
@@ -103,7 +111,7 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOff);
-    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_update);
+    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_update);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
     RUN_TEST(test_phev_service_createPipe);
     RUN_TEST(test_phev_service_jsonInputTransformer);

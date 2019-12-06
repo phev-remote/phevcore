@@ -21,6 +21,7 @@ add_library(phev STATIC
 # target_link_libraries(phev msg_core cjson)
 
 if(${BUILD_TESTS})
+    find_package(unity)
     include(CTest)
     add_subdirectory(test)
 endif()
