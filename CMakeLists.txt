@@ -5,6 +5,7 @@ set (CMAKE_C_STANDARD 11)
 
 find_library(MSG_CORE msg_core)
 find_library(CJSON cjson)
+
 option(BUILD_TESTS "Build the test binaries")
 
 add_library(phev STATIC
