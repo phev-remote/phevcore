@@ -1,4 +1,4 @@
-//#define LOGGING_OFF
+#define LOGGING_OFF
 //#define TEST_TIMEOUTS
 
 #include "unity.h"
