@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_C_STANDARD 11)
 
-find_library(MSG_CORE msg_core)
+find_library(MSG_CORE msg_core "/usr/local/lib")
 find_library(CJSON cjson)
 
 option(BUILD_TESTS "Build the test binaries")
@@ -22,6 +22,7 @@ add_library(phev STATIC
 # target_link_libraries(phev msg_core cjson)
 
 if(${BUILD_TESTS})
+    find_package(unity)
     include(CTest)
     add_subdirectory(test)
 endif()

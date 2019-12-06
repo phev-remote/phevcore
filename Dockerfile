@@ -13,4 +13,5 @@ RUN mkdir build && cd build && cmake .. && make && make install
 WORKDIR /phev/phevcore
 COPY . .
 RUN mkdir build && cd build && cmake -DBUILD_TESTS=true .. && make
+WORKDIR /phev/phevcore/build
 CMD ["ctest","-j6","-T","test","--output-on-failure"]
