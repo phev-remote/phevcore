@@ -18,6 +18,7 @@
 #endif
 
 #define PHEV_PIPE_ECU_VERSION_SIZE 11
+#define PHEV_PIPE_DATE_INFO_SIZE 6
 
 #ifdef _WIN32
 //  For Windows (32- and 64-bit)
@@ -58,6 +59,7 @@ enum
     PHEV_PIPE_MAX_REGISTRATIONS,
     PHEV_PIPE_REG_UPDATE,
     PHEV_PIPE_REG_UPDATE_ACK,
+    PHEV_PIPE_DATE_INFO,
 };
 
 typedef struct phevPipeEvent_t

@@ -1,5 +1,6 @@
 #include "unity.h"
 #include "phev.h"
+#include "cjson/cJSON.h"
 
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;
@@ -218,4 +219,29 @@ void test_phev_registrationEndToEnd(void)
 
     phev_start(handle);
 
+}
+
+test_phev_statusAsJson(void)
+{
+    const uint8_t data[] = {50};
+
+    phevSettings_t settings = {
+        .host = "localhost",
+        .handler = test_phev_handler,
+    };
+    phevCtx_t * handle = phev_init(settings);
+    
+    phev_model_setRegister(handle->serviceCtx->model,29,data,1);
+
+    char * str = phev_statusAsJson(handle);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "soc");
+
+    TEST_ASSERT_EQUAL(50,level->valueint);
 }

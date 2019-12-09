@@ -90,6 +90,16 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             };
             return phevCtx->eventHandler(&ev);
         }
+        case PHEV_PIPE_DATE_INFO:
+        {
+            phevEvent_t ev = {
+                .type = PHEV_DATE_SYNC,
+                .data = event->data,
+                .length = event->length,
+                .ctx = phevCtx,
+            };
+            return phevCtx->eventHandler(&ev);
+        }
     }
     
     
@@ -302,4 +312,9 @@ int phev_batteryLevel(phevCtx_t * ctx)
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
 {
     return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg); 
+}
+
+char * phev_statusAsJson(phevCtx_t * ctx)
+{
+    return phev_service_statusAsJson(ctx->serviceCtx);
 }

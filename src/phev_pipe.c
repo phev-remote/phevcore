@@ -337,6 +337,20 @@ phevPipeEvent_t * phev_pipe_regDispEvent(void)
     
     return event;
 }
+phevPipeEvent_t * phev_pipe_dateInfoEvent(uint8_t * data)
+{
+    LOG_V(APP_TAG,"START - dateInfoEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+    event->data = malloc(PHEV_PIPE_DATE_INFO_SIZE);
+    memcpy(event->data, data, PHEV_PIPE_DATE_INFO_SIZE);
+    event->event = PHEV_PIPE_DATE_INFO,
+    event->length = PHEV_PIPE_DATE_INFO_SIZE;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - dateInfoEvent");
+    
+    return event;
+}
 phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t * phevMessage)
 {
     LOG_V(APP_TAG,"START - messageToEvent");
@@ -402,6 +416,13 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_regDispEvent();
+            }
+            break;
+        }
+        case KO_WF_DATE_INFO_SYNC_EVR: {
+            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
+            {
+                event = phev_pipe_dateInfoEvent(phevMessage->data);
             }
             break;
         }

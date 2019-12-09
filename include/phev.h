@@ -43,7 +43,8 @@ typedef enum {
     PHEV_VIN,
     PHEV_STARTED,
     PHEV_ECU_VERSION,
-    PHEV__MAX_REGISTRATIONS,
+    PHEV_MAX_REGISTRATIONS,
+    PHEV_DATE_SYNC,
 } phevEventTypes_t;
 
 typedef struct phevEvent_t {
@@ -78,4 +79,5 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
 int phev_batteryLevel(phevCtx_t * ctx);
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg);
+char * phev_statusAsJson(phevCtx_t * ctx);
 #endif
