@@ -11,17 +11,10 @@
 
 const static char *TAG = "PHEV";
 
-typedef struct phevCtx_t {
-    phevServiceCtx_t * serviceCtx;
-    phevEventHandler_t eventHandler;
-    void * ctx;
-} phevCtx_t;
-
 void * phev_getUserCtx(phevCtx_t * ctx)
 {
     return ctx->ctx;
 }
-
 
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {

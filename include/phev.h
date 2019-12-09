@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "msg_core.h"
+#include "phev_service.h"
+#include "phev_pipe.h"
 
 #define KO_WF_CONNECT_INFO_GS_SP 1
 #define KO_WF_REG_DISP_SP 16
@@ -21,18 +23,6 @@
 #define KO_WF_DATE_INFO_SYNC_EVR 18
 
 typedef struct phevCtx_t phevCtx_t;
-typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
-typedef struct phevPipeEvent_t phevPipeEvent_t;
-typedef void (*phevCallBack_t)(phevCtx_t * ctx, void *);
-typedef struct phevCallBackCtx_t {
-    phevCallBack_t callback;
-    phevCtx_t * ctx;
-} phevCallBackCtx_t;
-
-typedef struct phevData_t {
-    size_t length;
-    uint8_t data[];
-} phevData_t;
 
 typedef enum {
     PHEV_CONNECTED,
@@ -56,6 +46,25 @@ typedef struct phevEvent_t {
 } phevEvent_t;
 
 typedef int (* phevEventHandler_t)(phevEvent_t *);
+
+typedef struct phevCtx_t {
+    phevServiceCtx_t * serviceCtx;
+    phevEventHandler_t eventHandler;
+    void * ctx;
+} phevCtx_t;
+
+typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
+typedef struct phevPipeEvent_t phevPipeEvent_t;
+typedef void (*phevCallBack_t)(phevCtx_t * ctx, void *);
+typedef struct phevCallBackCtx_t {
+    phevCallBack_t callback;
+    phevCtx_t * ctx;
+} phevCallBackCtx_t;
+
+typedef struct phevData_t {
+    size_t length;
+    uint8_t data[];
+} phevData_t;
 
 typedef struct phevSettings_t {
     char * host;
