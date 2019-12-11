@@ -420,7 +420,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             break;
         }
         case KO_WF_DATE_INFO_SYNC_EVR: {
-            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_dateInfoEvent(phevMessage->data);
             }

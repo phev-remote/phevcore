@@ -860,3 +860,15 @@ void phev_service_setRegister(const phevServiceCtx_t *ctx, const uint8_t reg, co
     LOG_V(TAG, "END - setRegister");
     return;
 }
+char * phev_service_getDateSync(const phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - getDateSync");
+    phevRegister_t * reg = phev_model_getRegister(ctx->model,KO_WF_DATE_INFO_SYNC_EVR);
+    if(reg) 
+    {
+        char * date;
+        asprintf(&date,"20%02d-%02d-%02dT%02d:%02d:%02dZ",reg->data[0],reg->data[1],reg->data[2],reg->data[3],reg->data[4],reg->data[5]);
+        return date;
+    }
+    return NULL;
+}

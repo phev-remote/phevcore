@@ -1310,4 +1310,48 @@ void test_phev_service_getRegisterJson(void)
 
     TEST_ASSERT_EQUAL_STRING(expectedJson, json);
 }
+void test_phev_service_getDateSync(void)
+{
+    const char * expectedDate = "2019-12-11T19:12:41Z";
+    const uint8_t data[] = {0x13,0x0c,0x0b,0x13,0x0c,0x29,0x01};
+     messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,   
+        .ctx = NULL, 
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    phev_model_setRegister(ctx->model,KO_WF_DATE_INFO_SYNC_EVR,(const uint8_t *) data, sizeof(data));
+
+    char * date = phev_service_getDateSync(ctx);
+
+    TEST_ASSERT_EQUAL_STRING(expectedDate,date);
+}
+/*
+const timeRemain = remain => {
+    const data = Int16Array.from(remain)
+    const high = data[1]
+    const low = data[2]
+
+    return ((low < 0 ? low + 0x100 : low) * 0x100) +
+        (high < 0 ? high + 0x100 : high)
+
+}
+*/

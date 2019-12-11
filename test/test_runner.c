@@ -152,7 +152,7 @@ int main()
     RUN_TEST(test_phev_service_setRegister);
     RUN_TEST(test_phev_service_getRegisterJson);
     RUN_TEST(test_phev_service_create_passes_context);
-    
+    RUN_TEST(test_phev_service_getDateSync);
 
 //  PHEV_MODEL
 

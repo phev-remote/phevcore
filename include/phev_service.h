@@ -78,5 +78,5 @@ message_t * phev_service_jsonResponseAggregator(void * ctx, messageBundle_t * bu
 phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const uint8_t reg);
 void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length);
 char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg);
-
+char * phev_service_getDateSync(const phevServiceCtx_t * ctx);
 #endif

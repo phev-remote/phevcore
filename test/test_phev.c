@@ -1,13 +1,13 @@
 #include "unity.h"
 #include "phev.h"
 #include "cjson/cJSON.h"
-
+/*
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;
     phevEventHandler_t eventHandler;
     void * ctx;
 } phevCtx_t;
-
+*/
 const static uint8_t adapter_request_one[]      = {0xf2,0x0a,0x00,0x01,0x24,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xc8,0xf6,0x04,0x00,0xaa,0x00,0xa4};
 const static uint8_t adapter_request_two[]      = {0xf6,0x0a,0x00,0x05,0x13,0x07,0x1e,0x14,0x28,0x2e,0x02,0xa9};
 const static uint8_t adapter_request_three[]    = {0xf9,0x04,0x00,0x00,0x00,0xfd};
@@ -221,7 +221,7 @@ void test_phev_registrationEndToEnd(void)
 
 }
 
-test_phev_statusAsJson(void)
+void test_phev_statusAsJson(void)
 {
     const uint8_t data[] = {50};
 
