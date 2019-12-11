@@ -29,6 +29,12 @@
 #define PHEV_SERVICE_REGISTER_JSON "register"
 #define PHEV_SERVICE_REGISTER_DATA_JSON "data"
 
+#define PHEV_SERVICE_DATE_SYNC_JSON "dateSync"
+#define PHEV_SERVICE_CHARGING_STATUS_JSON "charging"
+
+#define PHEV_SERVICE_CHARGE_REMAIN_JSON "chargeTimeRemaining"
+
+#define PHEV_SERVICE_IS_CHARGING_JSON "isCharging"
 
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
@@ -79,4 +85,6 @@ phevRegister_t * phev_service_getRegister(const phevServiceCtx_t * ctx, const ui
 void phev_service_setRegister(const phevServiceCtx_t * ctx, const uint8_t reg, const uint8_t * data, const size_t length);
 char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t reg);
 char * phev_service_getDateSync(const phevServiceCtx_t * ctx);
+bool phev_service_getChargingStatus(const phevServiceCtx_t * ctx);
+int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx);
 #endif

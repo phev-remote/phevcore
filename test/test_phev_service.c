@@ -645,6 +645,108 @@ void test_phev_service_statusAsJson_has_battery_level_correct()
 
     TEST_ASSERT_EQUAL(50,level->valueint);
 }
+void test_phev_service_statusAsJson_dateSync()
+{
+    const uint8_t data[] = {10,1,2,3,4,5,6};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phev_model_setRegister(ctx->model,18,data,sizeof(data));
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * date = cJSON_GetObjectItemCaseSensitive(status, "dateSync");
+
+    TEST_ASSERT_NOT_NULL(date);
+
+    TEST_ASSERT_EQUAL_STRING("2010-01-02T03:04:05Z",date->valuestring);
+}
+void test_phev_service_statusAsJson_not_charging()
+{
+    const uint8_t data[] = {0};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phev_model_setRegister(ctx->model,31,data,sizeof(data));
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
+
+    TEST_ASSERT_NOT_NULL(charging);
+
+    cJSON * isCharging = cJSON_GetObjectItemCaseSensitive(charging,"isCharging");
+
+    TEST_ASSERT_NOT_NULL(isCharging);
+
+    TEST_ASSERT_TRUE(cJSON_IsFalse(isCharging));
+}
+void test_phev_service_statusAsJson_is_charging()
+{
+    const uint8_t data[] = {1,1,1};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phev_model_setRegister(ctx->model,31,data,sizeof(data));
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+       cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
+
+    TEST_ASSERT_NOT_NULL(charging);
+
+    cJSON * isCharging = cJSON_GetObjectItemCaseSensitive(charging,"isCharging");
+
+    cJSON * chargeRemain = cJSON_GetObjectItemCaseSensitive(charging,"chargeTimeRemaining");
+
+    TEST_ASSERT_NOT_NULL(isCharging);
+
+    TEST_ASSERT_TRUE(cJSON_IsTrue(isCharging));
+
+    TEST_ASSERT_EQUAL(257,chargeRemain->valueint);
+}
 void test_phev_service_outputFilter(void)
 {
     messagingSettings_t inSettings = {

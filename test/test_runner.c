@@ -153,6 +153,9 @@ int main()
     RUN_TEST(test_phev_service_getRegisterJson);
     RUN_TEST(test_phev_service_create_passes_context);
     RUN_TEST(test_phev_service_getDateSync);
+    RUN_TEST(test_phev_service_statusAsJson_dateSync);
+    RUN_TEST(test_phev_service_statusAsJson_not_charging);
+    RUN_TEST(test_phev_service_statusAsJson_is_charging);
 
 //  PHEV_MODEL
 

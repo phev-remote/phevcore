@@ -691,6 +691,7 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
     cJSON *json = cJSON_CreateObject();
     cJSON *status = cJSON_CreateObject();
     cJSON *battery = cJSON_CreateObject();
+    cJSON *date = cJSON_CreateObject();
 
     if (json && status && battery)
     {
@@ -708,6 +709,26 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
         cJSON_AddItemToObject(status, PHEV_SERVICE_BATTERY_JSON, battery);
         cJSON_AddItemToObject(json, PHEV_SERVICE_STATUS_JSON, status);
 
+        char * dateStr = phev_service_getDateSync(ctx);
+
+        if(dateStr)
+        {
+            date->valuestring = dateStr;
+            cJSON_AddStringToObject(status, PHEV_SERVICE_DATE_SYNC_JSON, dateStr);
+        }
+
+        cJSON * chargingStatus = cJSON_CreateObject();
+
+        cJSON * charging = phev_service_getChargingStatus(ctx) ? cJSON_CreateTrue() : cJSON_CreateFalse();
+
+        if(chargingStatus && charging && cJSON_IsTrue(charging));
+        {
+            cJSON * chargingRemain = cJSON_CreateNumber((double) phev_service_getRemainingChargeTime(ctx));
+            cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_CHARGE_REMAIN_JSON, chargingRemain);
+            cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_IS_CHARGING_JSON, charging);
+            cJSON_AddItemToObject(status,PHEV_SERVICE_CHARGING_STATUS_JSON,chargingStatus);
+        }
+        
         char *out = cJSON_Print(json);
 
         LOG_I(TAG, "Return json %s", out);
@@ -871,4 +892,32 @@ char * phev_service_getDateSync(const phevServiceCtx_t * ctx)
         return date;
     }
     return NULL;
+}
+bool phev_service_getChargingStatus(const phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - getChargingStatus");
+    phevRegister_t * reg = phev_model_getRegister(ctx->model,KO_WF_OBCHG_OK_ON_INFO_REP_EVR);
+    if(reg) 
+    {
+        LOG_V(TAG,"END- getChargingStatus");
+    
+        return reg->data[0] == 1;
+    }
+    LOG_V(TAG,"END - getChargingStatus");
+    
+    return false;
+}
+int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - getRemainingChargingTime");
+    phevRegister_t * reg = phev_model_getRegister(ctx->model, KO_WF_OBCHG_OK_ON_INFO_REP_EVR);
+    if(reg && reg->data[2] != 255)
+    {
+        uint8_t high = reg->data[1];
+        uint8_t low = reg->data[2];
+        
+        return ((low < 0 ? low + 0x100 : low) * 0x100) + (high < 0 ? high + 0x100 : high);
+    }
+
+    return 0;
 }

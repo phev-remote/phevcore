@@ -39,6 +39,7 @@
 #define KO_WF_P_LAMP_CONT_SP 11
 #define KO_WF_EV_UPDATE_SP 6
 #define KO_WF_BATT_LEVEL_INFO_REP_EVR 29
+#define KO_WF_OBCHG_OK_ON_INFO_REP_EVR 31
 /*
 enum commands_t  {
     PING_SEND_CMD = 0xf9, 
