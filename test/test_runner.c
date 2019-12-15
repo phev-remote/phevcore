@@ -156,7 +156,9 @@ int main()
     RUN_TEST(test_phev_service_statusAsJson_dateSync);
     RUN_TEST(test_phev_service_statusAsJson_not_charging);
     RUN_TEST(test_phev_service_statusAsJson_is_charging);
-
+    RUN_TEST(test_phev_service_hvacStatus_on);
+    RUN_TEST(test_phev_service_hvacStatus_off);
+    
 //  PHEV_MODEL
 
     RUN_TEST(test_phev_model_create_model);

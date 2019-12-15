@@ -701,13 +701,7 @@ void test_phev_service_statusAsJson_not_charging()
 
     cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
 
-    TEST_ASSERT_NOT_NULL(charging);
-
-    cJSON * isCharging = cJSON_GetObjectItemCaseSensitive(charging,"isCharging");
-
-    TEST_ASSERT_NOT_NULL(isCharging);
-
-    TEST_ASSERT_TRUE(cJSON_IsFalse(isCharging));
+    TEST_ASSERT_NULL(charging);
 }
 void test_phev_service_statusAsJson_is_charging()
 {
@@ -733,7 +727,7 @@ void test_phev_service_statusAsJson_is_charging()
 
     cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
 
-       cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
+    cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
 
     TEST_ASSERT_NOT_NULL(charging);
 
@@ -1446,6 +1440,75 @@ void test_phev_service_getDateSync(void)
 
     TEST_ASSERT_EQUAL_STRING(expectedDate,date);
 }
+void test_phev_service_hvacStatus_on(void)
+{
+    const uint8_t data[] = {0,1};
+     messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,   
+        .ctx = NULL, 
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    phev_model_setRegister(ctx->model,KO_AC_MANUAL_SW_EVR,(const uint8_t *) data, sizeof(data));
+    phevServiceHVAC_t * hvac = phev_service_getHVACStatus(ctx);
+
+    TEST_ASSERT_NOT_NULL(hvac);
+
+    TEST_ASSERT_TRUE(hvac->operating);
+}
+void test_phev_service_hvacStatus_off(void)
+{
+    const uint8_t data[] = {0,0};
+     messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,   
+        .ctx = NULL, 
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    phev_model_setRegister(ctx->model,KO_AC_MANUAL_SW_EVR,(const uint8_t *) data, sizeof(data));
+    phevServiceHVAC_t * hvac = phev_service_getHVACStatus(ctx);
+
+    TEST_ASSERT_NOT_NULL(hvac);
+
+    TEST_ASSERT_FALSE(hvac->operating);
+}
+
 /*
 const timeRemain = remain => {
     const data = Int16Array.from(remain)

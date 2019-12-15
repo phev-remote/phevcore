@@ -583,6 +583,7 @@ cJSON *phev_service_updatedRegister(cJSON *json, phevMessage_t *phevMessage)
         }
         cJSON_AddItemToArray(data, item);
     }
+
     return json;
 }
 cJSON *phev_service_updateRegisterAck(cJSON *json, phevMessage_t *phevMessage)
@@ -716,19 +717,27 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
             date->valuestring = dateStr;
             cJSON_AddStringToObject(status, PHEV_SERVICE_DATE_SYNC_JSON, dateStr);
         }
-
-        cJSON * chargingStatus = cJSON_CreateObject();
-
-        cJSON * charging = phev_service_getChargingStatus(ctx) ? cJSON_CreateTrue() : cJSON_CreateFalse();
-
-        if(chargingStatus && charging && cJSON_IsTrue(charging));
+    
+        if(phev_service_getChargingStatus(ctx))
         {
+            cJSON * chargingStatus = cJSON_CreateObject();
             cJSON * chargingRemain = cJSON_CreateNumber((double) phev_service_getRemainingChargeTime(ctx));
+            cJSON * charging = phev_service_getChargingStatus(ctx) ? cJSON_CreateTrue() : cJSON_CreateFalse();
             cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_CHARGE_REMAIN_JSON, chargingRemain);
             cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_IS_CHARGING_JSON, charging);
             cJSON_AddItemToObject(status,PHEV_SERVICE_CHARGING_STATUS_JSON,chargingStatus);
+       
+
         }
         
+        phevServiceHVAC_t * hvac = phev_service_getHVACStatus(ctx);
+
+        if(hvac)
+        {
+            cJSON * hvacStatus = cJSON_CreateObject();
+            cJSON_AddItemToObject(hvacStatus, PHEV_SERVICE_HVAC_OPERATING_JSON, hvac->operating ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        }
+
         char *out = cJSON_Print(json);
 
         LOG_I(TAG, "Return json %s", out);
@@ -920,4 +929,17 @@ int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx)
     }
 
     return 0;
+}
+
+phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx)
+{
+    phevRegister_t * reg = phev_model_getRegister(ctx->model, KO_AC_MANUAL_SW_EVR);
+
+    if(reg)
+    {
+        phevServiceHVAC_t * hvac = malloc(sizeof(phevServiceHVAC_t));
+        hvac->operating = reg->data[1] == true;
+        return hvac;
+    }
+    return NULL;
 }

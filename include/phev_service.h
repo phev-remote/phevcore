@@ -36,6 +36,10 @@
 
 #define PHEV_SERVICE_IS_CHARGING_JSON "isCharging"
 
+#define PHEV_SERVICE_HVAC_STATUS_JSON "hvacStatus"
+#define PHEV_SERVICE_HVAC_OPERATING_JSON "operating"
+
+
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
 typedef void (* phevServiceYieldHandler_t)(phevServiceCtx_t *);
@@ -63,6 +67,9 @@ typedef struct phevServiceCtx_t {
     void * ctx;
 } phevServiceCtx_t;
 
+typedef struct phevServiceHVAC_t {
+    bool operating;
+} phevServiceHVAC_t;
 phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings);
 void phev_service_start(phevServiceCtx_t * ctx);
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);
@@ -87,4 +94,5 @@ char * phev_service_getRegisterJson(const phevServiceCtx_t * ctx, const uint8_t 
 char * phev_service_getDateSync(const phevServiceCtx_t * ctx);
 bool phev_service_getChargingStatus(const phevServiceCtx_t * ctx);
 int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx);
+phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx);
 #endif
