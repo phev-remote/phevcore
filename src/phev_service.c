@@ -736,6 +736,8 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
         {
             cJSON * hvacStatus = cJSON_CreateObject();
             cJSON_AddItemToObject(hvacStatus, PHEV_SERVICE_HVAC_OPERATING_JSON, hvac->operating ? cJSON_CreateTrue() : cJSON_CreateFalse());
+            cJSON_AddItemToObject(status,PHEV_SERVICE_HVAC_STATUS_JSON,hvacStatus);
+       
         }
 
         char *out = cJSON_Print(json);

@@ -741,6 +741,41 @@ void test_phev_service_statusAsJson_is_charging()
 
     TEST_ASSERT_EQUAL(257,chargeRemain->valueint);
 }
+void test_phev_service_statusAsJson_hvac_operating()
+{
+    const uint8_t data[] = {0,1};
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phev_model_setRegister(ctx->model,26,data,sizeof(data));
+
+    char * str = phev_service_statusAsJson(ctx);
+    
+    cJSON * json = cJSON_Parse(str);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    cJSON * hvac = cJSON_GetObjectItemCaseSensitive(status, "hvacStatus");
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(hvac,"HVAC status missing");
+
+    cJSON * operating = cJSON_GetObjectItemCaseSensitive(hvac,"operating");
+
+    TEST_ASSERT_NOT_NULL(operating);
+
+    TEST_ASSERT_TRUE(cJSON_IsTrue(operating));
+
+}
 void test_phev_service_outputFilter(void)
 {
     messagingSettings_t inSettings = {

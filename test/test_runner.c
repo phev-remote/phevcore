@@ -158,6 +158,7 @@ int main()
     RUN_TEST(test_phev_service_statusAsJson_is_charging);
     RUN_TEST(test_phev_service_hvacStatus_on);
     RUN_TEST(test_phev_service_hvacStatus_off);
+    RUN_TEST(test_phev_service_statusAsJson_hvac_operating);
     
 //  PHEV_MODEL
 
