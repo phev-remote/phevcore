@@ -644,7 +644,7 @@ void test_phev_service_statusAsJson_has_no_battery_level()
 
     cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
 
-    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "level");
+    cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "soc");
 
     TEST_ASSERT_NULL(level);
 }
@@ -732,7 +732,9 @@ void test_phev_service_statusAsJson_not_charging()
 
     cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
 
-    cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    cJSON * charging = cJSON_GetObjectItemCaseSensitive(battery, "charging");
 
     TEST_ASSERT_NULL(charging);
 }
@@ -760,17 +762,19 @@ void test_phev_service_statusAsJson_is_charging()
 
     cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
 
-    cJSON * charging = cJSON_GetObjectItemCaseSensitive(status, "charging");
+    TEST_ASSERT_NOT_NULL(status);
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    TEST_ASSERT_NOT_NULL(battery);
+    
+    cJSON * charging = cJSON_GetObjectItemCaseSensitive(battery, "charging");
 
     TEST_ASSERT_NOT_NULL(charging);
 
-    cJSON * isCharging = cJSON_GetObjectItemCaseSensitive(charging,"isCharging");
+    cJSON * chargeRemain = cJSON_GetObjectItemCaseSensitive(battery, "chargeTimeRemaining");
 
-    cJSON * chargeRemain = cJSON_GetObjectItemCaseSensitive(charging,"chargeTimeRemaining");
-
-    TEST_ASSERT_NOT_NULL(isCharging);
-
-    TEST_ASSERT_TRUE(cJSON_IsTrue(isCharging));
+    TEST_ASSERT_TRUE(cJSON_IsTrue(charging));
 
     TEST_ASSERT_EQUAL(257,chargeRemain->valueint);
 }
@@ -798,9 +802,9 @@ void test_phev_service_statusAsJson_hvac_operating()
 
     cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
 
-    cJSON * hvac = cJSON_GetObjectItemCaseSensitive(status, "hvacStatus");
+    cJSON * hvac = cJSON_GetObjectItemCaseSensitive(status, "hvac");
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(hvac,"HVAC status missing");
+    TEST_ASSERT_NOT_NULL_MESSAGE(hvac,"HVAC missing");
 
     cJSON * operating = cJSON_GetObjectItemCaseSensitive(hvac,"operating");
 
@@ -1576,6 +1580,78 @@ void test_phev_service_hvacStatus_off(void)
 
     TEST_ASSERT_FALSE(hvac->operating);
 }
+
+void test_phev_service_createTestModel(phevModel_t * model)
+{
+    const uint8_t hvacData[] = {0,1};
+    const uint8_t dateData[] = {0x13,0x0c,0x0b,0x13,0x0c,0x29,0x01};
+    const uint8_t batteryData[] = {0x50};
+    
+    phev_model_setRegister(model,KO_AC_MANUAL_SW_EVR,(const uint8_t *) hvacData, sizeof(hvacData));
+    phev_model_setRegister(model,KO_WF_DATE_INFO_SYNC_EVR,(const uint8_t *) dateData, sizeof(dateData));
+    phev_model_setRegister(model,KO_WF_BATT_LEVEL_INFO_REP_EVR,batteryData, sizeof(batteryData));
+}
+void test_phev_service_status(void)
+{
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_service_inHandlerIn,
+        .outgoingHandler = test_phev_service_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_service_inHandlerOut,
+        .outgoingHandler = test_phev_service_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .registerDevice = false,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,   
+        .ctx = NULL, 
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+
+    test_phev_service_createTestModel(ctx->model);
+
+    const char * str = phev_service_statusAsJson(ctx);
+
+    TEST_ASSERT_NOT_NULL(str);
+
+    cJSON * json = cJSON_Parse(str);
+
+    TEST_ASSERT_NOT_NULL(json);
+
+    cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
+
+    TEST_ASSERT_NOT_NULL(status);
+
+    cJSON * battery = cJSON_GetObjectItemCaseSensitive(status, "battery");
+
+    TEST_ASSERT_NOT_NULL(battery);
+
+    cJSON * soc = cJSON_GetObjectItemCaseSensitive(battery, "soc");
+
+    TEST_ASSERT_NOT_NULL(soc);
+
+    TEST_ASSERT_EQUAL(soc->valueint,80);
+
+    cJSON * hvac = cJSON_GetObjectItemCaseSensitive(status, "hvac");
+
+    TEST_ASSERT_NOT_NULL(hvac);
+
+    cJSON * operating = cJSON_GetObjectItemCaseSensitive(hvac, "operating");
+
+    TEST_ASSERT_NOT_NULL(operating);
+
+    TEST_ASSERT_TRUE(cJSON_IsTrue(operating));
+}
+
 
 /*
 const timeRemain = remain => {

@@ -34,9 +34,7 @@
 
 #define PHEV_SERVICE_CHARGE_REMAIN_JSON "chargeTimeRemaining"
 
-#define PHEV_SERVICE_IS_CHARGING_JSON "isCharging"
-
-#define PHEV_SERVICE_HVAC_STATUS_JSON "hvacStatus"
+#define PHEV_SERVICE_HVAC_STATUS_JSON "hvac"
 #define PHEV_SERVICE_HVAC_OPERATING_JSON "operating"
 
 

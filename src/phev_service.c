@@ -720,14 +720,10 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
     
         if(phev_service_getChargingStatus(ctx))
         {
-            cJSON * chargingStatus = cJSON_CreateObject();
             cJSON * chargingRemain = cJSON_CreateNumber((double) phev_service_getRemainingChargeTime(ctx));
             cJSON * charging = phev_service_getChargingStatus(ctx) ? cJSON_CreateTrue() : cJSON_CreateFalse();
-            cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_CHARGE_REMAIN_JSON, chargingRemain);
-            cJSON_AddItemToObject(chargingStatus,PHEV_SERVICE_IS_CHARGING_JSON, charging);
-            cJSON_AddItemToObject(status,PHEV_SERVICE_CHARGING_STATUS_JSON,chargingStatus);
-       
-
+            cJSON_AddItemToObject(battery,PHEV_SERVICE_CHARGE_REMAIN_JSON, chargingRemain);
+            cJSON_AddItemToObject(battery,PHEV_SERVICE_CHARGING_STATUS_JSON,charging);       
         }
         
         phevServiceHVAC_t * hvac = phev_service_getHVACStatus(ctx);
@@ -742,7 +738,7 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
 
         char *out = cJSON_Print(json);
 
-        LOG_I(TAG, "Return json %s", out);
+        //LOG_I(TAG, "Return json %s", out);
         LOG_V(TAG, "END - statusAsJson");
 
         return out;
