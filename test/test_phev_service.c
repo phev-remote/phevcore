@@ -201,7 +201,7 @@ void test_phev_service_jsonCommandToPhevMessage_airConOff(void)
 }
 void test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen(void)
 {
-    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"windscreen\" } }";
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"mode\" : \"windscreen\" } }";
     
     phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
 
@@ -212,7 +212,7 @@ void test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen(void)
 }
 void test_phev_service_jsonCommandToPhevMessage_airConOn_heat(void)
 {
-    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"heat\" } }";
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"mode\" : \"heat\" } }";
     
     phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
 
@@ -223,7 +223,7 @@ void test_phev_service_jsonCommandToPhevMessage_airConOn_heat(void)
 }
 void test_phev_service_jsonCommandToPhevMessage_airConOn_cool(void)
 {
-    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"cool\" } }";
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"mode\" : \"cool\" } }";
     
     phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
 
