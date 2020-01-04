@@ -111,6 +111,9 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOff);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_heat);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_cool);
     //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_update);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
     RUN_TEST(test_phev_service_createPipe);

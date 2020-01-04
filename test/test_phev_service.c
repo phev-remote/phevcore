@@ -199,6 +199,39 @@ void test_phev_service_jsonCommandToPhevMessage_airConOff(void)
     TEST_ASSERT_EQUAL(1,message->data[0]);
     
 }
+void test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen(void)
+{
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"windscreen\" } }";
+    
+    phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL(4,message->reg);
+    TEST_ASSERT_EQUAL(2,message->data[0]);
+    
+}
+void test_phev_service_jsonCommandToPhevMessage_airConOn_heat(void)
+{
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"heat\" } }";
+    
+    phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL(4,message->reg);
+    TEST_ASSERT_EQUAL(2,message->data[0]);
+    
+}
+void test_phev_service_jsonCommandToPhevMessage_airConOn_cool(void)
+{
+    const char * command = "{ \"operation\" :  { \"airCon\" : \"on\", \"cool\" } }";
+    
+    phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
+
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL(4,message->reg);
+    TEST_ASSERT_EQUAL(2,message->data[0]);
+    
+}
 void test_phev_service_jsonCommandToPhevMessage_update(void)
 {
     const char * command = "{ \"operation\" :  { \"update\" : true } }";
