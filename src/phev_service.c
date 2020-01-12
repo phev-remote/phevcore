@@ -732,6 +732,10 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
         {
             cJSON * hvacStatus = cJSON_CreateObject();
             cJSON_AddItemToObject(hvacStatus, PHEV_SERVICE_HVAC_OPERATING_JSON, hvac->operating ? cJSON_CreateTrue() : cJSON_CreateFalse());
+            cJSON * mode = cJSON_CreateNumber((double) ((uint8_t) hvac->mode & 0x0f));
+            cJSON * time = cJSON_CreateNumber((double) ((uint8_t) (hvac->mode & 0xf0) >> 4));
+            cJSON_AddItemToObject(hvacStatus, PHEV_SERVICE_HVAC_MODE_JSON, mode);
+            cJSON_AddItemToObject(hvacStatus, PHEV_SERVICE_HVAC_TIME_JSON, time);
             cJSON_AddItemToObject(status,PHEV_SERVICE_HVAC_STATUS_JSON,hvacStatus);
        
         }
@@ -931,12 +935,26 @@ int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx)
 
 phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx)
 {
-    phevRegister_t * reg = phev_model_getRegister(ctx->model, KO_AC_MANUAL_SW_EVR);
+    phevRegister_t * acOperatingReg = phev_model_getRegister(ctx->model, KO_AC_MANUAL_SW_EVR);
 
-    if(reg)
+    phevRegister_t * acModeReg = phev_model_getRegister(ctx->model, KO_WF_TM_AC_STAT_INFO_REP_EVR);
+
+    if(acOperatingReg || acModeReg)
     {
         phevServiceHVAC_t * hvac = malloc(sizeof(phevServiceHVAC_t));
-        hvac->operating = reg->data[1] == true;
+        if(acOperatingReg)
+        {
+            hvac->operating = acOperatingReg->data[1] == true;
+            hvac->operating = acOperatingReg->data[1] == true;
+        } else {
+            hvac->operating = false;
+        }
+        if(acModeReg)
+        {
+            hvac->mode = acModeReg->data[0];
+        } else {
+            hvac->mode = 0;
+        }
         return hvac;
     }
     return NULL;

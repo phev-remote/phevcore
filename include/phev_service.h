@@ -36,7 +36,8 @@
 
 #define PHEV_SERVICE_HVAC_STATUS_JSON "hvac"
 #define PHEV_SERVICE_HVAC_OPERATING_JSON "operating"
-
+#define PHEV_SERVICE_HVAC_MODE_JSON "mode"
+#define PHEV_SERVICE_HVAC_TIME_JSON "time"
 
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
@@ -67,7 +68,9 @@ typedef struct phevServiceCtx_t {
 
 typedef struct phevServiceHVAC_t {
     bool operating;
+    uint8_t mode;
 } phevServiceHVAC_t;
+
 phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings);
 void phev_service_start(phevServiceCtx_t * ctx);
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);

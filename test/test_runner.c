@@ -1,6 +1,8 @@
 #define LOGGING_OFF
 //#define TEST_TIMEOUTS
 
+#define MY18
+
 #include "unity.h"
 #include "test_phev_core.c"
 #include "test_phev_register.c"
@@ -38,16 +40,16 @@ int main()
     RUN_TEST(test_simple_command_response_message);
     RUN_TEST(test_command_message);
     RUN_TEST(test_ack_message);
-    RUN_TEST(test_start_message);
+//    RUN_TEST(test_start_message);
     RUN_TEST(test_start_encoded_message);
-    RUN_TEST(test_ping_message);
+//    RUN_TEST(test_ping_message);
     RUN_TEST(test_response_handler_start);
     RUN_TEST(test_calc_checksum);
     RUN_TEST(test_phev_message_to_message);
     RUN_TEST(test_phev_ack_message); 
     RUN_TEST(test_phev_head_lights_on);
     RUN_TEST(test_phev_head_lights_on_message);
-    RUN_TEST(test_phev_mac_response);
+//    RUN_TEST(test_phev_mac_response);
     RUN_TEST(test_phev_message_to_phev_message_and_back);
     RUN_TEST(test_phev_core_copyMessage);
 

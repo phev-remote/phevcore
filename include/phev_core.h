@@ -13,6 +13,7 @@
 
 #define DEFAULT_CMD_LENGTH 4
 
+#ifndef MY18
 #define PING_SEND_CMD 0xf9
 #define PING_RESP_CMD 0x9f
 
@@ -20,27 +21,39 @@
 #define START_RESP 0x2f
 #define SEND_CMD 0xf6
 #define RESP_CMD 0x6f
+#else
+#define PING_SEND_CMD 0xf3
+#define PING_RESP_CMD 0x3f
+
+#define START_SEND 0xe5
+#define START_RESP 0x5e
+#define SEND_CMD 0xf6
+#define RESP_CMD 0x6f
+#endif
 
 #define VIN_LEN 17
 #define MAC_ADDR_SIZE 6
 
 #define KO_WF_CONNECT_INFO_GS_SP 1
+#define KO_WF_AC_SCH_SP 2
 #define KO_WF_REG_DISP_SP 16
 #define KO_WF_INIT_RQ_SP 21
+#define KO_WF_EV_UPDATE_SP 6
+#define KO_WF_DATE_INFO_SYNC_SP 5
+#define KO_WF_MANUAL_AC_ON_RQ_SP 4
+#define KO_WF_H_LAMP_CONT_SP 10
+#define KO_WF_P_LAMP_CONT_SP 11
+
 #define KO_WF_VIN_INFO_EVR 21
 #define KO_WF_REGISTRATION_EVR 42
 #define KO_WF_START_AA_EVR 170
 #define KO_WF_ECU_VERSION2_EVR 192
 #define KO_WF_REMOTE_SECURTY_PRSNT_INFO 3
-#define KO_WF_DATE_INFO_SYNC_SP 5
-#define KO_WF_MANUAL_AC_ON_RQ_SP 4
 #define KO_WF_DATE_INFO_SYNC_EVR 18
-#define KO_WF_H_LAMP_CONT_SP 10
-#define KO_WF_P_LAMP_CONT_SP 11
-#define KO_WF_EV_UPDATE_SP 6
 #define KO_WF_BATT_LEVEL_INFO_REP_EVR 29
 #define KO_WF_OBCHG_OK_ON_INFO_REP_EVR 31
 #define KO_AC_MANUAL_SW_EVR 26
+#define KO_WF_TM_AC_STAT_INFO_REP_EVR 28
 /*
 enum commands_t  {
     PING_SEND_CMD = 0xf9, 

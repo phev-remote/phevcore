@@ -848,13 +848,13 @@ void test_phev_service_outputFilter_no_change(void)
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
     phevServiceCtx_t * ctx = phev_service_init(in,out);    
-    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x01,0x05};
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
-    const uint8_t data[] = {1};
+    const uint8_t data[] = {0};
     
     phev_model_setRegister(ctx->model,10,data,1);
-
+ 
     bool outbool = phev_service_outputFilter(ctx->pipe, message);
 
     TEST_ASSERT_FALSE(outbool);
@@ -968,7 +968,7 @@ void test_phev_service_end_to_end_updated_register(void)
     test_phev_service_global_in_in_message = NULL;
     test_phev_service_global_out_in_message = NULL;
     
-    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x02,0x79};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x79};
 
     test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
 
@@ -1014,7 +1014,7 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
     test_phev_service_global_in_in_message = NULL;
     test_phev_service_global_out_in_message = NULL;
     
-    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x02,0x79,0x6f,0x04,0x00,0x05,0x01,0x79};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x79,0x6f,0x04,0x00,0x05,0x00,0x79};
 
     test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
 
@@ -1586,10 +1586,12 @@ void test_phev_service_createTestModel(phevModel_t * model)
     const uint8_t hvacData[] = {0,1};
     const uint8_t dateData[] = {0x13,0x0c,0x0b,0x13,0x0c,0x29,0x01};
     const uint8_t batteryData[] = {0x50};
+    const uint8_t acSchData[] = {0x13};
     
     phev_model_setRegister(model,KO_AC_MANUAL_SW_EVR,(const uint8_t *) hvacData, sizeof(hvacData));
     phev_model_setRegister(model,KO_WF_DATE_INFO_SYNC_EVR,(const uint8_t *) dateData, sizeof(dateData));
     phev_model_setRegister(model,KO_WF_BATT_LEVEL_INFO_REP_EVR,batteryData, sizeof(batteryData));
+    phev_model_setRegister(model,KO_WF_TM_AC_STAT_INFO_REP_EVR,acSchData, sizeof(acSchData));
 }
 void test_phev_service_status(void)
 {
@@ -1650,6 +1652,18 @@ void test_phev_service_status(void)
     TEST_ASSERT_NOT_NULL(operating);
 
     TEST_ASSERT_TRUE(cJSON_IsTrue(operating));
+
+    cJSON * mode = cJSON_GetObjectItemCaseSensitive(hvac, "mode");
+
+    TEST_ASSERT_NOT_NULL(mode);
+
+    TEST_ASSERT_EQUAL(mode->valueint,3);
+    
+    cJSON * time = cJSON_GetObjectItemCaseSensitive(hvac, "time");
+
+    TEST_ASSERT_NOT_NULL(time);
+
+    TEST_ASSERT_EQUAL(time->valueint,1);
 }
 
 
