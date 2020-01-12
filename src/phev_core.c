@@ -111,7 +111,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         return 1;
     } else {
         LOG_E(APP_TAG,"INVALID MESSAGE");
-        LOG_BUFFER_HEXDUMP(APP_TAG,msg_data,len,LOG_DEBUG);
+        LOG_BUFFER_HEXDUMP(APP_TAG,msg_data,len,3);
         
         LOG_V(APP_TAG,"END - decodeMessage");
         return 0;
