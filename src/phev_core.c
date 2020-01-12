@@ -71,6 +71,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     // New code so support MY16
 
 #ifdef MY18
+    LOG_I(APP_TAG,"MY18");
     uint8_t * xorData = malloc(len);
 
     for(int i=0;i < len;i++)
@@ -78,9 +79,11 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         xorData[i] = data[i] ^ data[4];
         
     }
+    
     msg_data = xorData;
 #endif
-
+    LOG_BUFFER_HEXDUMP(APP_TAG,msg_data,len,3);
+    
     if(phev_core_validate_buffer(msg_data, len) != 0)
     {
 
