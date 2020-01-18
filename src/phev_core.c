@@ -146,12 +146,6 @@ int phev_core_encodeMessage(phevMessage_t *message,uint8_t ** data)
 
     *data = d;
 
-#ifdef MY18
-    for(int i=0;i<message->length + 5;i++)
-    {
-        d[i] ^= d[4];
-    }
-#endif
     LOG_D(APP_TAG,"Created message");
     LOG_BUFFER_HEXDUMP(APP_TAG,d,d[1] +2,LOG_DEBUG);
     LOG_V(APP_TAG,"END - encodeMessage");
