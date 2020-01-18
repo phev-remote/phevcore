@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include "msg_core.h"
@@ -13,23 +14,18 @@
 
 #define DEFAULT_CMD_LENGTH 4
 
-#ifndef MY18
 #define PING_SEND_CMD 0xf9
 #define PING_RESP_CMD 0x9f
-
 #define START_SEND 0xf2
 #define START_RESP 0x2f
 #define SEND_CMD 0xf6
 #define RESP_CMD 0x6f
-#else
-#define PING_SEND_CMD 0xf3
-#define PING_RESP_CMD 0x3f
-
-#define START_SEND 0xe5
-#define START_RESP 0x5e
-#define SEND_CMD 0xf6
-#define RESP_CMD 0x6f
-#endif
+#define SEND_CMD_MY18 0xf6
+#define RESP_CMD_MY18 0x6f
+#define PING_SEND_CMD_MY18 0xf3
+#define PING_RESP_CMD_MY18 0x3f
+#define START_SEND_MY18 0xe5
+#define START_RESP_MY18 0x5e
 
 #define VIN_LEN 17
 #define MAC_ADDR_SIZE 6
@@ -74,6 +70,10 @@ typedef struct phevMessage_t
     uint8_t *data;
     uint8_t checksum;
 } phevMessage_t;
+
+static bool phev_core_my18 = false;
+
+const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18};
 
 phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length);
 

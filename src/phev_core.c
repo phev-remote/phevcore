@@ -8,8 +8,6 @@
 
 const static char *APP_TAG = "PHEV_CORE";
 
-const uint8_t allowedCommands[] = {0xf2, 0x2f, 0xf6, 0x6f, 0xf9, 0x9f, 0x5e, 0xe5, 0xf3, 0x3f};
-
 phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length)
 {
     LOG_V(APP_TAG,"START - createMessage");
@@ -67,40 +65,32 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
 {
     LOG_V(APP_TAG,"START - decodeMessage");
     
-    uint8_t * msg_data = data;
-    // New code so support MY16
+    const uint8_t xor = data[2] & 0xfe;
 
-#ifdef MY18
-    LOG_I(APP_TAG,"MY18");
-    uint8_t * xorData = malloc(len);
-
-    for(int i=0;i < len;i++)
-    {
-        xorData[i] = data[i] ^ data[4];
-        
-    }
-    
-    msg_data = xorData;
-#endif
-    LOG_BUFFER_HEXDUMP(APP_TAG,msg_data,len,3);
-    
-    if(phev_core_validate_buffer(msg_data, len) != 0)
+    if(phev_core_validate_buffer(data, len) != 0)
     {
 
-        msg->command = msg_data[0];
-        msg->length = msg_data[1] - 3;
-        msg->type = msg_data[2];
-        msg->reg = msg_data[3];
+        msg->command = data[0] ^ xor;
+        msg->length = (data[1] ^ xor) - 3;
+        msg->type = data[2] & 1;
+        msg->reg = data[3] ^ xor;
         msg->data = malloc(msg->length);
         if(msg->length > 0) 
         {
-            memcpy(msg->data, msg_data + 4, msg->length);
+            memcpy(msg->data, data + 4, msg->length);
+            if(xor != 0) 
+            {
+                for(int i=0;i < msg->length; i++)
+                {
+                    msg->data[i] ^= xor;
+                }
+            }
         } else {
             msg->data = NULL;
         }
-        msg->checksum = msg_data[4 + msg->length];
+        msg->checksum = data[4 + msg->length] ^ xor;
         
-        LOG_D(APP_TAG,"Command %d Length %d type %d reg %d",msg->command,msg->length ,msg->type,msg->reg);
+        LOG_I(APP_TAG,"Command %d Length %d type %d reg %d",msg->command,msg->length ,msg->type,msg->reg);
         if(msg->data != NULL && msg->length > 0)
         {
             LOG_BUFFER_HEXDUMP(APP_TAG,msg->data,msg->length,LOG_DEBUG);
@@ -111,7 +101,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         return 1;
     } else {
         LOG_E(APP_TAG,"INVALID MESSAGE");
-        LOG_BUFFER_HEXDUMP(APP_TAG,msg_data,len,3);
+        LOG_BUFFER_HEXDUMP(APP_TAG,data,len,3);
         
         LOG_V(APP_TAG,"END - decodeMessage");
         return 0;
@@ -183,16 +173,28 @@ phevMessage_t *phev_core_requestMessage(const uint8_t command, const uint8_t reg
 }
 phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, const size_t length)
 {
+    if(phev_core_my18)
+    {
+        return phev_core_requestMessage(SEND_CMD_MY18, reg, data, length);    
+    }
     return phev_core_requestMessage(SEND_CMD, reg, data, length);
 }
 phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;
+    if(phev_core_my18)
+    {
+        phev_core_requestMessage(SEND_CMD_MY18, reg, &data, 1);
+    }
     return phev_core_requestMessage(SEND_CMD, reg, &data, 1);
 }
 phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;
+    if(phev_core_my18)
+    {
+        phev_core_responseMessage(SEND_CMD_MY18, reg, &data, 1);
+    }
     return phev_core_responseMessage(SEND_CMD, reg, &data, 1);
 }
 phevMessage_t *phev_core_ackMessage(const uint8_t command, const uint8_t reg)
@@ -205,6 +207,10 @@ phevMessage_t *phev_core_startMessage(const uint8_t *mac)
     uint8_t * data = malloc(7);
     data[6] = 0;
     memcpy(data,mac, 6);
+    if(phev_core_my18)
+    {
+        phev_core_requestMessage(START_SEND_MY18, 0x01, data, 7);
+    }
     return phev_core_requestMessage(START_SEND, 0x01, data, 7);
 }
 message_t *phev_core_startMessageEncoded(const uint8_t *mac)
@@ -222,6 +228,10 @@ message_t *phev_core_startMessageEncoded(const uint8_t *mac)
 phevMessage_t *phev_core_pingMessage(const uint8_t number)
 {
     const uint8_t data = 0;
+    if(phev_core_my18)
+    {
+        return phev_core_requestMessage(PING_SEND_CMD_MY18, number, &data, 1);    
+    }
     return phev_core_requestMessage(PING_SEND_CMD, number, &data, 1);
 }
 phevMessage_t *phev_core_responseHandler(phevMessage_t * message)

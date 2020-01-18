@@ -51,6 +51,7 @@ typedef struct phevServiceSettings_t {
     phevErrorHandler_t errorHandler;
     bool registerDevice;
     phevServiceYieldHandler_t yieldHandler;
+    bool my18;
     void * ctx;
 
 } phevServiceSettings_t;

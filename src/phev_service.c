@@ -38,6 +38,11 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
     LOG_V(TAG, "START - create");
     phevServiceCtx_t *ctx = NULL;
 
+    if(settings.my18)
+    {
+        phev_core_my18 = true;
+    }
+
     if (settings.registerDevice)
     {
         ctx = phev_service_initForRegistration(settings.in, settings.out);

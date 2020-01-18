@@ -73,6 +73,7 @@ typedef struct phevSettings_t {
     uint8_t * mac;
     phevEventHandler_t handler;
     void * ctx;
+    bool my18;
     messagingClient_t * in;
     messagingClient_t * out;
 } phevSettings_t;

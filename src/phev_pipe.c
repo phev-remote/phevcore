@@ -198,7 +198,7 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
 
-        if(phevMsg.command == PING_RESP_CMD) 
+        if(phevMsg.command == PING_RESP_CMD || phevMsg.command == PING_RESP_CMD_MY18) 
         {
             LOG_D(APP_TAG,"Ignoring ping");
             return NULL;
@@ -357,7 +357,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     LOG_D(APP_TAG,"Reg %d Len %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
     phevPipeEvent_t * event = NULL;
 
-    if(phevMessage->command == PING_RESP_CMD)
+    if(phevMessage->command == PING_RESP_CMD || phevMessage->command == PING_RESP_CMD_MY18)
     {
         LOG_D(APP_TAG,"Ignoring ping");
         return NULL;
@@ -375,7 +375,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
         }
         case KO_WF_CONNECT_INFO_GS_SP: {
             
-            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == START_RESP)
+            if(phevMessage->type == RESPONSE_TYPE && (phevMessage->command == START_RESP || phevMessage->command == START_RESP_MY18))
             {
                 LOG_D(APP_TAG,"KO_WF_CONNECT_INFO_GS_SP");
                 event = phev_pipe_startResponseEvent();
@@ -384,7 +384,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
         }
         case KO_WF_START_AA_EVR: {
             
-            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 LOG_D(APP_TAG,"KO_WF_START_AA_EVR");
                 event = phev_pipe_AAResponseEvent();
@@ -392,35 +392,35 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             break;
         }
         case KO_WF_REGISTRATION_EVR: {
-            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 event = phev_pipe_registrationEvent();
             }
             break;
         }
         case KO_WF_ECU_VERSION2_EVR: {
-            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 event = phev_pipe_ecuVersion2Event(phevMessage->data);
             }
             break;
         }
         case KO_WF_REMOTE_SECURTY_PRSNT_INFO: {
-            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 event = phev_pipe_remoteSecurityPresentInfoEvent();
             }
             break;
         }
         case KO_WF_REG_DISP_SP: {
-            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 event = phev_pipe_regDispEvent();
             }
             break;
         }
         case KO_WF_DATE_INFO_SYNC_EVR: {
-            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
+            if(phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
             {
                 event = phev_pipe_dateInfoEvent(phevMessage->data);
             }
@@ -464,7 +464,7 @@ phevPipeEvent_t * phev_pipe_createRegisterEvent(phev_pipe_ctx_t * phevCtx, phevM
 {
     phevPipeEvent_t * event = NULL; 
 
-    if(phevMessage->command == RESP_CMD) 
+    if(phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18) 
     {
         event = malloc(sizeof(phevPipeEvent_t));
         event->data = (void *) phev_core_copyMessage(phevMessage);

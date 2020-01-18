@@ -176,6 +176,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
             .eventHandler = phev_pipeEventHandler,
             .errorHandler = NULL,
             .yieldHandler = NULL,
+            .my18 = settings.my18,
             .ctx = ctx, 
         };
 
@@ -189,6 +190,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
             .eventHandler = phev_pipeEventHandler,
             .errorHandler = NULL,
             .yieldHandler = NULL,
+            .my18 = settings.my18,
             .ctx = ctx,
         };
         serviceSettings = &s;
