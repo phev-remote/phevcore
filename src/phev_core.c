@@ -59,7 +59,7 @@ int phev_core_validate_buffer(const uint8_t * msg, const size_t len, const uint8
             } 
             if(length + 2 > len)
             {
-                LOG_E(APP_TAG,"Valid command but length incorrect : command %02x length %02x",msg[0] ^ xor,msg[1] ^ xor);
+                LOG_E(APP_TAG,"Valid command but length incorrect : command %02x length %dx expected %d",msg[0] ^ xor,length, len);
                 return 0;  // length goes past end of message
             }
             return 1; //valid message
