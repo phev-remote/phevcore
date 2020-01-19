@@ -171,7 +171,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
             
     if(length == 0) {
         LOG_E(APP_TAG,"Invalid message received");
-        LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,LOG_DEBUG);
+        LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,LOG_ERROR);
         
         return NULL;
     }

@@ -89,11 +89,11 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
             msg->data = NULL;
         }
         msg->checksum = data[4 + msg->length] ^ xor;
-        
-        LOG_I(APP_TAG,"Command %d Length %d type %d reg %d",msg->command,msg->length ,msg->type,msg->reg);
+
+        LOG_I(APP_TAG,"Command %02x Length %d type %d reg %02x",msg->command,msg->length ,msg->type,msg->reg);
         if(msg->data != NULL && msg->length > 0)
         {
-            LOG_BUFFER_HEXDUMP(APP_TAG,msg->data,msg->length,LOG_DEBUG);
+            LOG_BUFFER_HEXDUMP(APP_TAG,msg->data,msg->length,LOG_INFO);
         }
         
         LOG_V(APP_TAG,"END - decodeMessage");
@@ -101,7 +101,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         return 1;
     } else {
         LOG_E(APP_TAG,"INVALID MESSAGE");
-        LOG_BUFFER_HEXDUMP(APP_TAG,data,len,3);
+        LOG_BUFFER_HEXDUMP(APP_TAG,data,len,LOG_ERROR);
         
         LOG_V(APP_TAG,"END - decodeMessage");
         return 0;
@@ -169,7 +169,7 @@ phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, 
 {
     if(phev_core_my18)
     {
-        return phev_core_requestMessage(SEND_CMD_MY18, reg, data, length);    
+        return phev_core_requestMessage(SEND_CMD, reg, data, length);    
     }
     return phev_core_requestMessage(SEND_CMD, reg, data, length);
 }
@@ -178,7 +178,7 @@ phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const ui
     const uint8_t data = value;
     if(phev_core_my18)
     {
-        phev_core_requestMessage(SEND_CMD_MY18, reg, &data, 1);
+        phev_core_requestMessage(SEND_CMD, reg, &data, 1);
     }
     return phev_core_requestMessage(SEND_CMD, reg, &data, 1);
 }
@@ -187,7 +187,7 @@ phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const u
     const uint8_t data = value;
     if(phev_core_my18)
     {
-        phev_core_responseMessage(SEND_CMD_MY18, reg, &data, 1);
+        phev_core_responseMessage(SEND_CMD, reg, &data, 1);
     }
     return phev_core_responseMessage(SEND_CMD, reg, &data, 1);
 }
@@ -224,7 +224,7 @@ phevMessage_t *phev_core_pingMessage(const uint8_t number)
     const uint8_t data = 0;
     if(phev_core_my18)
     {
-        return phev_core_requestMessage(PING_SEND_CMD_MY18, number, &data, 1);    
+        return phev_core_requestMessage(PING_SEND_CMD, number, &data, 1);    
     }
     return phev_core_requestMessage(PING_SEND_CMD, number, &data, 1);
 }

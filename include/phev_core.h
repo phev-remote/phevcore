@@ -20,12 +20,12 @@
 #define START_RESP 0x2f
 #define SEND_CMD 0xf6
 #define RESP_CMD 0x6f
-#define SEND_CMD_MY18 0xf6
-#define RESP_CMD_MY18 0x6f
+#define SEND_CMD_MY18 0xe5
+#define RESP_CMD_MY18 0x5e
 #define PING_SEND_CMD_MY18 0xf3
 #define PING_RESP_CMD_MY18 0x3f
-#define START_SEND_MY18 0xe5
-#define START_RESP_MY18 0x5e
+#define START_SEND_MY18 0xf2
+#define START_RESP_MY18 0x2f
 
 #define VIN_LEN 17
 #define MAC_ADDR_SIZE 6
