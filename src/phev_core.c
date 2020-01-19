@@ -46,11 +46,18 @@ int phev_core_validate_buffer(const uint8_t * msg, const size_t len, const uint8
 {
     LOG_V(APP_TAG,"START - validateBuffer");
     
+    uint8_t length = len ^ xor;
+    uint8_t cmd = msg[0] ^ xor;
+
     for(int i = 0;i < sizeof(allowedCommands); i++)
     {
-        if((msg[0] ^ xor) == allowedCommands[i])
+        if(cmd == allowedCommands[i])
         {
-            if(((msg[1] ^ xor) + 2) > len)
+            if(cmd == 0x6e || cmd == 0xcd || cmd == 0xba)
+            {
+                length -= 1;
+            } 
+            if(length + 2 > len)
             {
                 LOG_E(APP_TAG,"Valid command but length incorrect : command %02x length %02x",msg[0] ^ xor,msg[1] ^ xor);
                 return 0;  // length goes past end of message
