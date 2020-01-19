@@ -42,7 +42,7 @@ void phev_core_destroyMessage(phevMessage_t * message)
     LOG_V(APP_TAG,"END - destroyMessage");
     
 }
-int phev_core_validate_buffer(const uint8_t * msg, const size_t len)
+int phev_core_validate_buffer(const uint8_t * msg, const size_t len, const uint8_t xor)
 {
     LOG_V(APP_TAG,"START - validateBuffer");
     
@@ -50,13 +50,16 @@ int phev_core_validate_buffer(const uint8_t * msg, const size_t len)
     {
         if(msg[0] == allowedCommands[i])
         {
-            if((msg[1] + 2) > len)
+            if(((msg[1] ^ xor) + 2) > len)
             {
+                LOG_E(APP_TAG,"Valid command but length incorrect : command %02x length %02x",msg[0],msg[1]);
                 return 0;  // length goes past end of message
             }
             return 1; //valid message
         }
     }
+    LOG_E(APP_TAG,"Invalid command %02x length %02x",msg[0],msg[1]);
+            
     LOG_V(APP_TAG,"END - validateBuffer");
     
     return 0;  // invalid command
@@ -67,7 +70,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     
     const uint8_t xor = data[2] & 0xfe;
 
-    if(phev_core_validate_buffer(data, len) != 0)
+    if(phev_core_validate_buffer(data, len, xor) != 0)
     {
 
         msg->command = data[0] ^ xor;
@@ -111,7 +114,9 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
 {
     LOG_V(APP_TAG,"START - extractMessage");
     
-    if(phev_core_validate_buffer(data, len) != 0)
+    const uint8_t xor = data[2] & 0xfe;
+
+    if(phev_core_validate_buffer(data, len, xor) != 0)
     {
         
         message_t * message = msg_utils_createMsg(data,data[1] + 2);
