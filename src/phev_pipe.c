@@ -357,7 +357,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     LOG_D(APP_TAG,"Reg %d Len %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
     phevPipeEvent_t * event = NULL;
 
-    if(phevMessage->command == PING_RESP_CMD || phevMessage->command == PING_RESP_CMD_MY18)
+    if(phevMessage->command == PING_RESP_CMD || phevMessage->command == PING_RESP_CMD_MY18 ||  phevMessage->command == 0xbb ||  phevMessage->command == 0xcd)
     {
         LOG_D(APP_TAG,"Ignoring ping");
         return NULL;
@@ -427,7 +427,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             break;
         }
         default: {
-            LOG_W(APP_TAG,"Register not handled %x",phevMessage->reg);
+            LOG_W(APP_TAG,"Command %02X Register not handled %02X",phevMessage->command,phevMessage->reg);
         }
     }
     
