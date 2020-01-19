@@ -77,8 +77,9 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         if(msg->command == 0x6e || msg->command == 0xcd || msg->command == 0xba)
         {
             msg->length = (data[1] ^ xor) - 4;
-        } else {
             msg->command |= 1;
+        } else {
+            
             msg->length = (data[1] ^ xor) - 3;    
         }
         msg->type = data[2] & 1;
