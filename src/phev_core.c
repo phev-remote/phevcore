@@ -122,7 +122,7 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
     
     const uint8_t xor = data[2] & 0xfe;
 
-    if(phev_core_validate_buffer(data, len, xor) != 0)
+    if(phev_core_validate_buffer(data, len ^ xor, xor) != 0)
     {
         
         message_t * message = msg_utils_createMsg(data,data[1] + 2);
