@@ -74,7 +74,13 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     {
 
         msg->command = data[0] ^ xor;
-        msg->length = (data[1] ^ xor) - 3;
+        if(msg->command == 0x6e || msg->command == 0xcd || msg->command == 0xba)
+        {
+            msg->length = (data[1] ^ xor) - 4;
+        } else {
+            msg->command |= 1;
+            msg->length = (data[1] ^ xor) - 3;    
+        }
         msg->type = data[2] & 1;
         msg->reg = data[3] ^ xor;
         msg->data = malloc(msg->length);
