@@ -46,7 +46,7 @@ int phev_core_validate_buffer(const uint8_t * msg, const size_t len, const uint8
 {
     LOG_V(APP_TAG,"START - validateBuffer");
     
-    uint8_t length = len ^ xor;
+    uint8_t length = msg[1] ^ xor;
     uint8_t cmd = msg[0] ^ xor;
 
     for(int i = 0;i < sizeof(allowedCommands); i++)
