@@ -121,7 +121,7 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
         return message;
     } else {
         LOG_E(APP_TAG,"Invalid Message");
-        
+        LOG_BUFFER_HEXDUMP(APP_TAG,data,len,LOG_ERROR);
         LOG_V(APP_TAG,"END - extractMessage");
         return NULL;    
     }
