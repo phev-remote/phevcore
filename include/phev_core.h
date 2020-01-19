@@ -73,7 +73,7 @@ typedef struct phevMessage_t
 
 static bool phev_core_my18 = false;
 
-const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e};
+const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e,0xcd,0xba,0x6e};
 
 phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length);
 
