@@ -65,14 +65,14 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
 {
     LOG_V(APP_TAG,"START - decodeMessage");
     
-    const uint8_t xor = data[2] & 0xfe;
+    const uint8_t xor = data[2] & 0xff;
 
     if(phev_core_validate_buffer(data, len) != 0)
     {
 
-        msg->command = data[0] ^ xor;
-        msg->length = (data[1] ^ xor) - 3;
-        msg->type = data[2] & 1;
+        msg->command = (data[0] ^ xor) | 1;
+        msg->type = (data[0] & 1) ^ 1;
+        msg->length = ((data[1] ^ xor) ^ msg->type) - 3;
         msg->reg = data[3] ^ xor;
         msg->data = malloc(msg->length);
         if(msg->length > 0) 
