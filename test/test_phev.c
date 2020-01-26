@@ -245,32 +245,3 @@ void test_phev_statusAsJson(void)
 
     TEST_ASSERT_EQUAL(50,level->valueint);
 }
-void test_phev_my18(void)
-{
-    uint8_t mac[] = {0x24,0x0d,0xc2,0xc2,0x91,0x85};
-
-    messagingSettings_t outSettings = {
-        .incomingHandler = test_phev_inHandlerOut,
-        .outgoingHandler = test_phev_outHandlerOut,
-    };
-    
-    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
-
-    phevSettings_t settings = {
-        .host = "localhost",
-        .handler = test_phev_handler,
-        .registerDevice = true,
-        .mac = mac,
-        .out = out,
-        .my18 = true,
-    
-    };
-    
-    phevCtx_t * handle = phev_init(settings);
-    
-    test_phev_global_in_out_message = msg_utils_createMsg(car_response_five, sizeof(car_response_five));
-
-    phev_start(handle);
-    
-    TEST_ASSERT_EQUAL(50,level->valueint);
-}

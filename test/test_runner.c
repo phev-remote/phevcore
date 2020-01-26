@@ -10,6 +10,7 @@
 #include "test_phev_service.c"
 #include "test_phev_model.c"
 #include "test_phev.c"
+#include "test_phev_my18.c"
 
 void setUp(void) 
 {
@@ -184,5 +185,9 @@ int main()
    // RUN_TEST(test_phev_calls_connect_event);
    // RUN_TEST(test_phev_registrationEndToEnd);
 
+// PHEV_MY18
+
+    RUN_TEST(test_phev_my18_5e);
+    
     return UNITY_END();
 }
