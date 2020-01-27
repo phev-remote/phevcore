@@ -102,6 +102,7 @@ typedef struct phev_pipe_ctx_t
     uint8_t currentPing;
     bool connected;
     phev_pipe_updateRegisterCtx_t *updateRegisterCallbacks;
+    uint8_t xor;
     void *ctx;
 } phev_pipe_ctx_t;
 

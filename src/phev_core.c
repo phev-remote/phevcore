@@ -42,21 +42,31 @@ void phev_core_destroyMessage(phevMessage_t * message)
     LOG_V(APP_TAG,"END - destroyMessage");
     
 }
-int phev_core_validate_buffer(const uint8_t * msg, const size_t len)
+int phev_core_validate_buffer(const uint8_t * msg, const size_t len, const uint8_t xor)
 {
     LOG_V(APP_TAG,"START - validateBuffer");
     
+    uint8_t length = msg[1] ^ xor;
+    uint8_t cmd = msg[0] ^ xor;
+
     for(int i = 0;i < sizeof(allowedCommands); i++)
     {
-        if(msg[0] == allowedCommands[i])
+        if(cmd == allowedCommands[i])
         {
-            if((msg[1] + 2) > len)
+            if(cmd == 0x6e || cmd == 0xcd || cmd == 0xba)
             {
+                length -= 1;
+            } 
+            if(length + 2 > len)
+            {
+                LOG_E(APP_TAG,"Valid command but length incorrect : command %02x length %dx expected %d",msg[0] ^ xor,length, len);
                 return 0;  // length goes past end of message
             }
             return 1; //valid message
         }
     }
+    LOG_E(APP_TAG,"Invalid command %02x length %02x",msg[0] ^ xor,msg[1] ^ xor);
+            
     LOG_V(APP_TAG,"END - validateBuffer");
     
     return 0;  // invalid command
@@ -67,12 +77,26 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     
     const uint8_t xor = data[2] & 0xff;
 
-    if(phev_core_validate_buffer(data, len) != 0)
+    if(phev_core_validate_buffer(data, len, xor) != 0)
     {
 
+<<<<<<< HEAD
         msg->command = (data[0] ^ xor) | 1;
         msg->type = (data[0] & 1) ^ 1;
         msg->length = ((data[1] ^ xor) ^ msg->type) - 3;
+=======
+        msg->command = data[0] ^ xor;
+        msg->xor = xor;
+        if(msg->command == 0x6e || msg->command == 0xcd || msg->command == 0xba)
+        {
+            msg->length = (data[1] ^ xor) - 4;
+            msg->command |= 1;
+        } else {
+            
+            msg->length = (data[1] ^ xor) - 3;    
+        }
+        msg->type = data[2] & 1;
+>>>>>>> 1b25272cd509dbef65b44663b7660547b4a7eb06
         msg->reg = data[3] ^ xor;
         msg->data = malloc(msg->length);
         if(msg->length > 0) 
@@ -111,7 +135,9 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
 {
     LOG_V(APP_TAG,"START - extractMessage");
     
-    if(phev_core_validate_buffer(data, len) != 0)
+    const uint8_t xor = data[2] & 0xfe;
+
+    if(phev_core_validate_buffer(data, len, xor) != 0)
     {
         
         message_t * message = msg_utils_createMsg(data,data[1] + 2);
@@ -121,7 +147,7 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
         return message;
     } else {
         LOG_E(APP_TAG,"Invalid Message");
-        
+        LOG_BUFFER_HEXDUMP(APP_TAG,data,len,LOG_ERROR);
         LOG_V(APP_TAG,"END - extractMessage");
         return NULL;    
     }
@@ -133,16 +159,24 @@ int phev_core_encodeMessage(phevMessage_t *message,uint8_t ** data)
         
     uint8_t * d = malloc(message->length + 5);
 
-    d[0] = message->command;
-    d[1] = message->length + 3;
-    d[2] = message->type;
-    d[3] = message->reg;
+    d[0] = message->command ^ message->xor;
+    d[1] = (message->length + 3) ^ message->xor;
+    d[2] = message->type ^ message->xor;
+    d[3] = message->reg ^ message->xor;
     if(message->length > 0 && message->data != NULL) 
     {
+        if(message->xor != 0)
+        {
+            for(int i=0; i< message->length;i++)
+            {
+                message->data[i] ^= message->data[i];
+            }
+        }
+        
         memcpy(d + 4, message->data, message->length );
     }
     
-    d[message->length + 4] = phev_core_checksum(d);
+    d[message->length + 4] = phev_core_checksum(d) ^ message->xor;
 
     *data = d;
 
@@ -271,7 +305,19 @@ phevMessage_t * phev_core_copyMessage(phevMessage_t * message)
     out->reg = message->reg;
     out->type = message->type;
     out->length = message->length;
+    out->xor = message->xor;
     memcpy(out->data,message->data,out->length);
 
     return out;
+}
+message_t * phev_core_XORMessage(message_t * message,uint8_t xor)
+{
+    if(xor == 0) return message;
+
+    for(int i=0;i<message->length;i++)
+    {
+        message->data[i] ^= xor;
+    }
+    LOG_I(APP_TAG,"XOR message");
+    return message;
 }
