@@ -530,13 +530,15 @@ phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)
 }
 message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
+    phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
+
     if (message)
     {
         phevMessage_t *phevMessage = phev_service_jsonCommandToPhevMessage((char *)message->data);
         if (phevMessage)
         {
             message_t *out = phev_core_convertToMessage(phevMessage);
-            phev_core_XORMessage(out);
+            phev_core_XORMessage(out,pipeCtx->xor);
             if (out)
             {
                 return out;
