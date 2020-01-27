@@ -1,4 +1,5 @@
-#define LOGGING_OFF
+#define LOGGING_ON
+#define LOG_LEVEL LOG_DEBUG
 //#define TEST_TIMEOUTS
 
 #define MY18

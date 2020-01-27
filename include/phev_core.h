@@ -1,6 +1,8 @@
 #ifndef _PHEV_CORE_H_
 #define _PHEV_CORE_H_
 
+#define LOG_LEVEL LOG_DEBUG
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -69,6 +71,7 @@ typedef struct phevMessage_t
     uint8_t reg;
     uint8_t *data;
     uint8_t checksum;
+    uint8_t xor;
 } phevMessage_t;
 
 static bool phev_core_my18 = false;
@@ -111,6 +114,7 @@ uint8_t phev_core_checksum(const uint8_t * data);
 
 message_t * phev_core_convertToMessage(phevMessage_t * message);
 
+message_t * phev_core_XORMessage(message_t * message,uint8_t xor);
 phevMessage_t * phev_core_copyMessage(phevMessage_t *);
 
 #define phev_core_strdup(...) strdup(...)

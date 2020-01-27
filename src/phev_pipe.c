@@ -166,6 +166,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
 {
     LOG_V(APP_TAG,"START - outputChainInputTransformer");
     phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
+    phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
 
     int length = phev_core_decodeMessage(message->data, message->length, phevMessage);
             
@@ -176,7 +177,11 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
         return NULL;
     }
 
-    LOG_D(APP_TAG,"Register %d Length %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
+    // store XOR
+
+    pipeCtx->xor = phevMessage->xor;
+
+    LOG_D(APP_TAG,"Register %d Length %d Type %d XOR %02X",phevMessage->reg,phevMessage->length,phevMessage->type,phevMessage->xor);
     LOG_BUFFER_HEXDUMP(APP_TAG,phevMessage->data,phevMessage->length,LOG_DEBUG);
     message_t * ret = phev_core_convertToMessage(phevMessage);
 
@@ -189,7 +194,9 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
 message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - commandResponder");
-    
+    phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
+
+    LOG_D(APP_TAG,"CTX XOR %02x",pipeCtx->xor);
     message_t * out = NULL;
 
     if(message != NULL) {
@@ -198,6 +205,7 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
 
+        LOG_D(APP_TAG,"Decoded message XOR %02x",phevMsg.xor);
         if(phevMsg.command == PING_RESP_CMD || phevMsg.command == PING_RESP_CMD_MY18 ||  phevMsg.command == 0xbb ||  phevMsg.command == 0xcd) 
         {
             LOG_D(APP_TAG,"Ignoring ping");
@@ -205,8 +213,14 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
         }
         if(phevMsg.type == REQUEST_TYPE) 
         {
+            if(phevMsg.xor == 0)
+            {
+                LOG_D(APP_TAG,"XOR %02x",phevMsg.xor);
+                phevMsg.xor = pipeCtx->xor;
+            }
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
             out = phev_core_convertToMessage(msg);
+            phev_core_XORMessage(out,pipeCtx->xor);
 //            phev_core_destroyMessage(msg);
         }
 //        free(phevMsg.data);
