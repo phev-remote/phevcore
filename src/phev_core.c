@@ -80,11 +80,6 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     if(phev_core_validate_buffer(data, len, xor) != 0)
     {
 
-<<<<<<< HEAD
-        msg->command = (data[0] ^ xor) | 1;
-        msg->type = (data[0] & 1) ^ 1;
-        msg->length = ((data[1] ^ xor) ^ msg->type) - 3;
-=======
         msg->command = data[0] ^ xor;
         msg->xor = xor;
         if(msg->command == 0x6e || msg->command == 0xcd || msg->command == 0xba)
@@ -96,7 +91,6 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
             msg->length = (data[1] ^ xor) - 3;    
         }
         msg->type = data[2] & 1;
->>>>>>> 1b25272cd509dbef65b44663b7660547b4a7eb06
         msg->reg = data[3] ^ xor;
         msg->data = malloc(msg->length);
         if(msg->length > 0) 
