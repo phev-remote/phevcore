@@ -181,7 +181,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
 
     pipeCtx->xor = phevMessage->xor;
 
-    LOG_D(APP_TAG,"Register %d Length %d Type %d XOR %02X",phevMessage->reg,phevMessage->length,phevMessage->type,phevMessage->xor);
+    LOG_D(APP_TAG   ,"Command %02x Register %d Length %d Type %d XOR %02X",phevMessage->command,phevMessage->reg,phevMessage->length,phevMessage->type,phevMessage->xor);
     LOG_BUFFER_HEXDUMP(APP_TAG,phevMessage->data,phevMessage->length,LOG_DEBUG);
     message_t * ret = phev_core_convertToMessage(phevMessage);
 
@@ -211,6 +211,7 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
             LOG_D(APP_TAG,"Ignoring ping");
             return NULL;
         }
+        LOG_I(APP_TAG,"Responding to %02X %02X",phevMsg.command,phevMsg.type);
         if(phevMsg.type == REQUEST_TYPE) 
         {
             if(phevMsg.xor == 0)
@@ -219,8 +220,9 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
                 phevMsg.xor = pipeCtx->xor;
             }
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
+            LOG_I(APP_TAG,"Responding to %02X",phevMsg.command);
             out = phev_core_convertToMessage(msg);
-            phev_core_XORMessage(out,pipeCtx->xor);
+            //phev_core_XORMessage(out,pipeCtx->xor);
 //            phev_core_destroyMessage(msg);
         }
 //        free(phevMsg.data);
@@ -680,9 +682,10 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const ui
 {
     LOG_V(APP_TAG,"START - updateRegister");
     phevMessage_t * update = phev_core_simpleRequestCommandMessage(reg,value);
+    //update->xor = 0xb9;
     message_t *message = phev_core_convertToMessage(update);
-
-    msg_pipe_outboundPublish(ctx->pipe,  message);
+    message_t *encMessage = phev_core_XORMessage(message,0xb9);
+    msg_pipe_outboundPublish(ctx->pipe,  encMessage);
     LOG_V(APP_TAG,"END - updateRegister");
 }
 

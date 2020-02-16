@@ -58,5 +58,10 @@ install(
 )
 install (FILES
 	include/phev.h
+    include/phev_service.h
+    include/phev_core.h
+    include/phev_pipe.h
+    include/phev_model.h
+    include/phev_register.h
 	DESTINATION include/
 )
