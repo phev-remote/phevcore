@@ -59,6 +59,37 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
+static void phexdump(const char * tag, const unsigned char * buffer, const int length, const int level)
+{
+    if(length <= 0 || buffer == NULL) return;
+
+    char out[17];
+    memset(&out,'\0',17);
+        
+    printf("%s: ",tag);
+    int i = 0;
+    for(i=0;i<length;i++)
+    {
+        printf("%02x ",buffer[i]);
+        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
+        if((i+1) % 8 == 0) printf(" ");
+        if((i+1) % 16 ==0) {
+            out[16] = '\0';
+            printf(" | %s |\n%s: ",out,tag);
+        }
+    }
+    if((i % 16) + 1 != 0)
+    {
+        int num = (16 - (i % 16)) * 3;
+        num = ((i % 16) < 8 ? num + 1 : num);
+        out[(i % 16)] = '\0';
+        char padding[(16 * 3) + 2];
+        memset(&padding,' ',num+1);
+        padding[(16-i)*3] = '\0';
+        printf("%s | %s |\n",padding,out);
+    }
+    printf("\n");
+}
 static void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
 {
     tv->tv_sec = timeout_ms / 1000;
@@ -92,7 +123,7 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     {
         return -1;
     }
-    hexdump("TCP", buffer, read_len, 0);
+    //phexdump(">>", buffer, read_len, LOG_INFO);
     return read_len;
 }
 #ifdef _WIN32
@@ -219,37 +250,7 @@ int phev_tcpClientConnectSocket(const char *host, uint16_t port)
 }
 #endif
 
-static void phexdump(const char * tag, const unsigned char * buffer, const int length, const int level)
-{
-    if(length <= 0 || buffer == NULL) return;
 
-    char out[17];
-    memset(&out,'\0',17);
-        
-    printf("%s: ",tag);
-    int i = 0;
-    for(i=0;i<length;i++)
-    {
-        printf("%02x ",buffer[i]);
-        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
-        if((i+1) % 8 == 0) printf(" ");
-        if((i+1) % 16 ==0) {
-            out[16] = '\0';
-            printf(" | %s |\n%s: ",out,tag);
-        }
-    }
-    if((i % 16) + 1 != 0)
-    {
-        int num = (16 - (i % 16)) * 3;
-        num = ((i % 16) < 8 ? num + 1 : num);
-        out[(i % 16)] = '\0';
-        char padding[(16 * 3) + 2];
-        memset(&padding,' ',num+1);
-        padding[(16-i)*3] = '\0';
-        printf("%s | %s |\n",padding,out);
-    }
-    printf("\n");
-}
 int phev_tcpClientRead(int soc, uint8_t *buf, size_t len)
 {
     LOG_V(APP_TAG, "START - read");
@@ -272,7 +273,7 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
     int num = TCP_WRITE(soc, buf, len);
 #endif
     LOG_D(APP_TAG, "Wriiten %d bytes from tcp stream", num);
-    hexdump(">>", buf, num, LOG_INFO);
+    phexdump(">>", buf, num, LOG_INFO);
     LOG_V(APP_TAG, "END - write");
 
     return num;

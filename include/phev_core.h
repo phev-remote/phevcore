@@ -1,7 +1,7 @@
 #ifndef _PHEV_CORE_H_
 #define _PHEV_CORE_H_
 
-#define LOG_LEVEL LOG_NONE
+#define LOG_LEVEL LOG_DEBUG
 
 #include <stddef.h>
 #include <stdint.h>
@@ -76,7 +76,7 @@ typedef struct phevMessage_t
 
 static bool phev_core_my18 = false;
 
-const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e,0xcd,0xba,0x6e,0xcc,0xbb,0x3e,0x4f,0x4e};
+const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e,0xcd,0xba,0x6e,0xcc,0xbb,0x3e,0x4f,0x4e,0xe4};
 
 phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length);
 
@@ -114,8 +114,13 @@ uint8_t phev_core_checksum(const uint8_t * data);
 
 message_t * phev_core_convertToMessage(phevMessage_t * message);
 
-message_t * phev_core_XORMessage(message_t * message,uint8_t xor);
+message_t * phev_core_XOROutboundMessage(message_t * message,uint8_t xor);
+
+message_t * phev_core_XORInboundMessage(message_t * message,uint8_t xor);
+
 phevMessage_t * phev_core_copyMessage(phevMessage_t *);
+
+uint8_t phev_core_getXOR(const uint8_t * data);
 
 #define phev_core_strdup(...) strdup(...)
 

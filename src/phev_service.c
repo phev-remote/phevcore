@@ -538,7 +538,7 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
         if (phevMessage)
         {
             message_t *out = phev_core_convertToMessage(phevMessage);
-            phev_core_XORMessage(out,pipeCtx->xor);
+            phev_core_XOROutboundMessage(out,pipeCtx->xor);
             if (out)
             {
                 return out;

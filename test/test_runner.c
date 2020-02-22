@@ -56,13 +56,22 @@ int main()
     RUN_TEST(test_phev_core_copyMessage);
 */
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response_even_xor);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_cc);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_long_send);
-    RUN_TEST( test_phev_core_my18_xor_decodeMessage_4e);
+    RUN_TEST(test_phev_core_my18_xor_decodeMessage_4e);
     RUN_TEST(test_response_handler_4e);
+ 
+    RUN_TEST(test_phev_core_xor_message_even_xor_response);
+    RUN_TEST(test_phev_core_xor_message_odd_xor_response);
+    RUN_TEST(test_phev_core_xor_message_even_xor_request);
+    RUN_TEST(test_phev_core_xor_message_odd_xor_request);
+    RUN_TEST(test_phev_core_xor_inbound_message_odd_xor_request);
+    RUN_TEST(test_phev_core_xor_inbound_message_odd_ping);
+    RUN_TEST(test_phev_core_xor_inbound_6f_resp);
+    RUN_TEST(test_phev_core_xor_inbound_ping_even_resp);
+
 /*
 //  PHEV_REGISTER
 
@@ -199,5 +208,6 @@ int main()
 
     //RUN_TEST(test_phev_my18_5e);
   */  
+    //RUN_TEST(test_phev_my18_messages);
     return UNITY_END();
 }
