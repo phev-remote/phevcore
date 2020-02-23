@@ -115,7 +115,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     //LOG_BUFFER_HEXDUMP(APP_TAG,data,len,LOG_INFO);
     //LOG_BUFFER_HEXDUMP(APP_TAG,decodedData,len,LOG_INFO);
 
-    uint8_t xor = phev_core_getXOR(data) & 0xfe;
+    uint8_t xor = phev_core_getXOR(data);
     
     message_t * message = msg_utils_createMsg(data, len);
     message_t * decoded = phev_core_XORInboundMessage(message,xor);
@@ -126,7 +126,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     {
 
         msg->command = decodedData[0];
-        msg->xor = phev_core_getXOR(data) & 0xfe;
+        msg->xor = phev_core_getXOR(data);
         //printf("Message XOR %02X %02X\n",msg->xor,data[2]);
         msg->length = msg->command != 0xcd ? decodedData[1]- 3 : 1;    
         msg->type = decodedData[2];
@@ -165,7 +165,7 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
 
     //const uint8_t * unscrambled = phev_core_unscramble(data,len);
 
-    uint8_t xor = phev_core_getXOR(data) & 0xfe;
+    uint8_t xor = phev_core_getXOR(data);
     
     message_t * message = msg_utils_createMsg(data, len);
     message_t * decoded = phev_core_XORInboundMessage(message,xor);
