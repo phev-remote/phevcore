@@ -78,7 +78,7 @@ uint8_t phev_core_getXOR(const uint8_t * data)
     {
         return 0;
     }
-    return (data[2] | (!(data[0] & 1)));
+    return (data[2] | (!(data[0] & 1))) & 0xfe;
     
 } 
 uint8_t * phev_core_unscramble(const uint8_t * data, const size_t len)

@@ -168,9 +168,9 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
     phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
     phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
     pipeCtx->xor = phev_core_getXOR(message->data);
-    //printf("****XOR-> %02X %02X\n",message->data[2] ,pipeCtx->xor);
+    printf("****XOR-> %02X\n",pipeCtx->xor);
     int length = phev_core_decodeMessage(message->data, message->length, phevMessage);
-    phevMessage->xor = pipeCtx->xor;        
+    //phevMessage->xor = pipeCtx->xor;        
     if(length == 0) {
         LOG_E(APP_TAG,"Invalid message received");
         LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,LOG_ERROR);
@@ -180,7 +180,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
 
     // store XOR
 
-    pipeCtx->xor = phevMessage->xor;
+    //pipeCtx->xor = phevMessage->xor;
     //printf("Output chain XOR %02X\n",phevMessage->xor);
 
     LOG_D(APP_TAG   ,"Command %02x Register %d Length %d Type %d XOR %02X",phevMessage->command,phevMessage->reg,phevMessage->length,phevMessage->type,phevMessage->xor);
@@ -689,8 +689,13 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const ui
     phevMessage_t * update = phev_core_simpleRequestCommandMessage(reg,value);
     //update->xor = 0xb9;
     message_t *message = phev_core_convertToMessage(update);
+    
+    printf("CTX XOR %02X UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",ctx->xor,message->data[0],message->data[1],message->data[3], message->data[2], message->data[4]);
+    
     message_t *encMessage = phev_core_XOROutboundMessage(message,ctx->xor);
+    printf("PHEV MESSAGE UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",update->command,update->length,update->reg,update->type,update->data[0]);
     msg_pipe_outboundPublish(ctx->pipe,  encMessage);
+    
     LOG_V(APP_TAG,"END - updateRegister");
 }
 
