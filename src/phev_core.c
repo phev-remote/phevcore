@@ -78,14 +78,7 @@ uint8_t phev_core_getXOR(const uint8_t * data)
     {
         return 0;
     }
-    if((data[0] & 0x8) == 0x8) {
-        const uint8_t cmd = !((data[0] & 0x80) ^ (data[2] & 1));
-        printf("CMD %02X\n",cmd);
-        return data[2] ^ cmd;
-    } else {
-        const uint8_t cmd = !((data[0] & 1) ^ (data[2] & 1));
-        return data[2] ^ cmd;
-    }
+    return (data[2] | (!(data[0] & 1)));
     
 } 
 uint8_t * phev_core_unscramble(const uint8_t * data, const size_t len)
@@ -133,7 +126,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     {
 
         msg->command = decodedData[0];
-        msg->xor = phev_core_getXOR(data);
+        msg->xor = phev_core_getXOR(data) & 0xfe;
         //printf("Message XOR %02X %02X\n",msg->xor,data[2]);
         msg->length = msg->command != 0xcd ? decodedData[1]- 3 : 1;    
         msg->type = decodedData[2];

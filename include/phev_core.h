@@ -1,7 +1,7 @@
 #ifndef _PHEV_CORE_H_
 #define _PHEV_CORE_H_
 
-#define LOG_LEVEL LOG_DEBUG
+#define LOG_LEVEL LOG_NONE
 
 #include <stddef.h>
 #include <stdint.h>
