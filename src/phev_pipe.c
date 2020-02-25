@@ -167,17 +167,18 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
     LOG_V(APP_TAG,"START - outputChainInputTransformer");
     phevMessage_t * phevMessage = malloc(sizeof(phevMessage_t));
     phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
-    pipeCtx->xor = phev_core_getXOR(message->data);
-    printf("****XOR-> %02X\n",pipeCtx->xor);
+
     int length = phev_core_decodeMessage(message->data, message->length, phevMessage);
-    //phevMessage->xor = pipeCtx->xor;        
+    
     if(length == 0) {
         LOG_E(APP_TAG,"Invalid message received");
         LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,LOG_ERROR);
         
         return NULL;
     }
-
+    
+    pipeCtx->xor = phev_core_getXOR(message->data);
+    
     // store XOR
 
     //pipeCtx->xor = phevMessage->xor;
@@ -192,6 +193,37 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
     LOG_V(APP_TAG,"END - outputChainInputTransformer");
     
     return ret;
+}
+static void pphexdump(const char * tag, const unsigned char * buffer, const int length, const int level)
+{
+    if(length <= 0 || buffer == NULL) return;
+
+    char out[17];
+    memset(&out,'\0',17);
+        
+    printf("%s: ",tag);
+    int i = 0;
+    for(i=0;i<length;i++)
+    {
+        printf("%02x ",buffer[i]);
+        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
+        if((i+1) % 8 == 0) printf(" ");
+        if((i+1) % 16 ==0) {
+            out[16] = '\0';
+            printf(" | %s |\n%s: ",out,tag);
+        }
+    }
+    if((i % 16) + 1 != 0)
+    {
+        int num = (16 - (i % 16)) * 3;
+        num = ((i % 16) < 8 ? num + 1 : num);
+        out[(i % 16)] = '\0';
+        char padding[(16 * 3) + 2];
+        memset(&padding,' ',num+1);
+        padding[(16-i)*3] = '\0';
+        printf("%s | %s |\n",padding,out);
+    }
+    printf("\n");
 }
 message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 {
@@ -224,7 +256,10 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
             LOG_I(APP_TAG,"Responding to %02X",phevMsg.command);
             out = phev_core_convertToMessage(msg);
-            phev_core_XOROutboundMessage(out,pipeCtx->xor);
+            pphexdump("Responding with ",out->data,out->length,0);
+            message_t * encoded = phev_core_XOROutboundMessage(out,pipeCtx->xor);
+            pphexdump("Encoded Response",encoded->data,encoded->length,0);
+            
 //            phev_core_destroyMessage(msg);
         }
 //        free(phevMsg.data);
@@ -667,7 +702,7 @@ void phev_pipe_ping(phev_pipe_ctx_t * ctx)
     //ping->xor = ctx->xor;
     message_t * message = phev_core_convertToMessage(ping);
     message_t *encMessage = phev_core_XOROutboundMessage(message,ctx->xor);
-    msg_pipe_outboundPublish(ctx->pipe,  encMessage);
+    //msg_pipe_outboundPublish(ctx->pipe,  encMessage);
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
     LOG_V(APP_TAG,"END - ping");

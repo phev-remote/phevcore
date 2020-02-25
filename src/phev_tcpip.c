@@ -37,6 +37,8 @@
 
 #endif
 #include "phev_tcpip.h"
+#include "phev_core.h"
+#include "msg_utils.h"
 #include "logger.h"
 #ifdef _WIN32
 #define TCP_READ recv
@@ -259,7 +261,17 @@ int phev_tcpClientRead(int soc, uint8_t *buf, size_t len)
 
     LOG_D(APP_TAG, "Read %d bytes from tcp stream", num);
     phexdump("<<", buf, num, LOG_INFO);
-
+    
+    if((len > 2) && (buf[2] > 1))
+    {
+        message_t * msg = msg_utils_createMsg(buf,6);
+        message_t * decoded = phev_core_XORInboundMessage(msg,buf[2]);
+        if(decoded) {
+            phexdump("<< DECODED ", decoded->data, 6, LOG_INFO);
+        }
+        
+    }
+    
     LOG_V(APP_TAG, "END - read");
 
     return num;
@@ -274,6 +286,13 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
 #endif
     LOG_D(APP_TAG, "Wriiten %d bytes from tcp stream", num);
     phexdump(">>", buf, num, LOG_INFO);
+    if((len > 2) && (buf[2] > 1))
+    {
+        message_t * msg = msg_utils_createMsg(buf,6);
+        message_t * decoded = phev_core_XOROutboundMessage(msg,buf[2]);
+        phexdump(">> DECODED ", decoded->data, 6, LOG_INFO);
+   
+    }
     LOG_V(APP_TAG, "END - write");
 
     return num;

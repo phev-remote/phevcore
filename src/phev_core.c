@@ -78,7 +78,7 @@ uint8_t phev_core_getXOR(const uint8_t * data)
     {
         return 0;
     }
-    return (data[2] | (!(data[0] & 1))) & 0xfe;
+    return (data[2] | (!(data[0] & 1)));
     
 } 
 uint8_t * phev_core_unscramble(const uint8_t * data, const size_t len)
@@ -119,14 +119,19 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     
     message_t * message = msg_utils_createMsg(data, len);
     message_t * decoded = phev_core_XORInboundMessage(message,xor);
-    
+    if(decoded == NULL)
+    {
+        LOG_E(APP_TAG,"INVALID MESSAGE - Null returned from XOR Inbound message");
+        LOG_V(APP_TAG,"END - decodeMessage");
+        return 0;
+    }
     const uint8_t * decodedData = decoded->data;
 
     if(phev_core_validate_buffer(decodedData, len) != 0)
     {
 
         msg->command = decodedData[0];
-        msg->xor = phev_core_getXOR(data);
+        msg->xor = xor;
         //printf("Message XOR %02X %02X\n",msg->xor,data[2]);
         msg->length = msg->command != 0xcd ? decodedData[1]- 3 : 1;    
         msg->type = decodedData[2];
@@ -169,7 +174,12 @@ message_t * phev_core_extractMessage(const uint8_t *data, const size_t len)
     
     message_t * message = msg_utils_createMsg(data, len);
     message_t * decoded = phev_core_XORInboundMessage(message,xor);
-    
+    if(decoded == NULL)
+    {
+        LOG_E(APP_TAG,"INVALID MESSAGE - Null returned from XOR Inbound message");
+        LOG_V(APP_TAG,"END - extractMessage");
+        return 0;
+    }
     const uint8_t * unscrambled = decoded->data;
     if(phev_core_validate_buffer(unscrambled, len) != 0)
     {
@@ -299,14 +309,21 @@ phevMessage_t *phev_core_responseHandler(phevMessage_t * message)
     uint8_t command = ((message->command & 0xf) << 4) | ((message->command & 0xf0) >> 4);
     return phev_core_ackMessage(command, message->reg); 
 }
-
+uint8_t phev_core_getActualLengthXOR(const uint8_t * data,uint8_t xor)
+{
+    return (data[1] ^ xor) + 2;
+}
+uint8_t phev_core_getActualLength(const uint8_t * data)
+{
+    return data[1] + 2;
+}
 uint8_t phev_core_checksum(const uint8_t * data) 
 {
     uint8_t b = 0;
-    int j = data[1] + 2;
+    int len = phev_core_getActualLength(data);
     for (int i = 0;; i++)
     {
-      if (i >= j - 1) {
+      if (i >= len - 1) {
         return b;
       }
       b = (uint8_t)(data[i] + b);
@@ -345,27 +362,82 @@ phevMessage_t * phev_core_copyMessage(phevMessage_t * message)
 message_t * phev_core_XOROutboundMessage(message_t * message,uint8_t xor)
 {
     if(xor < 2) return message;
-
+    
+    message_t * encoded = malloc(sizeof(message_t));
+    encoded->data = malloc(message->length);
+    encoded->length = message->length;
     uint8_t type = message->data[2];
-    xor ^= type;
+    //xor |= type;
     
     for(int i=0;i<message->length;i++)
     {
-        message->data[i] = (uint8_t) message->data[i] ^ xor;
+        encoded->data[i] = (uint8_t) message->data[i] ^ xor;
     }
     LOG_I(APP_TAG,"XOR message");
-    return message;
+    return encoded;
+}
+
+uint8_t * phev_core_xorData(uint8_t * data, uint8_t xor)
+{
+    uint8_t len = phev_core_getActualLengthXOR(data,xor);
+    uint8_t * decoded = malloc(len);
+    
+    for(int i=0;i<len;i++)
+    {
+        decoded[i] = (uint8_t) data[i] ^ xor;
+    }
+    return decoded;
 }
 message_t * phev_core_XORInboundMessage(message_t * message,uint8_t xor)
 {
     if(xor < 2) return message;
 
+    printf("XOR = %02X\n",xor);
+
+    //int len = (message->data[1] ^ xor) > message->length ? (message->data[1] ^ (xor | 1)) + 2 : (message->data[1] ^ xor) +2;
+    uint8_t type = !(message->data[0] & 1);
     
-    for(int i=0;i<message->length;i++)
+    uint8_t len = phev_core_getActualLengthXOR(message->data,xor | type) ;
+    
+    printf("Length = %d Message Len %d Type %d\n",len,message->length,type);
+    message_t * decoded = malloc(sizeof(message_t));
+    decoded->length = len;
+    decoded->data = phev_core_xorData(message->data,xor);
+
+    uint8_t chksum = phev_core_checksum(decoded->data);
+    if(chksum != decoded->data[len-1])
     {
-        message->data[i] = (uint8_t) message->data[i] ^ xor;
+        printf("***CHECKSUM BAD expected %02X got %02X retrying with AND %02X...\n",chksum,decoded->data[len-1], xor & 0xfe);
+        
+        decoded->data = phev_core_xorData(message->data,xor & 0xfe);
+
+        uint8_t chksum = phev_core_checksum(decoded->data);
+        if(chksum != decoded->data[len-1])
+        {
+            printf("***CHECKSUM BAD expected %02X got %02X retrying with %02X...\n",chksum,decoded->data[len-1], xor | 1);
+        
+            decoded->data = phev_core_xorData(message->data,xor | 1);
+
+            uint8_t chksum = phev_core_checksum(decoded->data);
+            
+            if(chksum != decoded->data[len-1]) 
+            {
+                printf("***CHECKSUM BAD again expected %02X got %02X returning NULL\n",chksum,decoded->data[len-1]);
+                printf("Decoded Command is %02X\n",decoded->data[0]); 
+                printf("Decoded length is %02X\n",decoded->data[1]);
+                printf("Decoded type is %02X\n",decoded->data[2]);
+                printf("Decoded register is %02X\n",decoded->data[3]);
+                printf("Decoded checksum is %02X\n",decoded->data[phev_core_getActualLength(decoded->data) - 1]);
+                return NULL;
+            }
+        }
     }
-    //message->data[0] |= message->data[2]; 
-    LOG_I(APP_TAG,"XOR message");
-    return message;
+    /*
+    printf("Decoded Command is %02X %d\n",decoded->data[0],(message->data[0] & 1) == 1); 
+    printf("Decoded length is %02X\n",decoded->data[1]);
+    printf("Decoded type is %02X\n",decoded->data[2]);
+    printf("Decoded register is %02X\n",decoded->data[3]);
+    printf("Decoded checksum is %02X\n",decoded->data[phev_core_getActualLength(decoded->data) - 1]);
+    */
+    return decoded;
 }

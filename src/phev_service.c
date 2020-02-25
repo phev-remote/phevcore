@@ -538,10 +538,10 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
         if (phevMessage)
         {
             message_t *out = phev_core_convertToMessage(phevMessage);
-            phev_core_XOROutboundMessage(out,pipeCtx->xor);
-            if (out)
+            message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->xor);
+            if (encoded)
             {
-                return out;
+                return encoded;
             }
         }
     }
