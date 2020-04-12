@@ -122,6 +122,10 @@ phevMessage_t * phev_core_copyMessage(phevMessage_t *);
 
 uint8_t phev_core_getXOR(const uint8_t * data);
 
+uint8_t phev_core_getMessageLength(const uint8_t * data);
+
+uint8_t * phev_core_xorData(uint8_t * data, uint8_t xor);
+
 #define phev_core_strdup(...) strdup(...)
 
 #endif

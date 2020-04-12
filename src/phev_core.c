@@ -309,18 +309,27 @@ phevMessage_t *phev_core_responseHandler(phevMessage_t * message)
     uint8_t command = ((message->command & 0xf) << 4) | ((message->command & 0xf0) >> 4);
     return phev_core_ackMessage(command, message->reg); 
 }
-uint8_t phev_core_getActualLengthXOR(const uint8_t * data,uint8_t xor)
+uint8_t phev_core_getMessageLength(const uint8_t * data)
 {
-    return (data[1] ^ xor) + 2;
+    uint8_t xor = data[2] & 0xfe;
+    
+    if(data[0] ^ xor == 0xbb || data[0] ^ xor == 0xcc) return 4;
+    uint8_t type = (data[0] & 0x01) ^ 1;
+    uint8_t length = (data[1] ^ xor) ^ type;
+    return length;
 }
 uint8_t phev_core_getActualLength(const uint8_t * data)
 {
-    return data[1] + 2;
+    return phev_core_getMessageLength(data) + 2;
+}
+uint8_t phev_core_getActualLengthXOR(const uint8_t * data,uint8_t xor)
+{
+    return phev_core_getActualLength(data);
 }
 uint8_t phev_core_checksum(const uint8_t * data) 
 {
     uint8_t b = 0;
-    int len = phev_core_getActualLength(data);
+    int len = phev_core_getMessageLength(data) + 2;
     for (int i = 0;; i++)
     {
       if (i >= len - 1) {
@@ -379,7 +388,7 @@ message_t * phev_core_XOROutboundMessage(message_t * message,uint8_t xor)
 
 uint8_t * phev_core_xorData(uint8_t * data, uint8_t xor)
 {
-    uint8_t len = phev_core_getActualLengthXOR(data,xor);
+    uint8_t len = phev_core_getMessageLength(data) + 2;
     uint8_t * decoded = malloc(len);
     
     for(int i=0;i<len;i++)

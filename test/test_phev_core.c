@@ -585,5 +585,155 @@ void test_phev_core_xor_inbound_ping_even_resp(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,encoded->data,sizeof(expected));
        
 } 
+void test_phev_core_getMessageLength_response_odd(void)
+{
+    uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
+    
+    uint8_t length = phev_core_getMessageLength(input);
 
-//78 43 46 25 47 e1
+    TEST_ASSERT_EQUAL(4,length);
+
+}
+void test_phev_core_getMessageLength_request_odd(void)
+{
+    uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
+    
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(4,length);
+
+}
+void test_phev_core_getMessageLength_response_even(void)
+{
+    uint8_t input[] = { 0x74,0x4f,0x4a,0x08,0x4b,0xcc }; 
+    
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(4,length);
+
+}
+void test_phev_core_getMessageLength_request_even(void)
+{
+    uint8_t input[] = { 0xb8,0x4f,0x4b,0x0f,0x4b,0x70 };
+    
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(4,length);
+
+}
+void test_phev_core_xorData_response_odd(void)
+{
+    uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
+    uint8_t expected[] = { 0x3f,0x04,0x01,0x5f,0x00,0xa3 }; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x9f, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+} 
+void test_phev_core_xorData_request_odd(void)
+{
+    uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
+    uint8_t expected[] = { 0x6f,0x04,0x00,0x21,0x00,0x94 }; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x0d, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+} 
+void test_phev_core_xorData_response_even(void)
+{
+    uint8_t input[] = { 0x74,0x4f,0x4a,0x08,0x4b,0xcc }; 
+    uint8_t expected[] = { 0x3f,0x04,0x01,0x43,0x00,0x87 }; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x4b, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+}
+void test_phev_core_xorData_request_even(void)
+{
+    uint8_t input[] = { 0xb8,0x4f,0x4b,0x0f,0x4b,0x70 };
+    uint8_t expected[] = { 0xf3,0x04,0x00,0x44,0x00,0x3b }; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x4b, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+} 
+void test_phev_core_xorData_response_odd_chksum(void)
+{
+    uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
+    uint8_t expected = 0xa3; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x9f, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t chksum = phev_core_checksum(data);
+
+    TEST_ASSERT_EQUAL(expected,chksum);
+
+} 
+void test_phev_core_xorData_request_odd_chksum(void)
+{
+    uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
+    uint8_t expected = 0x94; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x0d, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t chksum = phev_core_checksum(data);
+
+    TEST_ASSERT_EQUAL(expected,chksum);
+
+} 
+void test_phev_core_xorData_response_even_chksum(void)
+{
+    uint8_t input[] = { 0x74,0x4f,0x4a,0x08,0x4b,0xcc }; 
+    uint8_t expected = 0x87; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x4b, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t chksum = phev_core_checksum(data);
+
+    TEST_ASSERT_EQUAL(expected,chksum);
+
+}
+void test_phev_core_xorData_request_even_chksum(void)
+{
+    uint8_t input[] = { 0xb8,0x4f,0x4b,0x0f,0x4b,0x70 };
+    uint8_t expected = 0x3b; 
+    
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(0x4b, xor);
+
+    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t chksum = phev_core_checksum(data);
+
+    TEST_ASSERT_EQUAL(expected,chksum);
+
+} 

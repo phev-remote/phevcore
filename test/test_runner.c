@@ -71,7 +71,18 @@ int main()
     RUN_TEST(test_phev_core_xor_inbound_message_odd_ping);
     RUN_TEST(test_phev_core_xor_inbound_6f_resp);
     RUN_TEST(test_phev_core_xor_inbound_ping_even_resp);
-
+    RUN_TEST(test_phev_core_getMessageLength_request_odd);
+    RUN_TEST(test_phev_core_getMessageLength_response_odd);
+    RUN_TEST(test_phev_core_getMessageLength_request_even);
+    RUN_TEST(test_phev_core_getMessageLength_response_even);
+    RUN_TEST(test_phev_core_xorData_response_odd);
+    RUN_TEST(test_phev_core_xorData_request_odd);
+    RUN_TEST(test_phev_core_xorData_response_even);
+    RUN_TEST(test_phev_core_xorData_request_even);
+    RUN_TEST(test_phev_core_xorData_response_odd_chksum);
+    RUN_TEST(test_phev_core_xorData_request_odd_chksum);
+    RUN_TEST(test_phev_core_xorData_response_even_chksum);
+    RUN_TEST(test_phev_core_xorData_request_even_chksum);
 /*
 //  PHEV_REGISTER
 
