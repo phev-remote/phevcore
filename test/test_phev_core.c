@@ -449,17 +449,11 @@ void test_phev_core_xor_message_odd_xor_response(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,encoded->data,sizeof(expected));
        
 }  
-/*
-Command f7 Type 1 Register b Length 5
-Orig bb 49 4d 47 4c 48
-Command f7 Type 1 Register b Length 5
-Orig c9 3b 3f 35 3d 39
-*/
 void test_phev_core_xor_message_even_xor_request(void)
 {
     uint8_t input[] = { 0xf6,0x04,0x00,0x0a,0x01,0x05};
     uint8_t expected[] = { 0xbb,0x49,0x4d,0x47,0x4c,0x48 };
-    //uint8_t xor = 0x4d;
+   
     uint8_t xor = phev_core_getXOR(expected);
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XOROutboundMessage(message,xor);

@@ -113,6 +113,18 @@ uint8_t * phev_core_xorData(const uint8_t * data)
     }
     return decoded;
 }
+uint8_t * phev_core_xorDataWithValue(const uint8_t * data,uint8_t xor)
+{
+
+    uint8_t length = phev_core_getActualLength(data);
+    uint8_t * decoded = malloc(length);
+
+    for(int i=0;i<length;i++)
+    {
+        decoded[i] = data [i] ^ xor;
+    }
+    return decoded;
+}
 bool phev_core_validateChecksum(const uint8_t *data)
 {
     uint8_t checksum = phev_core_getChecksum(data);
@@ -426,13 +438,9 @@ message_t *phev_core_XOROutboundMessage(message_t *message, uint8_t xor)
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    uint8_t type = message->data[2];
-    //xor |= type;
+    const uint8_t xorWithType = xor ^ (!message->data[2]) & 1;
+    encoded->data = phev_core_xorDataWithValue(message->data,xorWithType);
 
-    for (int i = 0; i < message->length; i++)
-    {
-        encoded->data[i] = (uint8_t)message->data[i] ^ xor;
-    }
     LOG_I(APP_TAG, "XOR message");
     return encoded;
 }
