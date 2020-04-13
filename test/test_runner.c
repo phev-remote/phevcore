@@ -83,6 +83,25 @@ int main()
     RUN_TEST(test_phev_core_xorData_request_odd_chksum);
     RUN_TEST(test_phev_core_xorData_response_even_chksum);
     RUN_TEST(test_phev_core_xorData_request_even_chksum);
+    RUN_TEST(test_phev_core_getXOR_odd_request);
+    RUN_TEST(test_phev_core_getXOR_even_request);
+    RUN_TEST(test_phev_core_getXOR_odd_response);
+    RUN_TEST(test_phev_core_getXOR_even_response);
+    RUN_TEST(test_phev_core_getType_odd_request);
+    RUN_TEST(test_phev_core_getType_even_request);
+    RUN_TEST(test_phev_core_getType_odd_response);
+    RUN_TEST(test_phev_core_getType_even_response);
+    RUN_TEST(test_phev_core_getMessageLength_odd_request);
+    RUN_TEST(test_phev_core_getMessageLength_even_request);
+    RUN_TEST(test_phev_core_getMessageLength_odd_response);
+    RUN_TEST(test_phev_core_getMessageLength_even_response);
+    RUN_TEST(test_phev_core_validateChecksum_odd_request);
+    RUN_TEST(test_phev_core_validateChecksum_even_request);
+    RUN_TEST(test_phev_core_validateChecksum_odd_response);
+    RUN_TEST(test_phev_core_validateChecksum_even_response);
+    RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
+     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
+
 /*
 //  PHEV_REGISTER
 

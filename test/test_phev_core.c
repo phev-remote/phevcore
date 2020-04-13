@@ -310,14 +310,6 @@ void test_phev_core_copyMessage(void)
 }
 void test_phev_core_my18_xor_decodeMessage_ping_response(void)
 {
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
-    
     const uint8_t my18_msg[] = {0x1f,0x24,0x21,0x17,0x20,0x5b};
     phevMessage_t msg;
 
@@ -329,15 +321,7 @@ void test_phev_core_my18_xor_decodeMessage_ping_response(void)
     
 }
 void test_phev_core_my18_xor_decodeMessage_ping_response_even_xor(void)
-{
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
-    
+{ 
     const uint8_t my18_msg[] = {0x86,0xbd,0xb8,0xf9,0xb9,0x3d};
     phevMessage_t msg;
 
@@ -350,19 +334,13 @@ void test_phev_core_my18_xor_decodeMessage_ping_response_even_xor(void)
 }
 void test_phev_core_my18_xor_decodeMessage_send_request_even_xor(void)
 {
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
-    
+
     const uint8_t my18_msg[] = {0x4f,0x26,0x20,0x23,0x21,0x31,0x43,0xcd};
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
+    TEST_ASSERT_EQUAL(1,ret);
     TEST_ASSERT_EQUAL(0x6f, msg.command);
     TEST_ASSERT_EQUAL(3, msg.length);
     TEST_ASSERT_EQUAL(0, msg.type);
@@ -370,13 +348,6 @@ void test_phev_core_my18_xor_decodeMessage_send_request_even_xor(void)
 }
 void test_phev_core_my18_xor_decodeMessage_bb(void)
 {
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
     
     const uint8_t my18_msg[] = {0x6d,0xd2,0xd7,0x76,0xa5,0x05};
     phevMessage_t msg;
@@ -389,43 +360,27 @@ void test_phev_core_my18_xor_decodeMessage_bb(void)
     
 }
 void test_phev_core_my18_xor_decodeMessage_cc(void)
-{
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
-    
+{    
     const uint8_t my18_msg[] = {0x1a,0xd2,0xd7,0x80,0xa5,0x4c};
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
-    TEST_ASSERT_EQUAL(0xcc, msg.command);
+    TEST_ASSERT_EQUAL(0xcd, msg.command);
     TEST_ASSERT_EQUAL(1, msg.length);
-    TEST_ASSERT_EQUAL(1, msg.type);
+    TEST_ASSERT_EQUAL(0, msg.type);
     
 }
 void test_phev_core_my18_xor_decodeMessage_long_send(void)
-{
-    //        uint8_t xor = arr[i + 2] & 0xfe;
-    //        uint8_t invert = arr[i] & 0x01;
-    //        uint8_t command = (arr[i] ^ xor) | !invert;
-    //        length = ((uint8_t) (arr[i + 1] ^ xor)) ^ !invert;
-    //        uint8_t type = ((command & 1) ^ !(arr[i + 2] ^ xor));
-    //        uint8_t reg = arr[i + 3] ^ xor;
-    //        if(command == 0xcd) length = 4;
-    
+{  
     const uint8_t my18_msg[] = {0xd6,0xae,0xb9,0xac,0xb9,0xf3,0xf4,0xf8,0xe1,0xfd,0xfe,0xfe,0x8b,0xee,0xfe,0xe3,0x89,0x89,0x8b,0x89,0x8a,0x8c,0xb8,0xb8,0x4a};
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
-    TEST_ASSERT_EQUAL(0x6e, msg.command);
-    TEST_ASSERT_EQUAL(19, msg.length);
-    TEST_ASSERT_EQUAL(1, msg.type);
+    TEST_ASSERT_EQUAL(0x6f, msg.command);
+    TEST_ASSERT_EQUAL(20, msg.length);
+    TEST_ASSERT_EQUAL(0, msg.type);
     
 }
 //0xd6,0xae,0xb9,0xac,0xb9,0xf3,0xf4,0xf8,0xe1,0xfd,0xfe,0xfe
@@ -472,7 +427,7 @@ void test_phev_core_xor_message_even_xor_response(void)
 {
     uint8_t input[] = { 0xf6,0x04,0x01,0xc0,0x00,0xbb };
     uint8_t expected[] = { 0xa1,0x53,0x56,0x97,0x57,0xec };
-    uint8_t xor = 0x56;
+    uint8_t xor = 0x57;
 
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XOROutboundMessage(message,xor);
@@ -485,7 +440,7 @@ void test_phev_core_xor_message_odd_xor_response(void)
 {
     uint8_t input[] = { 0xf6,0x04,0x01,0x01,0x00,0xfc };
     uint8_t expected[] = { 0x42,0xb0,0xb5,0xb5,0xb4,0x48 };
-    uint8_t xor = 0xb5;
+    uint8_t xor = 0xb4;
 
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XOROutboundMessage(message,xor);
@@ -630,7 +585,7 @@ void test_phev_core_xorData_response_odd(void)
 
     TEST_ASSERT_EQUAL(0x9f, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
 
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
 
@@ -644,7 +599,7 @@ void test_phev_core_xorData_request_odd(void)
 
     TEST_ASSERT_EQUAL(0x0d, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
 
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
 
@@ -658,7 +613,7 @@ void test_phev_core_xorData_response_even(void)
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
 
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
 
@@ -672,7 +627,7 @@ void test_phev_core_xorData_request_even(void)
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
 
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
 
@@ -686,7 +641,7 @@ void test_phev_core_xorData_response_odd_chksum(void)
 
     TEST_ASSERT_EQUAL(0x9f, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
     uint8_t chksum = phev_core_checksum(data);
 
     TEST_ASSERT_EQUAL(expected,chksum);
@@ -701,7 +656,7 @@ void test_phev_core_xorData_request_odd_chksum(void)
 
     TEST_ASSERT_EQUAL(0x0d, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
     uint8_t chksum = phev_core_checksum(data);
 
     TEST_ASSERT_EQUAL(expected,chksum);
@@ -716,7 +671,7 @@ void test_phev_core_xorData_response_even_chksum(void)
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
     uint8_t chksum = phev_core_checksum(data);
 
     TEST_ASSERT_EQUAL(expected,chksum);
@@ -731,9 +686,165 @@ void test_phev_core_xorData_request_even_chksum(void)
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
-    uint8_t * data = phev_core_xorData(input,xor);
+    uint8_t * data = phev_core_xorData(input);
     uint8_t chksum = phev_core_checksum(data);
 
     TEST_ASSERT_EQUAL(expected,chksum);
 
 } 
+void test_phev_core_getXOR_odd_request(void)
+{
+    uint8_t input[] = { 0xd8,0xb3,0xb7,0x90,0xb7,0x2d };
+    uint8_t expected = 0xb7; 
+
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(expected,xor);   
+}
+void test_phev_core_getXOR_even_request(void)
+{
+    uint8_t input[] = { 0xc3,0xbc,0xac,0x6c,0x9c,0x9c,0x9f,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0xad,0xac,0xac,0x8f }; 
+    uint8_t expected = 0xac; 
+
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(expected,xor);   
+}
+void test_phev_core_getXOR_odd_response(void)
+{
+    uint8_t input[] = { 0x86,0xbd,0xb8,0xf9,0xb9,0x3d };
+    uint8_t expected = 0xb9; 
+
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(expected,xor);   
+}
+void test_phev_core_getXOR_even_response(void)
+{
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
+    uint8_t expected = 0x20; 
+
+    uint8_t xor = phev_core_getXOR(input);
+
+    TEST_ASSERT_EQUAL(expected,xor);   
+}
+void test_phev_core_getType_odd_request(void)
+{
+    uint8_t input[] = { 0xd8,0xb3,0xb7,0x90,0xb7,0x2d };
+    uint8_t expected = 0; 
+
+    uint8_t type = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(expected,type);   
+}
+void test_phev_core_getType_even_request(void)
+{
+    uint8_t input[] = { 0xc3,0xbc,0xac,0x6c,0x9c,0x9c,0x9f,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0xad,0xac,0xac,0x8f }; 
+    uint8_t expected = 0; 
+
+    uint8_t type = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(expected,type);   
+}
+void test_phev_core_getType_odd_response(void)
+{
+    uint8_t input[] = { 0x86,0xbd,0xb8,0xf9,0xb9,0x3d };
+    uint8_t expected = 1; 
+
+    uint8_t type = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(expected,type);   
+}
+void test_phev_core_getType_even_response(void)
+{
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
+    uint8_t expected = 1; 
+
+    uint8_t type = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(expected,type);   
+}
+void test_phev_core_getMessageLength_odd_request(void)
+{
+    uint8_t input[] = { 0xd8,0xb3,0xb7,0x90,0xb7,0x2d };
+    uint8_t expected = 4; 
+
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(expected,length);   
+}
+void test_phev_core_getMessageLength_even_request(void)
+{
+    uint8_t input[] = { 0xc3,0xbc,0xac,0x6c,0x9c,0x9c,0x9f,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0xad,0xac,0xac,0x8f }; 
+    uint8_t expected = 16; 
+
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(expected,length);   
+}
+void test_phev_core_getMessageLength_odd_response(void)
+{
+    uint8_t input[] = { 0x86,0xbd,0xb8,0xf9,0xb9,0x3d };
+    uint8_t expected = 4; 
+
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(expected,length);   
+}
+void test_phev_core_getMessageLength_even_response(void)
+{
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
+    uint8_t expected = 4; 
+
+    uint8_t length = phev_core_getMessageLength(input);
+
+    TEST_ASSERT_EQUAL(expected,length);   
+}
+void test_phev_core_validateChecksum_odd_request(void)
+{
+    uint8_t input[] = { 0xd8,0xb3,0xb7,0x90,0xb7,0x2d };
+    
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_TRUE(checksum);   
+}
+void test_phev_core_validateChecksum_even_request(void)
+{
+    uint8_t input[] = { 0xc3,0xbc,0xac,0x6c,0x9c,0x9c,0x9f,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0xad,0xac,0xac,0x8f }; 
+    
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_TRUE(checksum);   
+}
+void test_phev_core_validateChecksum_odd_response(void)
+{
+    uint8_t input[] = { 0x86,0xbd,0xb8,0xf9,0xb9,0x3d };
+    
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_TRUE(checksum);   
+}
+void test_phev_core_validateChecksum_even_response(void)
+{
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
+    
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_TRUE(checksum);   
+}
+void test_phev_core_validateChecksum_even_response_fail(void)
+{
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa0 }; 
+
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_FALSE(checksum);   
+}
+void test_phev_core_validateChecksum_even_response_cc(void)
+{
+    
+    uint8_t input[] = {0x1a,0xd2,0xd7,0x80,0xa5,0x4c};
+    bool checksum = phev_core_validateChecksum(input);
+
+    TEST_ASSERT_TRUE(checksum);   
+}
