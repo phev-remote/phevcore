@@ -257,8 +257,9 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
             LOG_I(APP_TAG,"Responding to %02X",phevMsg.command);
             out = phev_core_convertToMessage(msg);
             pphexdump("Responding with ",out->data,out->length,0);
-            message_t * encoded = phev_core_XOROutboundMessage(out,pipeCtx->xor);
+            message_t * encoded = phev_core_XOROutboundMessage(out,phevMsg.xor);
             pphexdump("Encoded Response",encoded->data,encoded->length,0);
+            out = encoded;
             
 //            phev_core_destroyMessage(msg);
         }
@@ -699,10 +700,10 @@ void phev_pipe_ping(phev_pipe_ctx_t * ctx)
         phev_pipe_sendTimeSync(ctx);
     }
     phevMessage_t * ping = phev_core_pingMessage(ctx->currentPing++);
-    //ping->xor = ctx->xor;
+    ping->xor = ctx->xor;
     message_t * message = phev_core_convertToMessage(ping);
     message_t *encMessage = phev_core_XOROutboundMessage(message,ctx->xor);
-    //msg_pipe_outboundPublish(ctx->pipe,  encMessage);
+    msg_pipe_outboundPublish(ctx->pipe,  encMessage);
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
     LOG_V(APP_TAG,"END - ping");
@@ -725,10 +726,10 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t * ctx, const uint8_t reg, const ui
     //update->xor = 0xb9;
     message_t *message = phev_core_convertToMessage(update);
     
-    printf("CTX XOR %02X UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",ctx->xor,message->data[0],message->data[1],message->data[3], message->data[2], message->data[4]);
+    //printf("CTX XOR %02X UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",ctx->xor,message->data[0],message->data[1],message->data[3], message->data[2], message->data[4]);
     
     message_t *encMessage = phev_core_XOROutboundMessage(message,ctx->xor);
-    printf("PHEV MESSAGE UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",update->command,update->length,update->reg,update->type,update->data[0]);
+    //printf("PHEV MESSAGE UPDATE CMD %02X LENGTH %d REG %02x TYPE %d VALUE %d\n",update->command,update->length,update->reg,update->type,update->data[0]);
     msg_pipe_outboundPublish(ctx->pipe,  encMessage);
     
     LOG_V(APP_TAG,"END - updateRegister");

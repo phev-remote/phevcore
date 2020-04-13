@@ -75,6 +75,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
     {
         case PHEV_PIPE_GOT_VIN: {
             char * vin = ((phevVinEvent_t *) event->data)->vin;
+            phev_register_sendRegister(ctx);
             LOG_I(TAG,"Got VIN %s",vin);
             regCtx->vin = strdup(vin);
             phev_register_sendMac(ctx);
@@ -100,6 +101,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         case PHEV_PIPE_ECU_VERSION2: {
             LOG_I(TAG,"ECU version");
             regCtx->ecu = true;
+             phev_register_sendRegister(ctx);
             
             break;
         };
