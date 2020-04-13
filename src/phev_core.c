@@ -481,7 +481,7 @@ message_t *phev_core_XOROutboundMessage(message_t *message, uint8_t xor)
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    const uint8_t xorWithType = xor ^ (!message->data[2]) & 1;
+    const uint8_t xorWithType = xor ^ ((!message->data[2]) & 1);
     encoded->data = phev_core_xorDataWithValue(message->data,xorWithType);
 
     LOG_I(APP_TAG, "XOR message");
