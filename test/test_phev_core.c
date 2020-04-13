@@ -72,7 +72,7 @@ void test_split_message_single_correct_reg(void)
 void test_split_message_single_correct_data(void)
 {
     phevMessage_t msg;
-    uint8_t data[] = {0x00, 0x06, 0x06, 0x13, 0x05, 0x13};
+    uint8_t data[] = {0x06, 0x06, 0x06, 0x13, 0x05, 0x13};
 
     int ret = phev_core_decodeMessage(singleMessage, sizeof(singleMessage), &msg);
 
@@ -86,7 +86,7 @@ void test_split_message_double_correct(void)
 
     ret = phev_core_decodeMessage(doubleMessage + ret, sizeof(singleMessage) - ret, &msg);
 
-    TEST_ASSERT_EQUAL(0x12, msg.reg);
+    TEST_ASSERT_EQUAL(0x0, msg.reg);
 } 
 void test_split_message_double_decode(void)
 {
@@ -96,7 +96,7 @@ void test_split_message_double_decode(void)
 
     ret = phev_core_decodeMessage(doubleMessage + ret, sizeof(doubleMessage) - ret, &msg);
 
-    TEST_ASSERT_EQUAL(0x12, msg.reg);
+    TEST_ASSERT_EQUAL(0x00, msg.reg);
 } 
 void test_encode_message_single(void)
 {
@@ -280,7 +280,7 @@ void test_phev_mac_response(void)
 }
 void test_phev_message_to_phev_message_and_back(void)
 {
-     uint8_t message[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
+     uint8_t message[] = {0x2f,0x04,0x01,0x01,0x35,0x35};
 
      phevMessage_t phevMsg;
 
@@ -842,3 +842,14 @@ void test_phev_core_validateChecksum_even_response_cc(void)
 
     TEST_ASSERT_TRUE(checksum);   
 }
+void test_phev_core_getData(void)
+{
+    
+    uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
+    uint8_t expected[] = { 0x00 };
+    uint8_t * data = phev_core_getData(input);
+
+    TEST_ASSERT_NOT_NULL(data);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+}
+

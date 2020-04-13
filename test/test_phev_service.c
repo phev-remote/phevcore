@@ -827,7 +827,8 @@ void test_phev_service_outputFilter(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(data, sizeof(data));
     bool outbool = phev_service_outputFilter(ctx->pipe, message);
 
@@ -848,7 +849,7 @@ void test_phev_service_outputFilter_no_change(void)
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
     phevServiceCtx_t * ctx = phev_service_init(in,out);    
-    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
     const uint8_t data[] = {0};
@@ -873,7 +874,8 @@ void test_phev_service_outputFilter_change(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
     const uint8_t data[] = {1};
@@ -968,7 +970,7 @@ void test_phev_service_end_to_end_updated_register(void)
     test_phev_service_global_in_in_message = NULL;
     test_phev_service_global_out_in_message = NULL;
     
-    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x79};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x77};
 
     test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
 
@@ -1014,7 +1016,7 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
     test_phev_service_global_in_in_message = NULL;
     test_phev_service_global_out_in_message = NULL;
     
-    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x79,0x6f,0x04,0x00,0x05,0x00,0x79};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x04,0x00,0x77,0x6f,0x04,0x00,0x05,0x00,0x78};
 
     test_phev_service_global_in_out_message = msg_utils_createMsg(message, sizeof(message));
 

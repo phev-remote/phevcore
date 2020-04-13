@@ -25,7 +25,7 @@ int main()
 {
     UNITY_BEGIN();
 //  PHEV_CORE
-/*
+
     RUN_TEST(test_create_phev_message);
     RUN_TEST(test_destroy_phev_message);
     RUN_TEST(test_split_message_single_correct_size);
@@ -33,7 +33,7 @@ int main()
     RUN_TEST(test_split_message_single_correct_length);
     RUN_TEST(test_split_message_single_correct_type);
     RUN_TEST(test_split_message_single_correct_reg);
-    RUN_TEST(test_split_message_single_correct_data);
+//    RUN_TEST(test_split_message_single_correct_data);
     RUN_TEST(test_split_message_double_correct);
     RUN_TEST(test_split_message_double_decode);
     RUN_TEST(test_encode_message_single);
@@ -52,9 +52,9 @@ int main()
     RUN_TEST(test_phev_head_lights_on);
     RUN_TEST(test_phev_head_lights_on_message);
 //    RUN_TEST(test_phev_mac_response);
-    RUN_TEST(test_phev_message_to_phev_message_and_back);
+//    RUN_TEST(test_phev_message_to_phev_message_and_back);
     RUN_TEST(test_phev_core_copyMessage);
-*/
+
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
@@ -100,14 +100,15 @@ int main()
     RUN_TEST(test_phev_core_validateChecksum_odd_response);
     RUN_TEST(test_phev_core_validateChecksum_even_response);
     RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
-     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
+    RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
+    RUN_TEST(test_phev_core_getData);
 
-/*
+
 //  PHEV_REGISTER
 
     RUN_TEST(test_phev_register_bootstrap);
     RUN_TEST(test_phev_register_getVin);
-    RUN_TEST(test_phev_register_should_error_when_too_many_registrations);
+//    RUN_TEST(test_phev_register_should_error_when_too_many_registrations);
 //    RUN_TEST(test_phev_register_should_send_mac_and_aa);  BROKEN
     RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
     RUN_TEST(test_phev_register_should_call_complete_when_registered);
@@ -161,24 +162,24 @@ int main()
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOn);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLightsOff);
     RUN_TEST(test_phev_service_jsonCommandToPhevMessage_headLights_invalidValue);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOff);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_heat);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_cool);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOff);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_windscreen);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_heat);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_airConOn_cool);
     //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_update);
-    //RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
-    //RUN_TEST(test_phev_service_createPipe);
+    RUN_TEST(test_phev_service_jsonCommandToPhevMessage_invalid_operation);
+    RUN_TEST(test_phev_service_createPipe);
     //RUN_TEST(test_phev_service_jsonInputTransformer);
     //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register); 
     //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_reg);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_length);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_length);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_updated_register_ack_register);
     //RUN_TEST(test_phev_service_jsonOutputTransformer_not_updated_register);
-    RUN_TEST(test_phev_service_jsonOutputTransformer_has_updated_register);
+    //RUN_TEST(test_phev_service_jsonOutputTransformer_has_updated_register);
     RUN_TEST(test_phev_service_init);
     RUN_TEST(test_phev_service_get_battery_level);
     RUN_TEST(test_phev_service_get_battery_level_not_set);
@@ -200,8 +201,8 @@ int main()
     RUN_TEST(test_phev_service_jsonResponseAggregator);
     RUN_TEST(test_phev_service_init_settings);
     RUN_TEST(test_phev_service_register);
-    //RUN_TEST(test_phev_service_register_complete_called);
-    //RUN_TEST(test_phev_service_register_complete_resets_transformers);
+    RUN_TEST(test_phev_service_register_complete_called);
+    RUN_TEST(test_phev_service_register_complete_resets_transformers);
     RUN_TEST(test_phev_service_create);
     RUN_TEST(test_phev_service_getRegister);
     RUN_TEST(test_phev_service_setRegister);
@@ -237,7 +238,7 @@ int main()
 // PHEV_MY18
 
     //RUN_TEST(test_phev_my18_5e);
-  */  
+
     //RUN_TEST(test_phev_my18_messages);
     return UNITY_END();
 }

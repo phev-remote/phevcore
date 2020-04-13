@@ -99,6 +99,7 @@ phevServiceCtx_t *phev_service_init(messagingClient_t *in, messagingClient_t *ou
 
     phevServiceCtx_t *ctx = malloc(sizeof(phevServiceCtx_t));
 
+    LOG_D(TAG, "Creating model and pipe");
     ctx->model = phev_model_create();
     ctx->pipe = phev_service_createPipe(ctx, in, out);
     ctx->pipe->ctx = ctx;
@@ -121,6 +122,8 @@ phevServiceCtx_t *phev_service_initForRegistration(messagingClient_t *in, messag
 }
 messageBundle_t *phev_service_inputSplitter(void *ctx, message_t *message)
 {
+    LOG_V(TAG, "START - inputSplitter");
+    
     messageBundle_t *messages = malloc(sizeof(messageBundle_t));
     messages->numMessages = 0;
     cJSON *command = NULL;
@@ -147,17 +150,24 @@ messageBundle_t *phev_service_inputSplitter(void *ctx, message_t *message)
         messages->messages[messages->numMessages++] = msg_utils_createMsg((uint8_t *)out, strlen(out) + 1);
     }
 
+    LOG_V(TAG, "END - inputSplitter");
+    
     return messages;
 }
 bool phev_service_outputFilter(void *ctx, message_t *message)
 {
+    LOG_V(TAG, "START - outputFilter");
+    LOG_D(TAG, "Incoming Message");
+    
+    LOG_BUFFER_HEXDUMP(TAG,message->data,message->length,LOG_DEBUG);
+            
     phevServiceCtx_t *serviceCtx = ((phev_pipe_ctx_t *)ctx)->ctx;
 
     phevMessage_t phevMessage;
 
     phev_core_decodeMessage(message->data, message->length, &phevMessage);
 
-    if (phevMessage.command == PING_RESP_CMD || phevMessage.command == START_RESP)
+    if ((phevMessage.command == PING_RESP_CMD )|| (phevMessage.command == START_RESP))
     {
         LOG_D(TAG, "Not sending ping or start response");
         return true;
@@ -170,8 +180,10 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
 
         if (reg)
         {
-            LOG_D(TAG, "Register has previously been set");
-            int same = phev_model_compareRegister(serviceCtx->model, phevMessage.reg, phevMessage.data) != 0;
+            LOG_D(TAG, "Register has previously been set Reg %02X",phevMessage.reg);
+            LOG_D(TAG,"Register Data len is %d and data",reg->length);
+            LOG_BUFFER_HEXDUMP(TAG,reg->data,reg->length,LOG_DEBUG);
+            int same = phev_model_compareRegister(serviceCtx->model, phevMessage.reg, phevMessage.data);
             if (same != 0)
             {
                 LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
@@ -192,7 +204,8 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
             phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
         }
     }
-
+    LOG_V(TAG, "END - outputFilter");
+    
     return true;
 }
 phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_t *in, messagingClient_t *out)
