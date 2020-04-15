@@ -102,6 +102,7 @@ int main()
     RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
     RUN_TEST(test_phev_core_getData);
+    RUN_TEST(test_phev_core_decode_encode);
 
 
 //  PHEV_REGISTER
