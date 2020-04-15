@@ -187,13 +187,13 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
 
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->xor);
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
-    message_t *ret = phev_core_convertToMessage(phevMessage);
+    message_t * out = phev_core_convertToMessage(phevMessage);
 
     phev_core_destroyMessage(phevMessage);
 
     LOG_V(APP_TAG, "END - outputChainInputTransformer");
 
-    return ret;
+    return out;
 }
 static void pphexdump(const char *tag, const unsigned char *buffer, const int length, const int level)
 {
