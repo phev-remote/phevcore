@@ -637,7 +637,7 @@ void test_phev_register_end_to_end(void)
     }
     
     TEST_ASSERT_EQUAL(7,test_phev_register_e2e_out_handler_stage);
-    TEST_ASSERT_EQUAL(5,test_phev_register_e2e_out_handler_out_stage);
+    TEST_ASSERT_EQUAL(7,test_phev_register_e2e_out_handler_out_stage);
     TEST_ASSERT_EQUAL(true,ctx->registrationComplete);
 
 }
