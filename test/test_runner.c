@@ -28,7 +28,8 @@ int main()
 
     RUN_TEST(test_create_phev_message);
     RUN_TEST(test_destroy_phev_message);
-    RUN_TEST(test_split_message_single_correct_size);
+    RUN_TEST(test_phev_core_validateMessage);
+    RUN_TEST(test_split_message_single_correct_return_val);
     RUN_TEST(test_split_message_single_correct_command);
     RUN_TEST(test_split_message_single_correct_length);
     RUN_TEST(test_split_message_single_correct_type);
@@ -55,12 +56,12 @@ int main()
 //    RUN_TEST(test_phev_message_to_phev_message_and_back);
     RUN_TEST(test_phev_core_copyMessage);
 
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_cc);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_long_send);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_4e);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_cc);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_long_send);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_4e);
     RUN_TEST(test_response_handler_4e);
  
     RUN_TEST(test_phev_core_xor_message_even_xor_response);
@@ -102,7 +103,7 @@ int main()
     RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
     RUN_TEST(test_phev_core_getData);
-    RUN_TEST(test_phev_core_decode_encode);
+//    RUN_TEST(test_phev_core_decode_encode);
 
 
 //  PHEV_REGISTER

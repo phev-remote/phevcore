@@ -1,3 +1,6 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #ifndef _PHEV_SERVICE_H_
 #define _PHEV_SERVICE_H_
 #include <stdbool.h>
@@ -5,6 +8,8 @@
 #include "phev_pipe.h"
 #include "phev_model.h"
 #include "phev_register.h"
+
+
 
 #define PHEV_SERVICE_UPDATE_REGISTER_JSON "updateRegister"
 #define PHEV_SERVICE_OPERATION_JSON "operation"

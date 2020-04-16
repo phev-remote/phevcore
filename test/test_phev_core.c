@@ -27,8 +27,13 @@ void test_destroy_phev_message(void)
     phev_core_destroyMessage(message);
     
 } 
-
-void test_split_message_single_correct_size(void)
+void test_phev_core_validateMessage(void)
+{
+    uint8_t expected[] = {0x6f,0x07,0x00,0x12,0x00, 0x06, 0x06, 0x13, 0x05, 0x13, 0x01, 0xc3};
+    bool ret = phev_core_validateMessage(singleMessage,sizeof(singleMessage));
+    TEST_ASSERT_TRUE(ret);
+}
+void test_split_message_single_correct_return_val(void)
 {
     phevMessage_t msg;
 
@@ -51,7 +56,7 @@ void test_split_message_single_correct_length(void)
 
     int ret = phev_core_decodeMessage(singleMessage, sizeof(singleMessage), &msg);
 
-    TEST_ASSERT_EQUAL(7, msg.length);
+    TEST_ASSERT_EQUAL(12, msg.length);
 } 
 void test_split_message_single_correct_type(void)
 {
@@ -355,7 +360,7 @@ void test_phev_core_my18_xor_decodeMessage_bb(void)
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
     TEST_ASSERT_EQUAL(0xbb, msg.command);
-    TEST_ASSERT_EQUAL(1, msg.length);
+    TEST_ASSERT_EQUAL(4, msg.length);
     TEST_ASSERT_EQUAL(1, msg.type);
     
 }
@@ -367,7 +372,7 @@ void test_phev_core_my18_xor_decodeMessage_cc(void)
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
     TEST_ASSERT_EQUAL(0xcd, msg.command);
-    TEST_ASSERT_EQUAL(1, msg.length);
+    TEST_ASSERT_EQUAL(4, msg.length);
     TEST_ASSERT_EQUAL(0, msg.type);
     
 }
@@ -851,15 +856,18 @@ void test_phev_core_getData(void)
 
     TEST_ASSERT_NOT_NULL(data);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
 }
+/*
 void test_phev_core_decode_encode(void)
 {
     uint8_t input[] = { 0x51,0x2d,0x3e,0x26,0xc1,0xc1,0xc1,0xc1,0x39,0xc1,0xc1,0x21,0xc1,0xc1,0xc1,0xc1,0x39,0xc1,0xc1,0x21,0xe4 }; 
     uint8_t expected[] = { 0x6F,0x10,0x0,0x18,0xFF,0xFF,0xFF,0xFF,0x07,0xFF,0xFF,0x1F,0xFF,0xFF,0xFF,0xFF,0x07,0xFF,0xFF,0x1F,0x0 }; 
     
     uint8_t * decoded = NULL;
-    int ret = phev_core_decodeRawMessage(input,sizeof(input),decoded);
+    int ret = phev_core_decodeRawMessage(input,sizeof(input),&decoded);
     
     TEST_ASSERT_NOT_NULL(decoded);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,decoded,sizeof(input));
 }
+*/

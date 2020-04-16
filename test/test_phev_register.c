@@ -133,6 +133,7 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
     {
         case PHEV_PIPE_GOT_VIN: {
             phevVinEvent_t * vinEvent = (phevVinEvent_t *) event->data;
+            
             vin_event_vin = strdup(vinEvent->vin);
             vin_event_registrations = vinEvent->registrations;
             //printf("Got vin %s\n",vin);

@@ -56,7 +56,7 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
     phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,1);
     message_t * message = phev_core_convertToMessage(reg);
 
-    msg_pipe_outboundPublish(ctx->pipe,  message);
+    phev_pipe_outboundPublish(ctx,  message);
 //    free(message);
     LOG_V(TAG,"END - sendRegister");
     

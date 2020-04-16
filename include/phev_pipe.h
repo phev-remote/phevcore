@@ -1,5 +1,8 @@
 #ifndef _PHEV_PIPE_H_
 #define _PHEV_PIPE_H_
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include <time.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -102,7 +105,7 @@ typedef struct phev_pipe_ctx_t
     uint8_t currentPing;
     bool connected;
     phev_pipe_updateRegisterCtx_t *updateRegisterCallbacks;
-    uint8_t xor;
+    uint8_t currentXOR;
     void *ctx;
 } phev_pipe_ctx_t;
 
@@ -144,6 +147,7 @@ void phev_pipe_sendMac(phev_pipe_ctx_t *ctx, uint8_t *mac);
 void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
 void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback, void * customCtx);
 phevPipeEvent_t *phev_pipe_createRegisterEvent(phev_pipe_ctx_t *phevCtx, phevMessage_t *phevMessage);
+void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
 
 //void phev_pipe_sendCommand(phev_core_command_t);
 

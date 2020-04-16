@@ -270,7 +270,7 @@ void test_phev_pipe_publish(void)
 
     message_t * message = msg_utils_createMsg(test_phev_pipe_startMsg,sizeof(test_phev_pipe_startMsg));
 
-    msg_pipe_outboundPublish(ctx->pipe,  message);
+    phev_pipe_outboundPublish(ctx,  message);
 
     TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
     TEST_ASSERT_EQUAL_MEMORY(test_phev_pipe_startMsg,test_pipe_global_message[0]->data,sizeof(test_phev_pipe_startMsg));
