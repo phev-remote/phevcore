@@ -181,7 +181,7 @@ phevMessage_t *phev_core_createMessage(const uint8_t command, const uint8_t type
     message->length = length;
     message->data = malloc(message->length);
     memcpy(message->data, data, length);
-
+    message->XOR = 0;
     LOG_D(APP_TAG, "Message Data %d", message->data[0]);
 
     LOG_V(APP_TAG, "END - createMessage");
@@ -399,7 +399,20 @@ int phev_core_encodeMessage(phevMessage_t *message, uint8_t **data)
 
     d[message->length + 4] = phev_core_checksum(d);
 
-    *data = d;
+    if(message->XOR > 1)
+    {
+        uint8_t * out = malloc(phev_core_getActualLength(d));
+
+        const uint8_t xorWithType = message->XOR ^ ((!d[2]) & 1);
+        
+        out = phev_core_xorDataWithValue(d,xorWithType);
+
+        *data = out;
+
+    } else 
+    {
+        *data = d;
+    }
 
     LOG_D(APP_TAG, "Created message");
     LOG_BUFFER_HEXDUMP(APP_TAG, d, d[1] + 2, LOG_DEBUG);
@@ -486,7 +499,7 @@ phevMessage_t *phev_core_responseHandler(phevMessage_t *message)
 {
     uint8_t command = ((message->command & 0xf) << 4) | ((message->command & 0xf0) >> 4);
     phevMessage_t * response = phev_core_ackMessage(command, message->reg);
-
+    response->XOR = message->XOR;
     return response;
 }
 message_t *phev_core_convertToMessage(phevMessage_t *message)

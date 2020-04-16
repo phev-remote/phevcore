@@ -123,6 +123,35 @@ void test_encode_message_single_checksum(void)
     int num = phev_core_encodeMessage(msg, &out);
     TEST_ASSERT_EQUAL(0x1e, out[5]);
 } 
+void test_phev_core_encodeMessage(void)
+{
+    uint8_t expected[] = { 0xf6,0x04,0x01,0x0a,0x00,0x05};
+    uint8_t data[] = { 0x00 };
+
+    uint8_t * out;
+    phevMessage_t * msg = phev_core_createMessage(0xf6,RESPONSE_TYPE,0x0a,data,sizeof(data));
+
+    size_t length = phev_core_encodeMessage(msg, &out);
+
+    TEST_ASSERT_EQUAL(6,length);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,out,sizeof(expected));
+
+}
+void test_phev_core_encodeMessage_encoded(void)
+{
+    uint8_t expected[] = { 0x92,0x60,0x65,0x6e,0x64,0x61};
+    uint8_t data[] = { 0x00 };
+
+    uint8_t * out;
+    phevMessage_t * msg = phev_core_createMessage(0xf6,RESPONSE_TYPE,0x0a,data,sizeof(data));
+    msg->XOR = 0x64;
+
+    size_t length = phev_core_encodeMessage(msg, &out);
+
+    TEST_ASSERT_EQUAL(6,length);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,out,sizeof(expected));
+
+}
 void test_simple_command_request_message(void)
 {
     phevMessage_t *msg = phev_core_simpleRequestCommandMessage(0x01, 0xff);

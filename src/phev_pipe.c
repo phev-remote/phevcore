@@ -261,10 +261,10 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             phevMessage_t *msg = phev_core_responseHandler(&phevMsg);
             LOG_I(APP_TAG, "Responding to %02X", phevMsg.command);
             out = phev_core_convertToMessage(msg);
-            pphexdump("Responding with ", out->data, out->length, 0);
-            message_t *encoded = phev_core_XOROutboundMessage(out, phevMsg.XOR);
-            pphexdump("Encoded Response", encoded->data, encoded->length, 0);
-            out = encoded;
+            //pphexdump("Responding with ", out->data, out->length, 0);
+            //message_t *encoded = phev_core_XOROutboundMessage(out, phevMsg.XOR);
+            //pphexdump("Encoded Response", encoded->data, encoded->length, 0);
+            //out = encoded;
 
             //            phev_core_destroyMessage(msg);
         }

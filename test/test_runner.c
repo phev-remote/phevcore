@@ -39,6 +39,8 @@ int main()
     RUN_TEST(test_split_message_double_decode);
     RUN_TEST(test_encode_message_single);
     RUN_TEST(test_encode_message_single_checksum);
+    RUN_TEST(test_phev_core_encodeMessage);
+    RUN_TEST(test_phev_core_encodeMessage_encoded);
     RUN_TEST(test_simple_command_request_message);
     RUN_TEST(test_simple_command_response_message);
     RUN_TEST(test_command_message);
