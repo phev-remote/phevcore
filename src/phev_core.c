@@ -485,9 +485,10 @@ phevMessage_t *phev_core_pingMessage(const uint8_t number)
 phevMessage_t *phev_core_responseHandler(phevMessage_t *message)
 {
     uint8_t command = ((message->command & 0xf) << 4) | ((message->command & 0xf0) >> 4);
-    return phev_core_ackMessage(command, message->reg);
-}
+    phevMessage_t * response = phev_core_ackMessage(command, message->reg);
 
+    return response;
+}
 message_t *phev_core_convertToMessage(phevMessage_t *message)
 {
     LOG_V(APP_TAG, "START - convertToMessage");
