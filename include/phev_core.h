@@ -122,9 +122,9 @@ uint8_t phev_core_checksum(const uint8_t * data);
 
 message_t * phev_core_convertToMessage(phevMessage_t * message);
 
-message_t * phev_core_XOROutboundMessage(message_t * message,uint8_t);
+message_t * phev_core_XOROutboundMessage(const message_t * message,const uint8_t);
 
-message_t * phev_core_XORInboundMessage(message_t * message,uint8_t);
+message_t * phev_core_XORInboundMessage(const message_t * message,const uint8_t);
 
 phevMessage_t * phev_core_copyMessage(phevMessage_t *);
 

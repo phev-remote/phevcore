@@ -64,7 +64,6 @@ enum
     PHEV_PIPE_REG_UPDATE_ACK,
     PHEV_PIPE_DATE_INFO,
 };
-
 typedef struct phevPipeEvent_t
 {
     int event;

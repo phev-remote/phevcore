@@ -24,6 +24,7 @@ void tearDown(void)
 int main()
 {
     UNITY_BEGIN();
+
 //  PHEV_CORE
 
     RUN_TEST(test_create_phev_message);
@@ -130,11 +131,17 @@ int main()
     RUN_TEST(test_phev_pipe_create);
     RUN_TEST(test_phev_pipe_loop);
     RUN_TEST(test_phev_pipe_start);
+
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_encoded);
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR);
+
     RUN_TEST(test_phev_pipe_splitter_one_message);
+    RUN_TEST(test_phev_pipe_splitter_two_messages);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
+    RUN_TEST(test_phev_pipe_commandResponder_should_encrypt_with_correct_xor);
     RUN_TEST(test_phev_pipe_no_input_connection);
 #ifdef TEST_TIMEOUTS
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
@@ -245,4 +252,5 @@ int main()
 
     //RUN_TEST(test_phev_my18_messages);
     return UNITY_END();
+
 }
