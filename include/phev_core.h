@@ -4,7 +4,7 @@
 #define _GNU_SOURCE 1
 #endif
 #ifndef LOG_LEVEL 
-#define LOG_LEVEL LOG_NONE
+#define LOG_LEVEL LOG_DEBUG
 #endif
 
 #include <stddef.h>
@@ -131,6 +131,8 @@ phevMessage_t * phev_core_copyMessage(phevMessage_t *);
 uint8_t phev_core_getXOR(const uint8_t * data);
 
 uint8_t phev_core_getMessageLength(const uint8_t * data);
+
+uint8_t phev_core_getActualLength(const uint8_t *data);
 
 uint8_t * phev_core_xorData(const uint8_t * data);
 

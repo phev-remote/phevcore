@@ -138,7 +138,7 @@ uint8_t * phev_core_xorData(const uint8_t * data)
 uint8_t * phev_core_xorDataWithValue(const uint8_t * data,uint8_t xor)
 {
 
-    uint8_t length = phev_core_getActualLength(data);
+    uint8_t length = (data[1] ^ xor) + 2;
     uint8_t * decoded = malloc(length);
 
     for(int i=0;i<length;i++)

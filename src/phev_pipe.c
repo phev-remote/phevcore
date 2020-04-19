@@ -175,7 +175,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     phev_pipe_ctx_t *pipeCtx = (phev_pipe_ctx_t *)ctx;
 
     int ret = phev_core_decodeMessage(message->data, message->length, phevMessage);
-
+    
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
@@ -183,7 +183,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
 
         return NULL;
     }
-
+    printf("\n\n%02X %02X\n\n",phevMessage->XOR, pipeCtx->currentXOR);
     if(phevMessage->XOR != pipeCtx->currentXOR)
     {   
         LOG_I(APP_TAG,"XOR changed from %02X to %02X",pipeCtx->currentXOR,phevMessage->XOR);
@@ -197,40 +197,6 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     LOG_V(APP_TAG, "END - outputChainInputTransformer");
 
     return out;
-}
-static void pphexdump(const char *tag, const unsigned char *buffer, const int length, const int level)
-{
-    if (length <= 0 || buffer == NULL)
-        return;
-
-    char out[17];
-    memset(&out, '\0', 17);
-
-    printf("%s: ", tag);
-    int i = 0;
-    for (i = 0; i < length; i++)
-    {
-        printf("%02x ", buffer[i]);
-        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
-        if ((i + 1) % 8 == 0)
-            printf(" ");
-        if ((i + 1) % 16 == 0)
-        {
-            out[16] = '\0';
-            printf(" | %s |\n%s: ", out, tag);
-        }
-    }
-    if ((i % 16) + 1 != 0)
-    {
-        int num = (16 - (i % 16)) * 3;
-        num = ((i % 16) < 8 ? num + 1 : num);
-        out[(i % 16)] = '\0';
-        char padding[(16 * 3) + 2];
-        memset(&padding, ' ', num + 1);
-        padding[(16 - i) * 3] = '\0';
-        printf("%s | %s |\n", padding, out);
-    }
-    printf("\n");
 }
 message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
 {

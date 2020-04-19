@@ -109,9 +109,15 @@ int main()
     RUN_TEST(test_phev_core_getData);
     RUN_TEST(test_phev_core_lights_on_encrypted_odd);
     RUN_TEST(test_phev_core_lights_on_encrypted_even);
+    RUN_TEST(test_phev_core_getType_command_request);
+    RUN_TEST(test_phev_core_getType_command_response);
+    RUN_TEST(test_phev_core_getActualLength_command_request);
+    RUN_TEST(test_phev_core_getActualLength_command_response);
+    RUN_TEST(test_phev_core_decodeMessage_command_request);
+    RUN_TEST(test_phev_core_decodeMessage_command_response);
 //    RUN_TEST(test_phev_core_decode_encode);
 
-
+/*
 //  PHEV_REGISTER
 
     RUN_TEST(test_phev_register_bootstrap);
@@ -137,7 +143,8 @@ int main()
 
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer_encoded);
-    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR);
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_response);
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_request);
 
     RUN_TEST(test_phev_pipe_splitter_one_message);
     RUN_TEST(test_phev_pipe_splitter_two_messages);
@@ -255,6 +262,12 @@ int main()
     //RUN_TEST(test_phev_my18_5e);
 
     //RUN_TEST(test_phev_my18_messages);
+
+
+*/
+
+
+
     return UNITY_END();
 
 }
