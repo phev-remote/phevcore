@@ -693,7 +693,7 @@ void test_phev_pipe_update_register_callback(phev_pipe_ctx_t * ctx, uint8_t reg)
 }
 void test_phev_pipe_updateRegisterWithCallback(void)
 {
-    const static uint8_t msg[] = {0x6f,0x04,0x01,0x10,0x00,0xff}; 
+    const static uint8_t msg[] = {0x6f,0x04,0x01,0x10,0x00,0x84}; 
     test_pipe_global_message_idx = 0;
     test_pipe_global_message[0] = NULL;
     test_pipe_global_in_message = msg_utils_createMsg(msg,sizeof(msg));
@@ -714,12 +714,50 @@ void test_phev_pipe_updateRegisterWithCallback(void)
 
     phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
 
-   // phev_pipe_updateRegisterWithCallback(ctx, 0x10, 1,test_phev_pipe_update_register_callback);
+    phev_pipe_updateRegisterWithCallback(ctx, 0x10, 1,test_phev_pipe_update_register_callback,NULL);
 
     phev_pipe_loop(ctx);
 
     TEST_ASSERT_EQUAL(1,test_phev_pipe_update_register_callback_called);
     TEST_ASSERT_EQUAL(0x10,test_phev_pipe_update_register_callback_expected_reg);
+    
+    
+}
+void test_phev_pipe_updateRegisterWithCallback_encoded(void)
+{
+    const static uint8_t msg[] = {0x62,0x09,0x0c,0x07,0x0d,0x73}; 
+    test_pipe_global_message_idx = 0;
+    test_pipe_global_message[0] = NULL;
+    test_pipe_global_in_message = msg_utils_createMsg(msg,sizeof(msg));
+    test_phev_pipe_update_register_callback_called = 0;
+    test_phev_pipe_update_register_callback_expected_reg = 0;
+    
+    const uint8_t expected[] = {0xfb,0x09,0x0d,0x07,0x0c,0x08};
+
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    ctx->currentXOR = 0x0d;
+
+    phev_pipe_updateRegisterWithCallback(ctx, KO_WF_H_LAMP_CONT_SP, 1,test_phev_pipe_update_register_callback,NULL);
+
+    TEST_ASSERT_EQUAL(1,test_pipe_global_message_idx);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,test_pipe_global_message[0]->data,sizeof(expected));
+    
+    phev_pipe_loop(ctx);
+
+    TEST_ASSERT_EQUAL(1,test_phev_pipe_update_register_callback_called);
+    TEST_ASSERT_EQUAL(0x0a,test_phev_pipe_update_register_callback_expected_reg);
     
     
 }

@@ -56,7 +56,7 @@ uint8_t phev_core_getMessageLength(const uint8_t *data)
     uint8_t xor = phev_core_getXOR(data);
     uint8_t command = phev_core_getCommand(data);
 
-    if ((command == 0xbb) || (command == 0xcd))
+    if ((command == 0xbb) || (command == 0xcd) || (command == 0xcc))
         return 4;
     uint8_t type = phev_core_getType(data);
 
@@ -149,6 +149,11 @@ uint8_t * phev_core_xorDataWithValue(const uint8_t * data,uint8_t xor)
 }
 bool phev_core_validateChecksum(const uint8_t *data)
 {
+    uint8_t command = phev_core_getCommand(data);
+    if(command == 0xcc || command == 0xcd || command == 0xbb)
+    {
+        return true;
+    }
     uint8_t checksum = phev_core_getChecksum(data);
     
     uint8_t * decoded = phev_core_xorData(data);
@@ -161,8 +166,6 @@ bool phev_core_validateChecksum(const uint8_t *data)
     
     uint8_t expectedChecksum = phev_core_checksum(decoded);
 
-    printf("Expected Checksum %02X Actual %02X\n",expectedChecksum,checksum);
-    
     LOG_D(APP_TAG,"Expected Checksum %02X Actual %02X\n",expectedChecksum,checksum);
     
     free(decoded);
@@ -330,7 +333,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
     {
        
         msg->command = phev_core_getCommand(data);
-        msg->length = phev_core_getActualLength(data);
+        msg->length = phev_core_getDataLength(data);
         msg->type = phev_core_getType(data);
         msg->reg = phev_core_getRegister(data);
         msg->checksum = phev_core_getChecksum(data);
@@ -540,7 +543,7 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    const uint8_t xorWithType = xor ^ ((!message->data[2]) & 1);
+    const uint8_t xorWithType = xor | ((!message->data[2]) & 1);
     encoded->data = phev_core_xorDataWithValue(message->data,xorWithType);
 
     LOG_I(APP_TAG, "XOR message");

@@ -56,7 +56,7 @@ void test_split_message_single_correct_length(void)
 
     int ret = phev_core_decodeMessage(singleMessage, sizeof(singleMessage), &msg);
 
-    TEST_ASSERT_EQUAL(12, msg.length);
+    TEST_ASSERT_EQUAL(7, msg.length);
 } 
 void test_split_message_single_correct_type(void)
 {
@@ -401,7 +401,19 @@ void test_phev_core_my18_xor_decodeMessage_cc(void)
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
     TEST_ASSERT_EQUAL(0xcd, msg.command);
-    TEST_ASSERT_EQUAL(4, msg.length);
+    TEST_ASSERT_EQUAL(1, msg.length);
+    TEST_ASSERT_EQUAL(0, msg.type);
+    
+}
+void test_phev_core_my18_xor_decodeMessage_cc_second(void)
+{    
+    const uint8_t my18_msg[] = {0x48,0x80,0x85,0x8E,0x00,0xDB};
+    phevMessage_t msg;
+
+    int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
+
+    TEST_ASSERT_EQUAL(0xcd, msg.command);
+    TEST_ASSERT_EQUAL(1, msg.length);
     TEST_ASSERT_EQUAL(0, msg.type);
     
 }
@@ -885,6 +897,28 @@ void test_phev_core_getData(void)
 
     TEST_ASSERT_NOT_NULL(data);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+}
+void test_phev_core_lights_on_encrypted_odd(void)
+{
+    uint8_t input[] = { 0xF6,0x04,0x00,0x0A,0x01,0x05 };
+    uint8_t expected[] = { 0x27,0xD5,0xD1,0xDB,0xD0,0xD4 };
+
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    message_t * out =  phev_core_XOROutboundMessage(message, 0xd1);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, out->data, sizeof(expected));
+
+}
+void test_phev_core_lights_on_encrypted_even(void)
+{
+    uint8_t input[] = { 0xF6,0x04,0x00,0x0A,0x01,0x06 };
+    uint8_t expected[] = { 0x9F,0x6D,0x69,0x63,0x68,0x6F };
+
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    message_t * out =  phev_core_XOROutboundMessage(message, 0x68);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, out->data, sizeof(expected));
 
 }
 /*

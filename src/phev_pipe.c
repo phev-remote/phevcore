@@ -3,6 +3,10 @@
 #include "msg_utils.h"
 #include "logger.h"
 
+//#define NO_PING
+//#define NO_ENC_CMD_RESP
+//#define NO_TIME_SYNC
+
 const static char *APP_TAG = "PHEV_PIPE";
 
 void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
@@ -244,7 +248,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
 
         LOG_D(APP_TAG, "Decoded message XOR %02x", phevMsg.XOR);
-        if (phevMsg.command == PING_RESP_CMD || phevMsg.command == PING_RESP_CMD_MY18 || phevMsg.command == 0xbb || phevMsg.command == 0xcd)
+        if (phevMsg.command == PING_RESP_CMD || phevMsg.command == PING_RESP_CMD_MY18 || phevMsg.command == 0xbb || phevMsg.command == 0xcd || phevMsg.command == 0xcc)
         {
             LOG_D(APP_TAG, "Ignoring ping");
             LOG_V(APP_TAG, "END - commandResponder");
@@ -262,13 +266,23 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     {
         LOG_D(APP_TAG, "Responding with");
         LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
+
+        if(pipeCtx->currentXOR == 0)
+        {
+            return out;
+        }
         message_t * encoded = phev_core_XOROutboundMessage(out,pipeCtx->currentXOR);
         if(encoded) 
         {
             LOG_D(APP_TAG, "Responding with encrpyted");
-            LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
+            LOG_BUFFER_HEXDUMP(APP_TAG, encoded->data, encoded->length, LOG_DEBUG);
             LOG_V(APP_TAG, "END - commandResponder");
+            
+#ifndef NO_ENC_CMD_RESP
             return encoded;
+#else
+            return NULL;
+#endif
         }
     }
     else
@@ -701,8 +715,11 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
 
     phevMessage_t *dateCmd = phev_core_commandMessage(KO_WF_DATE_INFO_SYNC_SP, pingTime, sizeof(pingTime));
     message_t *message = phev_core_convertToMessage(dateCmd);
-    //message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->cu);
-    phev_pipe_outboundPublish(ctx, message);
+    message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
+    
+#ifndef NO_TIME_SYNC
+    phev_pipe_outboundPublish(ctx, encMessage);
+#endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(dateCmd);
     LOG_V(APP_TAG, "END - sendTimeSync");
@@ -718,8 +735,11 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
     ping->XOR = ctx->currentXOR ;
     message_t *message = phev_core_convertToMessage(ping);
-    //message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->xor);
-    phev_pipe_outboundPublish(ctx, message);
+    message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
+    
+#ifndef NO_PING
+    phev_pipe_outboundPublish(ctx, encMessage);
+#endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
     LOG_V(APP_TAG, "END - ping");
@@ -741,7 +761,7 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t *ctx, const uint8_t reg, const uin
     
     message_t *message = phev_core_convertToMessage(update);
 
-    //message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->xor);
+    //message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
     
     phev_pipe_outboundPublish(ctx, message);
 

@@ -265,14 +265,16 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
 
-    if(on)
+    LOG_D(TAG,"Switching %s head lights",(on ? "ON" : "OFF"));
+    if(callback)
     {
-        LOG_D(TAG,"Switching on head lights");
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, 1,phev_headLightsCallback,cbCtx);
-    } else {
-        LOG_D(TAG,"Switching off head lights"); 
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, 2,phev_headLightsCallback,cbCtx);
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2),phev_headLightsCallback,cbCtx);
+    } 
+    else
+    {
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2));    
     }
+
     LOG_V(TAG,"END - headLights");
     
 }
@@ -283,14 +285,14 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
-
-    if(on)
+   
+    LOG_D(TAG,"Switching %s air conditioning",(on ? "ON" : "OFF"));
+        
+    if(callback)
     {
-        LOG_D(TAG,"Switching on air conditioning");
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, 2,phev_headLightsCallback,cbCtx);
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 2 : 1),phev_headLightsCallback,cbCtx);
     } else {
-        LOG_D(TAG,"Switching off air conditioning"); 
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, 1,phev_headLightsCallback,cbCtx);
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 1 : 2));
     }
     LOG_V(TAG,"END - airCon");
     
