@@ -550,8 +550,8 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
     encoded->length = message->length;
     if(message->data[0] == 0xf6)
     {
-        xorWithType = xor | (!message->data[2]);
-        message->data[0] &= 0xfe;
+    //    xorWithType = xor | (!message->data[2]);
+    //    message->data[0] &= 0xfe;
     }
     encoded->data = phev_core_xorDataOutbound(message->data,xor);
 
