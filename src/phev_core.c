@@ -137,8 +137,16 @@ uint8_t * phev_core_xorData(const uint8_t * data)
 }
 uint8_t * phev_core_xorDataWithValue(const uint8_t * data,uint8_t xor)
 {
-
-    uint8_t length = (data[1] ^ xor) + 2;
+    uint8_t length;
+    
+    if(data[2] > 0)
+    {
+        length = (data[1] ^ xor) + 2;
+    
+    } else 
+    {
+        length = data[1] + 2;
+    }
     uint8_t * decoded = malloc(length);
 
     for(int i=0;i<length;i++)
@@ -438,28 +446,19 @@ phevMessage_t *phev_core_requestMessage(const uint8_t command, const uint8_t reg
 }
 phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, const size_t length)
 {
-    if (phev_core_my18)
-    {
-        return phev_core_requestMessage(SEND_CMD, reg, data, length);
-    }
+
     return phev_core_requestMessage(SEND_CMD, reg, data, length);
 }
 phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;
-    if (phev_core_my18)
-    {
-        phev_core_requestMessage(SEND_CMD, reg, &data, 1);
-    }
+
     return phev_core_requestMessage(SEND_CMD, reg, &data, 1);
 }
 phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;
-    if (phev_core_my18)
-    {
-        phev_core_responseMessage(SEND_CMD, reg, &data, 1);
-    }
+
     return phev_core_responseMessage(SEND_CMD, reg, &data, 1);
 }
 phevMessage_t *phev_core_ackMessage(const uint8_t command, const uint8_t reg)
@@ -471,11 +470,7 @@ phevMessage_t *phev_core_startMessage(const uint8_t *mac)
 {
     uint8_t *data = malloc(7);
     data[6] = 0;
-    memcpy(data, mac, 6);
-    if (phev_core_my18)
-    {
-        phev_core_requestMessage(START_SEND_MY18, 0x01, data, 7);
-    }
+    
     return phev_core_requestMessage(START_SEND_MY18, 0x01, data, 7);
 }
 message_t *phev_core_startMessageEncoded(const uint8_t *mac)
@@ -492,10 +487,7 @@ message_t *phev_core_startMessageEncoded(const uint8_t *mac)
 phevMessage_t *phev_core_pingMessage(const uint8_t number)
 {
     const uint8_t data = 0;
-    if (phev_core_my18)
-    {
-        return phev_core_requestMessage(PING_SEND_CMD_MY18, number, &data, 1);
-    }
+
     return phev_core_requestMessage(PING_SEND_CMD_MY18, number, &data, 1);
 }
 phevMessage_t *phev_core_responseHandler(phevMessage_t *message)
@@ -535,16 +527,33 @@ phevMessage_t *phev_core_copyMessage(phevMessage_t *message)
 
     return out;
 }
+uint8_t * phev_core_xorDataOutbound(const uint8_t * data,uint8_t xor)
+{
+    uint8_t length = data[1] + 2;
+    
+    uint8_t * decoded = malloc(length);
+
+    for(int i=0;i<length;i++)
+    {
+        decoded[i] = data [i] ^ xor;
+    }
+    return decoded;
+}
 message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t xor)
 {
+    uint8_t xorWithType = xor;
     if (xor < 2)
         return (message_t *) msg_utils_copyMsg((message_t *) message);
 
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    const uint8_t xorWithType = xor | ((!message->data[2]) & 1);
-    encoded->data = phev_core_xorDataWithValue(message->data,xorWithType);
+    if(message->data[0] == 0xf6)
+    {
+        xorWithType = xor | (!message->data[2]);
+        message->data[0] &= 0xfe;
+    }
+    encoded->data = phev_core_xorDataOutbound(message->data,xor);
 
     LOG_I(APP_TAG, "XOR message");
     return encoded;

@@ -953,6 +953,14 @@ void test_phev_core_getActualLength_command_response(void)
 
     TEST_ASSERT_EQUAL(6,ret);
 }
+void test_phev_core_getActualLength_ping_response(void)
+{
+    uint8_t input[] = { 0x05,0x3E,0x3B,0x6B,0x3A,0xAF }; 
+    
+    int ret = phev_core_getActualLength(input);
+
+    TEST_ASSERT_EQUAL(6,ret);
+}
 void test_phev_core_decodeMessage_command_request(void)
 {
     uint8_t input[] = { 0x00,0x6B,0x6F,0x7F,0x6D,0xEA }; 

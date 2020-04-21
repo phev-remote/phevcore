@@ -12,7 +12,7 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
 {
     LOG_V(TAG,"START - sendMac");
     
-    phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
+    //phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
     
     LOG_V(TAG,"END - sendMac");
     

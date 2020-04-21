@@ -183,11 +183,15 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
 
         return NULL;
     }
-    printf("\n\n%02X %02X\n\n",phevMessage->XOR, pipeCtx->currentXOR);
     if(phevMessage->XOR != pipeCtx->currentXOR)
     {   
         LOG_I(APP_TAG,"XOR changed from %02X to %02X",pipeCtx->currentXOR,phevMessage->XOR);
-        pipeCtx->currentXOR = phevMessage->XOR;
+        //pipeCtx->currentXOR = phevMessage->XOR;
+    }
+    if(phevMessage->command == 0xbb)
+    {
+        printf("BB %02x\n",phevMessage->data[0]);
+        pipeCtx->currentXOR = phevMessage->data[0];
     }
 
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
@@ -238,6 +242,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             return out;
         }
         message_t * encoded = phev_core_XOROutboundMessage(out,pipeCtx->currentXOR);
+        //pipeCtx->currentXOR = rand();
         if(encoded) 
         {
             LOG_D(APP_TAG, "Responding with encrpyted");
@@ -681,10 +686,9 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
 
     phevMessage_t *dateCmd = phev_core_commandMessage(KO_WF_DATE_INFO_SYNC_SP, pingTime, sizeof(pingTime));
     message_t *message = phev_core_convertToMessage(dateCmd);
-    message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
     
 #ifndef NO_TIME_SYNC
-    phev_pipe_outboundPublish(ctx, encMessage);
+    phev_pipe_outboundPublish(ctx, message);
 #endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(dateCmd);
@@ -699,12 +703,12 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
         phev_pipe_sendTimeSync(ctx);
     }
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
-    ping->XOR = ctx->currentXOR ;
+    //ping->XOR = 0;
+    //ctx->currentXOR = ctx->currentXOR ^ 1;
     message_t *message = phev_core_convertToMessage(ping);
-    message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
     
 #ifndef NO_PING
-    phev_pipe_outboundPublish(ctx, encMessage);
+    phev_pipe_outboundPublish(ctx, message);
 #endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);

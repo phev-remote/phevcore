@@ -115,9 +115,11 @@ int main()
     RUN_TEST(test_phev_core_getActualLength_command_response);
     RUN_TEST(test_phev_core_decodeMessage_command_request);
     RUN_TEST(test_phev_core_decodeMessage_command_response);
+    RUN_TEST(test_phev_core_getActualLength_ping_response);
+    
 //    RUN_TEST(test_phev_core_decode_encode);
 
-/*
+
 //  PHEV_REGISTER
 
     RUN_TEST(test_phev_register_bootstrap);
@@ -139,17 +141,21 @@ int main()
     RUN_TEST(test_phev_pipe_createPipe);
     RUN_TEST(test_phev_pipe_create);
     RUN_TEST(test_phev_pipe_loop);
-    RUN_TEST(test_phev_pipe_start);
+//    RUN_TEST(test_phev_pipe_start);
 
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer_encoded);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_response);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_request);
-
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response);
     RUN_TEST(test_phev_pipe_splitter_one_message);
     RUN_TEST(test_phev_pipe_splitter_two_messages);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
+    RUN_TEST(test_phev_pipe_commandResponder_reg_update_odd_xor);
+    RUN_TEST(test_phev_pipe_commandResponder_reg_update_even_xor);
+    RUN_TEST(test_phev_pipe_ping_even_xor);
+    RUN_TEST(test_phev_pipe_ping_odd_xor);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
     RUN_TEST(test_phev_pipe_commandResponder_should_encrypt_with_correct_xor);
     RUN_TEST(test_phev_pipe_no_input_connection);
@@ -157,7 +163,7 @@ int main()
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
     RUN_TEST(test_phev_pipe_waitForConnection);
 #endif
-    RUN_TEST(test_phev_pipe_sendMac);
+//    RUN_TEST(test_phev_pipe_sendMac);
     RUN_TEST(test_phev_pipe_updateRegister);
     RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
     RUN_TEST(test_phev_pipe_updateRegisterWithCallback_encoded);
@@ -264,7 +270,6 @@ int main()
     //RUN_TEST(test_phev_my18_messages);
 
 
-*/
 
 
 
