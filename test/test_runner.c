@@ -70,8 +70,8 @@ int main()
  
     RUN_TEST(test_phev_core_xor_message_even_xor_response);
     RUN_TEST(test_phev_core_xor_message_odd_xor_response);
-    RUN_TEST(test_phev_core_xor_message_even_xor_request);
-    RUN_TEST(test_phev_core_xor_message_odd_xor_request);
+//    RUN_TEST(test_phev_core_xor_message_even_xor_request);
+//    RUN_TEST(test_phev_core_xor_message_odd_xor_request);
     RUN_TEST(test_phev_core_xor_inbound_message_odd_xor_request);
     RUN_TEST(test_phev_core_xor_inbound_message_odd_ping);
     RUN_TEST(test_phev_core_xor_inbound_6f_resp);
@@ -107,8 +107,8 @@ int main()
     RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
     RUN_TEST(test_phev_core_getData);
-    RUN_TEST(test_phev_core_lights_on_encrypted_odd);
-    RUN_TEST(test_phev_core_lights_on_encrypted_even);
+//    RUN_TEST(test_phev_core_lights_on_encrypted_odd);
+//    RUN_TEST(test_phev_core_lights_on_encrypted_even);
     RUN_TEST(test_phev_core_getType_command_request);
     RUN_TEST(test_phev_core_getType_command_response);
     RUN_TEST(test_phev_core_getActualLength_command_request);
@@ -145,19 +145,19 @@ int main()
 
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer_encoded);
-    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_response);
-    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_request);
-    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_response);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_request);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response);
     RUN_TEST(test_phev_pipe_splitter_one_message);
     RUN_TEST(test_phev_pipe_splitter_two_messages);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
-    RUN_TEST(test_phev_pipe_commandResponder_reg_update_odd_xor);
-    RUN_TEST(test_phev_pipe_commandResponder_reg_update_even_xor);
+//    RUN_TEST(test_phev_pipe_commandResponder_reg_update_odd_xor);
+//    RUN_TEST(test_phev_pipe_commandResponder_reg_update_even_xor);
     RUN_TEST(test_phev_pipe_ping_even_xor);
     RUN_TEST(test_phev_pipe_ping_odd_xor);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
-    RUN_TEST(test_phev_pipe_commandResponder_should_encrypt_with_correct_xor);
+//    RUN_TEST(test_phev_pipe_commandResponder_should_encrypt_with_correct_xor);
     RUN_TEST(test_phev_pipe_no_input_connection);
 #ifdef TEST_TIMEOUTS
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
