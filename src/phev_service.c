@@ -1,3 +1,6 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #include <stdint.h>
 #include "phev_pipe.h"
 #include "phev_service.h"
@@ -551,7 +554,7 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
         if (phevMessage)
         {
             message_t *out = phev_core_convertToMessage(phevMessage);
-            message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->xor);
+            message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->currentXOR);
             if (encoded)
             {
                 return encoded;

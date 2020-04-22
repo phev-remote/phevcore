@@ -12,7 +12,7 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
 {
     LOG_V(TAG,"START - sendMac");
     
-    phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
+    //phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
     
     LOG_V(TAG,"END - sendMac");
     
@@ -56,7 +56,7 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
     phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,1);
     message_t * message = phev_core_convertToMessage(reg);
 
-    msg_pipe_outboundPublish(ctx->pipe,  message);
+    phev_pipe_outboundPublish(ctx,  message);
 //    free(message);
     LOG_V(TAG,"END - sendRegister");
     
@@ -70,14 +70,14 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
     {
         return 0;
     }
-
+    
     switch(event->event) 
     {
         case PHEV_PIPE_GOT_VIN: {
             char * vin = ((phevVinEvent_t *) event->data)->vin;
             phev_register_sendRegister(ctx);
             LOG_I(TAG,"Got VIN %s",vin);
-            regCtx->vin = strdup(vin);
+            if(vin) regCtx->vin = strdup(vin);
             phev_register_sendMac(ctx);
             break;
         }

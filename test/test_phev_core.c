@@ -27,8 +27,13 @@ void test_destroy_phev_message(void)
     phev_core_destroyMessage(message);
     
 } 
-
-void test_split_message_single_correct_size(void)
+void test_phev_core_validateMessage(void)
+{
+    uint8_t expected[] = {0x6f,0x07,0x00,0x12,0x00, 0x06, 0x06, 0x13, 0x05, 0x13, 0x01, 0xc3};
+    bool ret = phev_core_validateMessage(singleMessage,sizeof(singleMessage));
+    TEST_ASSERT_TRUE(ret);
+}
+void test_split_message_single_correct_return_val(void)
 {
     phevMessage_t msg;
 
@@ -118,6 +123,35 @@ void test_encode_message_single_checksum(void)
     int num = phev_core_encodeMessage(msg, &out);
     TEST_ASSERT_EQUAL(0x1e, out[5]);
 } 
+void test_phev_core_encodeMessage(void)
+{
+    uint8_t expected[] = { 0xf6,0x04,0x01,0x0a,0x00,0x05};
+    uint8_t data[] = { 0x00 };
+
+    uint8_t * out;
+    phevMessage_t * msg = phev_core_createMessage(0xf6,RESPONSE_TYPE,0x0a,data,sizeof(data));
+
+    size_t length = phev_core_encodeMessage(msg, &out);
+
+    TEST_ASSERT_EQUAL(6,length);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,out,sizeof(expected));
+
+}
+void test_phev_core_encodeMessage_encoded(void)
+{
+    uint8_t expected[] = { 0x92,0x60,0x65,0x6e,0x64,0x61};
+    uint8_t data[] = { 0x00 };
+
+    uint8_t * out;
+    phevMessage_t * msg = phev_core_createMessage(0xf6,RESPONSE_TYPE,0x0a,data,sizeof(data));
+    msg->XOR = 0x64;
+
+    size_t length = phev_core_encodeMessage(msg, &out);
+
+    TEST_ASSERT_EQUAL(6,length);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,out,sizeof(expected));
+
+}
 void test_simple_command_request_message(void)
 {
     phevMessage_t *msg = phev_core_simpleRequestCommandMessage(0x01, 0xff);
@@ -355,13 +389,25 @@ void test_phev_core_my18_xor_decodeMessage_bb(void)
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
 
     TEST_ASSERT_EQUAL(0xbb, msg.command);
-    TEST_ASSERT_EQUAL(1, msg.length);
+    TEST_ASSERT_EQUAL(4, msg.length);
     TEST_ASSERT_EQUAL(1, msg.type);
     
 }
 void test_phev_core_my18_xor_decodeMessage_cc(void)
 {    
     const uint8_t my18_msg[] = {0x1a,0xd2,0xd7,0x80,0xa5,0x4c};
+    phevMessage_t msg;
+
+    int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
+
+    TEST_ASSERT_EQUAL(0xcd, msg.command);
+    TEST_ASSERT_EQUAL(1, msg.length);
+    TEST_ASSERT_EQUAL(0, msg.type);
+    
+}
+void test_phev_core_my18_xor_decodeMessage_cc_second(void)
+{    
+    const uint8_t my18_msg[] = {0x48,0x80,0x85,0x8E,0x00,0xDB};
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(my18_msg, sizeof(my18_msg), &msg);
@@ -851,5 +897,105 @@ void test_phev_core_getData(void)
 
     TEST_ASSERT_NOT_NULL(data);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,data,sizeof(expected));
+
+}
+void test_phev_core_lights_on_encrypted_odd(void)
+{
+    uint8_t input[] = { 0xF6,0x04,0x00,0x0A,0x01,0x05 };
+    uint8_t expected[] = { 0x27,0xD5,0xD1,0xDB,0xD0,0xD4 };
+
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    message_t * out =  phev_core_XOROutboundMessage(message, 0xd1);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, out->data, sizeof(expected));
+
+}
+void test_phev_core_lights_on_encrypted_even(void)
+{
+    uint8_t input[] = { 0xF6,0x04,0x00,0x0A,0x01,0x06 };
+    uint8_t expected[] = { 0x9F,0x6D,0x69,0x63,0x68,0x6F };
+
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    message_t * out =  phev_core_XOROutboundMessage(message, 0x68);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, out->data, sizeof(expected));
+
+}
+void test_phev_core_getType_command_request(void)
+{
+    uint8_t input[] = { 0x00,0x6B,0x6F,0x7F,0x6D,0xEA }; 
+    
+    uint8_t ret = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(0,ret);
+}
+void test_phev_core_getType_command_response(void)
+{
+    uint8_t input[] = { 0xAF,0xC4,0xC1,0xC5,0xC0,0xB9 }; 
+    
+    int ret = phev_core_getType(input);
+
+    TEST_ASSERT_EQUAL(1,ret);
+}
+void test_phev_core_getActualLength_command_request(void)
+{
+    uint8_t input[] = { 0x00,0x6B,0x6F,0x7F,0x6D,0xEA }; 
+    
+    uint8_t ret = phev_core_getActualLength(input);
+
+    TEST_ASSERT_EQUAL(6,ret);
+}
+void test_phev_core_getActualLength_command_response(void)
+{
+    uint8_t input[] = { 0xAF,0xC4,0xC1,0xC5,0xC0,0xB9 }; 
+    
+    int ret = phev_core_getActualLength(input);
+
+    TEST_ASSERT_EQUAL(6,ret);
+}
+void test_phev_core_getActualLength_ping_response(void)
+{
+    uint8_t input[] = { 0x05,0x3E,0x3B,0x6B,0x3A,0xAF }; 
+    
+    int ret = phev_core_getActualLength(input);
+
+    TEST_ASSERT_EQUAL(6,ret);
+}
+void test_phev_core_decodeMessage_command_request(void)
+{
+    uint8_t input[] = { 0x00,0x6B,0x6F,0x7F,0x6D,0xEA }; 
+    
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    
+    phevMessage_t *phevMessage = malloc(sizeof(phevMessage_t));
+    
+    int ret = phev_core_decodeMessage(message->data, message->length, phevMessage);
+
+    TEST_ASSERT_EQUAL(1,ret);
+}
+void test_phev_core_decodeMessage_command_response(void)
+{
+    uint8_t input[] = {  0xAF,0xC4,0xC1,0xC5,0xC0,0xB9 }; 
+    
+    message_t * message = msg_utils_createMsg(input,sizeof(input));
+    
+    phevMessage_t *phevMessage = malloc(sizeof(phevMessage_t));
+    
+    int ret = phev_core_decodeMessage(message->data, message->length, phevMessage);
+
+    TEST_ASSERT_EQUAL(1,ret);
 }
 
+/*
+void test_phev_core_decode_encode(void)
+{
+    uint8_t input[] = { 0x51,0x2d,0x3e,0x26,0xc1,0xc1,0xc1,0xc1,0x39,0xc1,0xc1,0x21,0xc1,0xc1,0xc1,0xc1,0x39,0xc1,0xc1,0x21,0xe4 }; 
+    uint8_t expected[] = { 0x6F,0x10,0x0,0x18,0xFF,0xFF,0xFF,0xFF,0x07,0xFF,0xFF,0x1F,0xFF,0xFF,0xFF,0xFF,0x07,0xFF,0xFF,0x1F,0x0 }; 
+    
+    uint8_t * decoded = NULL;
+    int ret = phev_core_decodeRawMessage(input,sizeof(input),&decoded);
+    
+    TEST_ASSERT_NOT_NULL(decoded);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,decoded,sizeof(input));
+}
+*/

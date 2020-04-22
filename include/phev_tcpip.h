@@ -1,3 +1,6 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 #ifndef _PHEV_TCPIP_H_
 #define _PHEV_TCPIP_H_
 #include <stdint.h>

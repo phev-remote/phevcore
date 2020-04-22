@@ -1,7 +1,6 @@
 
 #define _WIN32_WINNT 0x0501
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,38 +57,80 @@
 
 #endif
 
-
 const static char *APP_TAG = "PHEV_TCPIP";
 
-static void phexdump(const char * tag, const unsigned char * buffer, const int length, const int level)
+uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 {
-    return;
-    if(length <= 0 || buffer == NULL) return;
 
-    char out[17];
-    memset(&out,'\0',17);
-        
-    printf("%s: ",tag);
-    int i = 0;
-    for(i=0;i<length;i++)
+    uint8_t length = (data[1] ^ xor) + 2;
+    uint8_t *decoded = malloc(length);
+
+    for (int i = 0; i < length; i++)
     {
-        printf("%02x ",buffer[i]);
-        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
-        if((i+1) % 8 == 0) printf(" ");
-        if((i+1) % 16 ==0) {
-            out[16] = '\0';
-            printf(" | %s |\n%s: ",out,tag);
+        decoded[i] = data[i] ^ xor;
+    }
+    return decoded;
+}
+static uint8_t *decode(const uint8_t *message)
+{
+    uint8_t *data = NULL;
+    uint8_t xor = message[2];
+    uint8_t mask = ((message[0] ^ xor) & 0x01);
+    //printf("LEN %d\n",(message[1] ^ xor) + 2);
+    if (xor < 2)
+    {
+        data = (uint8_t *) message;
+    }
+    else
+    {
+        if ((message[0] ^ xor) > 0xe0)
+        {
+            if ((message[0] ^ xor) != 0xf3)
+            {
+                xor ^= mask;
+            }
+            data = xorDataWithValue(message, xor);
+        }
+        else
+        {
+            xor = (message[2] & 0xfe) ^ ((message[0] & 0x01) ^ 1);
+            data = xorDataWithValue(message, xor);
         }
     }
-    if((i % 16) + 1 != 0)
+    return data;
+}
+static void phexdump(const char *tag, const unsigned char *buffer, const int length, const int level)
+{
+
+    if (length <= 0 || buffer == NULL)
+        return;
+    //printf("Len %d\n",length);
+    char out[17];
+    memset(&out, '\0', 17);
+
+    printf("%s: ", tag);
+    int i = 0;
+    for (i = 0; i < length; i++)
+    {
+        printf("%02x ", buffer[i]);
+        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
+        if ((i + 1) % 8 == 0)
+            printf(" ");
+        if ((i + 1) % 16 == 0)
+        {
+            out[16] = '\0';
+            printf(" | %s |\n%s: ", out, tag);
+        }
+    }
+    if ((i % 16) + 1 != 0)
     {
         int num = (16 - (i % 16)) * 3;
         num = ((i % 16) < 8 ? num + 1 : num);
         out[(i % 16)] = '\0';
         char padding[(16 * 3) + 2];
-        memset(&padding,' ',num+1);
-        padding[(16-i)*3] = '\0';
-        printf("%s | %s |\n",padding,out);
+        memset(&padding, ' ', num + 1);
+        padding[(16 - i) * 3] = '\0';
+        printf("%s | %s |\n", padding, out);
     }
     printf("\n");
 }
@@ -125,6 +166,14 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     if (read_len == 0)
     {
         return -1;
+    }
+    if (read_len > 2)
+    {
+        uint8_t * decoded = decode(buffer);
+        if (decoded)
+        {
+   //         phexdump("<< DECODED ", decoded, read_len, LOG_INFO);
+        }
     }
     //phexdump(">>", buffer, read_len, LOG_INFO);
     return read_len;
@@ -253,7 +302,6 @@ int phev_tcpClientConnectSocket(const char *host, uint16_t port)
 }
 #endif
 
-
 int phev_tcpClientRead(int soc, uint8_t *buf, size_t len)
 {
     LOG_V(APP_TAG, "START - read");
@@ -261,18 +309,19 @@ int phev_tcpClientRead(int soc, uint8_t *buf, size_t len)
     int num = tcp_read(soc, buf, len, TCP_READ_TIMEOUT);
 
     LOG_D(APP_TAG, "Read %d bytes from tcp stream", num);
-    //phexdump("<<", buf, num, LOG_INFO);
     
-    if((len > 2) && (buf[2] > 1))
+    
+
+    if (len > 2)
     {
-        message_t * msg = msg_utils_createMsg(buf,6);
-        message_t * decoded = phev_core_XORInboundMessage(msg,buf[2]);
-        if(decoded) {
-            //phexdump("<< DECODED ", decoded->data, 6, LOG_INFO);
+        phexdump("<< ", buf, num, LOG_INFO);
+        uint8_t * decoded = decode(buf);
+        if (decoded)
+        {
+            phexdump("<< DECODED3 ", decoded, num, LOG_INFO);
         }
-        
     }
-    
+
     LOG_V(APP_TAG, "END - read");
 
     return num;
@@ -286,13 +335,14 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
     int num = TCP_WRITE(soc, buf, len);
 #endif
     LOG_D(APP_TAG, "Wriiten %d bytes from tcp stream", num);
-    //phexdump(">>", buf, num, LOG_INFO);
-    if((len > 2) && (buf[2] > 1))
+    phexdump(">> ", buf, num, LOG_INFO);
+    if (num > 2)
     {
-        message_t * msg = msg_utils_createMsg(buf,6);
-        message_t * decoded = phev_core_XOROutboundMessage(msg,buf[2]);
-        //phexdump(">> DECODED ", decoded->data, 6, LOG_INFO);
-   
+        uint8_t * decoded = decode(buf);
+        if (decoded)
+        {
+            phexdump(">> DECODED ", decoded, num, LOG_INFO);
+        }
     }
     LOG_V(APP_TAG, "END - write");
 

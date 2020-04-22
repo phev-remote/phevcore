@@ -24,11 +24,13 @@ void tearDown(void)
 int main()
 {
     UNITY_BEGIN();
+
 //  PHEV_CORE
 
     RUN_TEST(test_create_phev_message);
     RUN_TEST(test_destroy_phev_message);
-    RUN_TEST(test_split_message_single_correct_size);
+    RUN_TEST(test_phev_core_validateMessage);
+    RUN_TEST(test_split_message_single_correct_return_val);
     RUN_TEST(test_split_message_single_correct_command);
     RUN_TEST(test_split_message_single_correct_length);
     RUN_TEST(test_split_message_single_correct_type);
@@ -38,6 +40,8 @@ int main()
     RUN_TEST(test_split_message_double_decode);
     RUN_TEST(test_encode_message_single);
     RUN_TEST(test_encode_message_single_checksum);
+    RUN_TEST(test_phev_core_encodeMessage);
+    RUN_TEST(test_phev_core_encodeMessage_encoded);
     RUN_TEST(test_simple_command_request_message);
     RUN_TEST(test_simple_command_response_message);
     RUN_TEST(test_command_message);
@@ -55,18 +59,19 @@ int main()
 //    RUN_TEST(test_phev_message_to_phev_message_and_back);
     RUN_TEST(test_phev_core_copyMessage);
 
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_ping_response);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_send_request_even_xor);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_bb);
     RUN_TEST(test_phev_core_my18_xor_decodeMessage_cc);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_long_send);
-    RUN_TEST(test_phev_core_my18_xor_decodeMessage_4e);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_long_send);
+//    RUN_TEST(test_phev_core_my18_xor_decodeMessage_4e);
+    RUN_TEST(test_phev_core_my18_xor_decodeMessage_cc_second);
     RUN_TEST(test_response_handler_4e);
  
     RUN_TEST(test_phev_core_xor_message_even_xor_response);
     RUN_TEST(test_phev_core_xor_message_odd_xor_response);
-    RUN_TEST(test_phev_core_xor_message_even_xor_request);
-    RUN_TEST(test_phev_core_xor_message_odd_xor_request);
+//    RUN_TEST(test_phev_core_xor_message_even_xor_request);
+//    RUN_TEST(test_phev_core_xor_message_odd_xor_request);
     RUN_TEST(test_phev_core_xor_inbound_message_odd_xor_request);
     RUN_TEST(test_phev_core_xor_inbound_message_odd_ping);
     RUN_TEST(test_phev_core_xor_inbound_6f_resp);
@@ -102,6 +107,17 @@ int main()
     RUN_TEST(test_phev_core_validateChecksum_even_response_fail);
     RUN_TEST(test_phev_core_validateChecksum_even_response_cc);
     RUN_TEST(test_phev_core_getData);
+//    RUN_TEST(test_phev_core_lights_on_encrypted_odd);
+//    RUN_TEST(test_phev_core_lights_on_encrypted_even);
+    RUN_TEST(test_phev_core_getType_command_request);
+    RUN_TEST(test_phev_core_getType_command_response);
+    RUN_TEST(test_phev_core_getActualLength_command_request);
+    RUN_TEST(test_phev_core_getActualLength_command_response);
+    RUN_TEST(test_phev_core_decodeMessage_command_request);
+    RUN_TEST(test_phev_core_decodeMessage_command_response);
+    RUN_TEST(test_phev_core_getActualLength_ping_response);
+    
+//    RUN_TEST(test_phev_core_decode_encode);
 
 
 //  PHEV_REGISTER
@@ -125,20 +141,32 @@ int main()
     RUN_TEST(test_phev_pipe_createPipe);
     RUN_TEST(test_phev_pipe_create);
     RUN_TEST(test_phev_pipe_loop);
-    RUN_TEST(test_phev_pipe_start);
+//    RUN_TEST(test_phev_pipe_start);
+
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
+    RUN_TEST(test_phev_pipe_outputChainInputTransformer_encoded);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_response);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_command_request);
+//    RUN_TEST(test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response);
     RUN_TEST(test_phev_pipe_splitter_one_message);
+    RUN_TEST(test_phev_pipe_splitter_two_messages);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
+//    RUN_TEST(test_phev_pipe_commandResponder_reg_update_odd_xor);
+//    RUN_TEST(test_phev_pipe_commandResponder_reg_update_even_xor);
+    RUN_TEST(test_phev_pipe_ping_even_xor);
+    RUN_TEST(test_phev_pipe_ping_odd_xor);
     RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
+//    RUN_TEST(test_phev_pipe_commandResponder_should_encrypt_with_correct_xor);
     RUN_TEST(test_phev_pipe_no_input_connection);
 #ifdef TEST_TIMEOUTS
     RUN_TEST(test_phev_pipe_waitForConnection_should_timeout);
     RUN_TEST(test_phev_pipe_waitForConnection);
 #endif
-    RUN_TEST(test_phev_pipe_sendMac);
+//    RUN_TEST(test_phev_pipe_sendMac);
     RUN_TEST(test_phev_pipe_updateRegister);
-//    RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
+    RUN_TEST(test_phev_pipe_updateRegisterWithCallback);
+    RUN_TEST(test_phev_pipe_updateRegisterWithCallback_encoded);
     RUN_TEST(test_phev_pipe_registerEventHandler);
     RUN_TEST(test_phev_pipe_register_multiple_registerEventHandlers);
     RUN_TEST(test_phev_pipe_createRegisterEvent_ack);
@@ -240,5 +268,11 @@ int main()
     //RUN_TEST(test_phev_my18_5e);
 
     //RUN_TEST(test_phev_my18_messages);
+
+
+
+
+
     return UNITY_END();
+
 }
