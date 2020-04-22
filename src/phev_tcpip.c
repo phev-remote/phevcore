@@ -101,7 +101,7 @@ static uint8_t *decode(const uint8_t *message)
 }
 static void phexdump(const char *tag, const unsigned char *buffer, const int length, const int level)
 {
-
+    if(level == LOG_INFO || level == LOG_NONE) return;
     if (length <= 0 || buffer == NULL)
         return;
     //printf("Len %d\n",length);
