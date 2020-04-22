@@ -70,14 +70,14 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
     {
         return 0;
     }
-
+    
     switch(event->event) 
     {
         case PHEV_PIPE_GOT_VIN: {
             char * vin = ((phevVinEvent_t *) event->data)->vin;
             phev_register_sendRegister(ctx);
             LOG_I(TAG,"Got VIN %s",vin);
-            regCtx->vin = strdup(vin);
+            if(vin) regCtx->vin = strdup(vin);
             phev_register_sendMac(ctx);
             break;
         }

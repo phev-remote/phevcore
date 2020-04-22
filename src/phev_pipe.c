@@ -277,7 +277,7 @@ phevPipeEvent_t *phev_pipe_createVINEvent(uint8_t *data)
         event->data = (uint8_t *)vinEvent;
         event->length = sizeof(phevVinEvent_t);
         memcpy(vinEvent->vin, data + 1, VIN_LEN);
-        vinEvent->vin[VIN_LEN + 1] = 0;
+        //vinEvent->vin[VIN_LEN + 1] = 0;
         vinEvent->registrations = data[19];
     }
     else
