@@ -14,7 +14,6 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
     LOG_V(APP_TAG, "START - waitForConnection");
     ctx->connected = false;
     int retries = 0;
-    time_t now;
 
     while (!(ctx->pipe->in->connected && ctx->pipe->out->connected))
     {
@@ -183,15 +182,11 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
 
         return NULL;
     }
-    if(phevMessage->XOR != pipeCtx->currentXOR)
-    {   
-        LOG_I(APP_TAG,"XOR changed from %02X to %02X",pipeCtx->currentXOR,phevMessage->XOR);
-        //pipeCtx->currentXOR = phevMessage->XOR;
-    }
+
     if(phevMessage->command == 0xbb)
     {
-        printf("BB %02x\n",phevMessage->data[0]);
         pipeCtx->currentXOR = phevMessage->data[0];
+        LOG_D(APP_TAG,"XOR changed to %02X",pipeCtx->currentXOR);
     }
 
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
@@ -224,11 +219,11 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             LOG_V(APP_TAG, "END - commandResponder");
             return NULL;
         }
-        LOG_I(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
+        LOG_D(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
         if (phevMsg.type == REQUEST_TYPE)
         {
             phevMessage_t *msg = phev_core_responseHandler(&phevMsg);
-            LOG_I(APP_TAG, "Responding to %02X", phevMsg.command);
+            LOG_D(APP_TAG, "Responded with command %02X  type %d", phevMsg.command,phevMsg.type);
             out = phev_core_convertToMessage(msg);
         }
     }
@@ -237,10 +232,10 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
         LOG_D(APP_TAG, "Responding with");
         LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
 
-        if(pipeCtx->currentXOR == 0)
-        {
+        //if(pipeCtx->currentXOR == 0)
+        //{
             return out;
-        }
+        //}
         message_t * encoded = phev_core_XOROutboundMessage(out,pipeCtx->currentXOR);
         //pipeCtx->currentXOR = rand();
         if(encoded) 
@@ -252,6 +247,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
 #ifndef NO_ENC_CMD_RESP
             return encoded;
 #else
+            LOG_D(APP_TAG,"Response not sent as configured off");
             return NULL;
 #endif
         }
@@ -479,7 +475,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
     }
     default:
     {
-        LOG_W(APP_TAG, "Command %02X Register not handled %02X", phevMessage->command, phevMessage->reg);
+        LOG_D(APP_TAG, "Command %02X Register not handled %02X by pipe event loop", phevMessage->command, phevMessage->reg);
     }
     }
 

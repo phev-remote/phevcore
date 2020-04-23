@@ -541,6 +541,8 @@ uint8_t * phev_core_xorDataOutbound(const uint8_t * data,uint8_t xor)
 }
 message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t xor)
 {
+    LOG_V(APP_TAG, "START - XOROutboundMessage");
+    
     uint8_t xorWithType = xor;
     if (xor < 2)
         return (message_t *) msg_utils_copyMsg((message_t *) message);
@@ -548,18 +550,15 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    if(message->data[0] == 0xf6)
-    {
-    //    xorWithType = xor | (!message->data[2]);
-    //    message->data[0] &= 0xfe;
-    }
     encoded->data = phev_core_xorDataOutbound(message->data,xor);
 
-    LOG_I(APP_TAG, "XOR message");
+    LOG_V(APP_TAG, "END - XOROutboundMessage");
     return encoded;
 }
 message_t *phev_core_XORInboundMessage(const message_t *message, const uint8_t xor)
 {
+    LOG_V(APP_TAG, "START - XORInboundMessage");
+    
     if (xor < 2)
         return (message_t *) msg_utils_copyMsg((message_t *) message);
 
@@ -572,6 +571,7 @@ message_t *phev_core_XORInboundMessage(const message_t *message, const uint8_t x
     decoded->length = len;
     decoded->data = phev_core_xorData(message->data);
 
-
+    LOG_V(APP_TAG, "END - XORInboundMessage");
+    
     return decoded;
 }

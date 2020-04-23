@@ -149,27 +149,40 @@ phevCtx_t * phev_init(phevSettings_t settings)
     LOG_V(TAG,"START - init");
     
     phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
-
+    phevServiceCtx_t * srvCtx = NULL;
     phevServiceSettings_t * serviceSettings;
     messagingClient_t * in = NULL;
     messagingClient_t * out = NULL;
 
     if(settings.in) 
     {
+        LOG_D(TAG,"Using passed in incoming messaging client");
+
         in = settings.in;
     } else {
+        LOG_D(TAG,"Using default incoming messaging client");
+        
         in = phev_createIncomingMessageClient();
     }
     
     if(settings.out) 
     {
+        LOG_D(TAG,"Using passed in messaging client");
+
         out = settings.out;
     } else {
+        LOG_D(TAG,"Using default outgoing messaging client");
+
         out = phev_createOutgoingMessageClient(settings.host,settings.port);
     }
     
+    LOG_D(TAG,"Settings event handler %p", phev_pipeEventHandler);
+    ctx->eventHandler = settings.handler;
+    ctx->ctx = settings.ctx;
+
     if(settings.registerDevice) 
     {
+        LOG_D(TAG,"Creating service with registration settings");
         phevServiceSettings_t s = {
             .in = in,
             .out = out,
@@ -181,9 +194,11 @@ phevCtx_t * phev_init(phevSettings_t settings)
             .my18 = settings.my18,
             .ctx = ctx, 
         };
+        srvCtx = phev_service_create(s);
 
-        serviceSettings = &s;
     } else {
+        LOG_D(TAG,"Creating service with normal settings");
+        
         phevServiceSettings_t s = {
             .in = in,
             .out = out,
@@ -195,17 +210,11 @@ phevCtx_t * phev_init(phevSettings_t settings)
             .my18 = settings.my18,
             .ctx = ctx,
         };
-        serviceSettings = &s;
+        srvCtx = phev_service_create(s);
     }
-    LOG_D(TAG,"Settings event handler %p", phev_pipeEventHandler);
-    ctx->eventHandler = settings.handler;
-    ctx->ctx = settings.ctx;
-
-    phevServiceCtx_t * srvCtx = phev_service_create(*serviceSettings);
-
+    
     ctx->serviceCtx = srvCtx;
-    //ctx->ctx = srvCtx;
-
+    
     LOG_V(TAG,"END - init");
     
     return ctx;

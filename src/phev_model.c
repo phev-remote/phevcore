@@ -62,20 +62,32 @@ phev_model_getRegister_end:
 }
 int phev_model_compareRegister(phevModel_t * model, uint8_t reg , const uint8_t * data)
 {
+    LOG_V(TAG, "START - compareRegister");
     if(model)
     {
         phevRegister_t * out = phev_model_getRegister(model,reg);
         
-        
         if(out && data)
         {
-            printf("%02X %02X",data[0],out->data[0]);
-        
-            return memcmp(data,out->data,out->length);
+            int ret = memcmp(data,out->data,out->length);
+
+            LOG_I(TAG,"Comparing register data result %d",ret);
+            if(ret == 0)
+            {
+                LOG_I(TAG,"Register %02X not changed",reg);
+            } else {
+                LOG_BUFFER_HEXDUMP(TAG,data,out->length,LOG_INFO);
+                LOG_BUFFER_HEXDUMP(TAG,out->data,out->length,LOG_INFO);
+            }
+            
+            
+            return ret;
         }
         return -1;
     } else {
         LOG_E(TAG,"Model is not initialised");
         return -1;
     }
+    LOG_V(TAG, "END - compareRegister");
+    
 }
