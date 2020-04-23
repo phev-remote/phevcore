@@ -368,7 +368,7 @@ message_t *phev_core_extractMessage(const uint8_t *data, const size_t len)
     {
         LOG_E(APP_TAG, "INVALID MESSAGE - Null returned from XOR Inbound message");
         LOG_V(APP_TAG, "END - extractMessage");
-        return 0;
+        return NULL;
     }
     const uint8_t *unscrambled = decoded->data;
     if (phev_core_validate_buffer(unscrambled, len) != 0)

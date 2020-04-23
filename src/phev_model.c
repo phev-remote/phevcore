@@ -71,13 +71,13 @@ int phev_model_compareRegister(phevModel_t * model, uint8_t reg , const uint8_t 
         {
             int ret = memcmp(data,out->data,out->length);
 
-            LOG_I(TAG,"Comparing register data result %d",ret);
+            LOG_D(TAG,"Comparing register data result %d",ret);
             if(ret == 0)
             {
-                LOG_I(TAG,"Register %02X not changed",reg);
+                LOG_D(TAG,"Register %02X not changed",reg);
             } else {
-                LOG_BUFFER_HEXDUMP(TAG,data,out->length,LOG_INFO);
-                LOG_BUFFER_HEXDUMP(TAG,out->data,out->length,LOG_INFO);
+                LOG_BUFFER_HEXDUMP(TAG,data,out->length,LOG_DEBUG);
+                LOG_BUFFER_HEXDUMP(TAG,out->data,out->length,LOG_DEBUG);
             }
             
             

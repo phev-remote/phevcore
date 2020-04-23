@@ -59,6 +59,8 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
+const static int loglvl = LOG_DEBUG;
+
 uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 {
 
@@ -312,13 +314,15 @@ int phev_tcpClientRead(int soc, uint8_t *buf, size_t len)
     
     
 
-    if (len > 2)
+    if (num > 2 && num < 256)
     {
-        phexdump("<< ", buf, num, LOG_INFO);
+        LOG_BUFFER_HEXDUMP("READ",buf,num,loglvl);
+        //phexdump("<< ", buf, num, LOG_INFO);
         uint8_t * decoded = decode(buf);
         if (decoded)
         {
-            phexdump("<< DECODED3 ", decoded, num, LOG_INFO);
+            //phexdump("<< DECODED3 ", decoded, num, LOG_INFO)
+            LOG_BUFFER_HEXDUMP("READ DECODED",decoded,num,loglvl);
         }
     }
 
@@ -335,13 +339,16 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
     int num = TCP_WRITE(soc, buf, len);
 #endif
     LOG_D(APP_TAG, "Wriiten %d bytes from tcp stream", num);
-    phexdump(">> ", buf, num, LOG_INFO);
-    if (num > 2)
+    
+        
+    if (num > 2 && num < 256)
     {
+        LOG_BUFFER_HEXDUMP("WRITE",buf,num,loglvl);
         uint8_t * decoded = decode(buf);
         if (decoded)
         {
-            phexdump(">> DECODED ", decoded, num, LOG_INFO);
+            LOG_BUFFER_HEXDUMP("WRITE DECODED",decoded,num,loglvl);
+            //phexdump(">> DECODED ", decoded, num, LOG_INFO);
         }
     }
     LOG_V(APP_TAG, "END - write");

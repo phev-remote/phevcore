@@ -706,7 +706,7 @@ int phev_service_getBatteryLevel(phevServiceCtx_t *ctx)
     phevRegister_t *reg = phev_model_getRegister(ctx->model, KO_WF_BATT_LEVEL_INFO_REP_EVR);
 
     LOG_V(TAG, "END - getBatteryLevel");
-    return (reg ? (int)reg->data[0] : -1);
+    return (reg ? (int )reg->data[0] : -1);
 }
 char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
 {
