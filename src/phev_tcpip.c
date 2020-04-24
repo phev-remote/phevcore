@@ -59,7 +59,7 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
-const static int loglvl = LOG_DEBUG;
+const static int loglvl = LOG_INFO;
 
 uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 {
