@@ -1,6 +1,6 @@
 # Phev Remote Core Library 
 
-[![Build Status](https://travis-ci.com/phev-remote/phevcore.svg?branch=master)](https://travis-ci.com/phev-remote/phevcore)
+[![Build Status](https://travis-ci.com/phev-remote/phevcore.svg?branch=master)](https://travis-ci.com/phev-remote/phevcore) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A library that can be used to communicate with the Mistushish Outlander PHEV with the Remote WiFi option in the MMC so mainly the GH4 + models.
 
