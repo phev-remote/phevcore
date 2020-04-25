@@ -263,16 +263,6 @@ int main()
    // RUN_TEST(test_phev_calls_connect_event);
    // RUN_TEST(test_phev_registrationEndToEnd);
 
-// PHEV_MY18
-
-    //RUN_TEST(test_phev_my18_5e);
-
-    //RUN_TEST(test_phev_my18_messages);
-
-
-
-
-
     return UNITY_END();
 
 }
