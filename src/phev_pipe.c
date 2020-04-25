@@ -659,6 +659,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     message_t *out = phev_core_extractMessage(message->data, message->length, pipeCtx->currentXOR);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (out == NULL)
     {
         LOG_E(APP_TAG,"Could not extract message");
@@ -666,6 +667,9 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     }
     LOG_D(APP_TAG,"Extract message output");
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
+=======
+    if (out == NULL) return NULL;
+>>>>>>> 36657e7... fixed tests change of contract for getXOR
 =======
     if (out == NULL) return NULL;
 >>>>>>> 36657e7... fixed tests change of contract for getXOR
