@@ -11,7 +11,6 @@
 #include "test_phev_service.c"
 #include "test_phev_model.c"
 #include "test_phev.c"
-#include "test_phev_my18.c"
 
 void setUp(void) 
 {
