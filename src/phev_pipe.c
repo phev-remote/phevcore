@@ -654,8 +654,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
     message_t *out = phev_core_extractMessage(message->data, message->length);
 
-    if (out == NULL)
-        return NULL;
+    if (out == NULL) return NULL;
     messageBundle_t *messages = malloc(sizeof(messageBundle_t));
 
     messages->numMessages = 0;
@@ -747,8 +746,6 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t *ctx, const uint8_t reg, const uin
     phevMessage_t *update = phev_core_simpleRequestCommandMessage(reg, value);
     
     message_t *message = phev_core_convertToMessage(update);
-
-    //message_t *encMessage = phev_core_XOROutboundMessage(message, ctx->currentXOR);
     
     phev_pipe_outboundPublish(ctx, message);
 
