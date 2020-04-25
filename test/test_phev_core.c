@@ -500,7 +500,7 @@ void test_phev_core_xor_message_even_xor_request(void)
     uint8_t input[] = { 0xf6,0x04,0x00,0x0a,0x01,0x05};
     uint8_t expected[] = { 0xbb,0x49,0x4d,0x47,0x4c,0x48 };
    
-    uint8_t xor = phev_core_getXOR(expected);
+    uint8_t xor = phev_core_getXOR(expected,0);
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XOROutboundMessage(message,xor);
 
@@ -513,7 +513,7 @@ void test_phev_core_xor_message_odd_xor_request(void)
     uint8_t input[] = { 0xf6,0x04,0x00,0x0a,0x02,0x06 };
     uint8_t expected[] = { 0xc9,0x3b,0x3f,0x35,0x3d,0x39 };
     //uint8_t xor = 0x3f;
-    uint8_t xor = phev_core_getXOR(expected);
+    uint8_t xor = phev_core_getXOR(expected,0);
     
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XOROutboundMessage(message,xor);
@@ -527,7 +527,7 @@ void test_phev_core_xor_inbound_message_odd_xor_request(void)
     uint8_t input[] = { 0x4f,0x26,0x20,0x23,0x21,0x31,0x43,0xcd };
     uint8_t expected[] = { 0x6f,0x06,0x00,0x03,0x01,0x11,0x63, 0xed};
     //uint8_t xor = 0x20;
-    uint8_t xor = phev_core_getXOR(input) &0xfe;
+    uint8_t xor = phev_core_getXOR(input,0) ;
     
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XORInboundMessage(message,xor);
@@ -541,7 +541,7 @@ void test_phev_core_xor_inbound_message_odd_ping(void)
     uint8_t input[] = { 0x1f,0x24,0x21,0x17,0x20,0x5b }; 
     uint8_t expected[] = { 0x3f,0x04,0x01,0x37,0x00,0x7b };
     //uint8_t xor = 0x20;
-    uint8_t xor = phev_core_getXOR(input) & 0xfe;
+    uint8_t xor = phev_core_getXOR(input,0);
     
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XORInboundMessage(message,xor);
@@ -556,7 +556,7 @@ void test_phev_core_xor_inbound_6f_resp(void)
     uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 }; 
     uint8_t expected[] = { 0x6f,0x04,0x00,0x21,0x00,0x94 };
     //uint8_t xor = 0x0d;
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
     
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XORInboundMessage(message,xor);
@@ -571,7 +571,7 @@ void test_phev_core_xor_inbound_ping_even_resp(void)
     uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
     uint8_t expected[] = { 0x3f,0x04,0x01,0x5f,0x00,0xa3 };
     //uint8_t xor = 0x9f;
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
     
     message_t * message = msg_utils_createMsg(input, sizeof(input));
     message_t * encoded = phev_core_XORInboundMessage(message,xor);
@@ -621,7 +621,7 @@ void test_phev_core_xorData_response_odd(void)
     uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
     uint8_t expected[] = { 0x3f,0x04,0x01,0x5f,0x00,0xa3 }; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x9f, xor);
 
@@ -635,7 +635,7 @@ void test_phev_core_xorData_request_odd(void)
     uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
     uint8_t expected[] = { 0x6f,0x04,0x00,0x21,0x00,0x94 }; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x0d, xor);
 
@@ -649,7 +649,7 @@ void test_phev_core_xorData_response_even(void)
     uint8_t input[] = { 0x74,0x4f,0x4a,0x08,0x4b,0xcc }; 
     uint8_t expected[] = { 0x3f,0x04,0x01,0x43,0x00,0x87 }; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
@@ -663,7 +663,7 @@ void test_phev_core_xorData_request_even(void)
     uint8_t input[] = { 0xb8,0x4f,0x4b,0x0f,0x4b,0x70 };
     uint8_t expected[] = { 0xf3,0x04,0x00,0x44,0x00,0x3b }; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
@@ -677,7 +677,7 @@ void test_phev_core_xorData_response_odd_chksum(void)
     uint8_t input[] = { 0xa0,0x9b,0x9e,0xc0,0x9f,0x3c }; 
     uint8_t expected = 0xa3; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x9f, xor);
 
@@ -692,7 +692,7 @@ void test_phev_core_xorData_request_odd_chksum(void)
     uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
     uint8_t expected = 0x94; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x0d, xor);
 
@@ -707,7 +707,7 @@ void test_phev_core_xorData_response_even_chksum(void)
     uint8_t input[] = { 0x74,0x4f,0x4a,0x08,0x4b,0xcc }; 
     uint8_t expected = 0x87; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
@@ -722,7 +722,7 @@ void test_phev_core_xorData_request_even_chksum(void)
     uint8_t input[] = { 0xb8,0x4f,0x4b,0x0f,0x4b,0x70 };
     uint8_t expected = 0x3b; 
     
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(0x4b, xor);
 
@@ -737,7 +737,7 @@ void test_phev_core_getXOR_odd_request(void)
     uint8_t input[] = { 0xd8,0xb3,0xb7,0x90,0xb7,0x2d };
     uint8_t expected = 0xb7; 
 
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(expected,xor);   
 }
@@ -746,7 +746,7 @@ void test_phev_core_getXOR_even_request(void)
     uint8_t input[] = { 0xc3,0xbc,0xac,0x6c,0x9c,0x9c,0x9f,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0x9c,0xad,0xac,0xac,0x8f }; 
     uint8_t expected = 0xac; 
 
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(expected,xor);   
 }
@@ -755,7 +755,7 @@ void test_phev_core_getXOR_odd_response(void)
     uint8_t input[] = { 0x86,0xbd,0xb8,0xf9,0xb9,0x3d };
     uint8_t expected = 0xb9; 
 
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(expected,xor);   
 }
@@ -764,7 +764,7 @@ void test_phev_core_getXOR_even_response(void)
     uint8_t input[] = { 0x1f,0x24,0x21,0x1d,0x20,0xa1 }; 
     uint8_t expected = 0x20; 
 
-    uint8_t xor = phev_core_getXOR(input);
+    uint8_t xor = phev_core_getXOR(input,0);
 
     TEST_ASSERT_EQUAL(expected,xor);   
 }
