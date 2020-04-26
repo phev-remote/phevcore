@@ -8,63 +8,248 @@
 
 const static char *APP_TAG = "PHEV_CORE";
 
+uint8_t *phev_core_xorDataWithValue(const uint8_t *data, const uint8_t xor)
+{
+    LOG_V(APP_TAG, "START - xorDataWithValue");
+
+    size_t length = (data[1] ^ xor) + 2;
+
+    uint8_t *decoded = malloc(length);
+
+    LOG_D(APP_TAG, "Decoding data with length %d with XOR %02X", length, xor);
+
+    for (int i = 0; i < length; i++)
+    {
+        decoded[i] = data[i] ^ xor;
+    }
+
+    LOG_BUFFER_HEXDUMP(APP_TAG, decoded, length, LOG_DEBUG);
+    LOG_V(APP_TAG, "END - xorDataWithValue");
+
+    return decoded;
+}
+bool phev_core_checkCommand(const uint8_t command)
+{
+    switch (command)
+    {
+    case 0x3f:
+        return true;
+    case 0x6f:
+        return true;
+    case 0x4e:
+        return true;
+    case 0xBB:
+        return true;
+    case 0xCC:
+        return true;
+    case 0x2f:
+        return true;
+    default:
+        return false;
+    }
+}
+bool phev_core_validateChecksum(const uint8_t *data)
+{
+    uint8_t length = data[1] + 2;
+
+    uint8_t messageChecksum = data[length - 1];
+    uint8_t calculatedChecksum = phev_core_checksum(data);
+
+    if (calculatedChecksum == messageChecksum)
+    {
+        LOG_D(APP_TAG, "Valid checksum %02X", messageChecksum);
+        return true;
+    }
+    else
+    {
+        LOG_D(APP_TAG, "Invalid checksum %02X expected %02X", messageChecksum, calculatedChecksum);
+        return false;
+    }
+}
+bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor)
+{
+    uint8_t *decodedData = phev_core_xorDataWithValue(data, xor);
+    
+    return phev_core_validateChecksum(decodedData);
+}
+message_t *phev_core_unencodedMessage(const uint8_t *data)
+{
+    uint8_t command = data[0];
+    uint8_t length = data[1] + 2;
+
+    if(phev_core_validateChecksum(data))
+    {
+        switch (data[0])
+        {
+        case 0x4e:
+        {
+            LOG_V(APP_TAG, "Start unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0x3f:
+        {
+            LOG_V(APP_TAG, "Ping response unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0x6f:
+        {
+            LOG_V(APP_TAG, "Command unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        }
+    }
+    LOG_E(APP_TAG,"Unknown unencoded command %02X", command);
+    return NULL;
+}
+message_t *phev_core_encodedMessage(const uint8_t *data)
+{
+    uint8_t xor = data[2];
+    uint8_t command = data[0] ^ xor;
+    uint8_t length = (data[1] ^ xor) + 2;
+
+    if (phev_core_checkCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    {
+        message_t * message = phev_core_createMsgXOR(data,length,xor);
+        return message;
+    }
+
+    xor ^= 1;
+    command = data[0] ^ xor;
+    length = (data[1] ^ xor) + 2;
+
+    if (phev_core_checkCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    {
+        return phev_core_createMsgXOR(data, length, xor);
+    }
+
+    LOG_E(APP_TAG,"Unknown encoded command %02X or %02X", command, command ^ 1);
+
+    return NULL;
+}
+message_t * phev_core_extractMessageAndXOR(const uint8_t *data)
+{
+    LOG_V(APP_TAG, "START - extractMessageAndXOR");
+
+    message_t *message = NULL;
+
+    if (phev_core_checkCommand(data[0]))
+    {
+        message = phev_core_unencodedMessage(data);
+    }
+    else
+    {
+        message = phev_core_encodedMessage(data);
+    }
+
+    LOG_V(APP_TAG, "END - extractMessageAndXOR");
+
+    return message;
+}
+uint8_t phev_core_getMessageXOR(const message_t * message)
+{
+    if(message)
+    {
+        if(message->ctx != NULL)
+        {
+            uint8_t * xor = (uint8_t *) message->ctx;
+            return xor[0];
+        }
+    }
+
+    return 0;
+}
+message_t * phev_core_createMsgXOR(const uint8_t * data, const size_t length, const uint8_t xor)
+{
+    uint8_t * ctx = malloc(1);
+
+    ctx[0] = xor;
+
+    message_t * message = msg_utils_createMsgCtx(data, length, ctx);
+
+    return message;
+}
+message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data)
+{
+    LOG_V(APP_TAG, "START - extractAndDecodeMessageAndXOR");
+
+    message_t * message = phev_core_extractMessageAndXOR(data);
+
+    if(message == NULL)
+    {
+        LOG_W(APP_TAG,"Cannot extract message");
+        return NULL;
+    }
+
+    uint8_t xor = phev_core_getMessageXOR(message);
+
+    printf("<<>> %02X\n",xor);
+
+    uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
+
+    message_t * decoded = phev_core_createMsgXOR(decodedData,message->length,xor);
+
+    free(decodedData);
+    //msg_utils_destroyMsg(message);
+
+    LOG_V(APP_TAG, "END - extractAndDecodeMessageAndXOR");
+
+    return decoded;
+}
+
 uint8_t phev_core_getXOR(const uint8_t *data, const uint8_t xor)
 {
-    LOG_V(APP_TAG,"START - getXOR");
+    LOG_V(APP_TAG, "START - getXOR");
 
     uint8_t newXOR = xor;
 
     const uint8_t command = data[0] ^ data[2];
 
-    LOG_D(APP_TAG,"Command is %02x with decoded XOR and %02X with passed XOR", command, data[0] ^ xor);
+    LOG_D(APP_TAG, "Command is %02x with decoded XOR and %02X with passed XOR", command, data[0] ^ xor);
 
-
-    if(command == 0xBB)
+    if (command == 0xBB)
     {
         newXOR = data[2];
     }
-    if(command == 0XBA)
+    if (command == 0XBA)
     {
         newXOR = data[2] ^ 1;
     }
-    if(command == 0x6f)
+    if (command == 0x6f)
     {
         newXOR = data[2];
     }
-    if(command == 0x6e)
+    if (command == 0x6e)
     {
         newXOR = data[2] ^ 1;
     }
-    if(command == 0x3f)
+    if (command == 0x3f)
     {
         newXOR = data[2];
     }
-    if(command == 0x3e)
+    if (command == 0x3e)
     {
         newXOR = data[2] ^ 1;
     }
-    if(command == 0xcd)
+    if (command == 0xcd)
     {
         newXOR = data[2] ^ 1;
     }
-    if(command == 0x2f)
+    if (command == 0x2f)
     {
         newXOR = data[2];
     }
-    if(command == 0x4e)
+    if (command == 0x4e)
     {
         newXOR = 0;
     }
-    
-    LOG_D(APP_TAG,"Returning new XOR of %02x",newXOR);
-    LOG_V(APP_TAG,"END - getXOR");
+
+    LOG_D(APP_TAG, "Returning new XOR of %02x", newXOR);
+    LOG_V(APP_TAG, "END - getXOR");
     return newXOR;
 }
 uint8_t phev_core_getType(const uint8_t *data)
 {
-    uint8_t xor = 0; //phev_core_getXOR(data);
-
-    uint8_t type = data[2] ^ xor;
+    uint8_t type = data[2];
 
     return type;
 }
@@ -80,43 +265,18 @@ uint8_t phev_core_validateCommand(const uint8_t command)
 
     return 0;
 }
+/*
 uint8_t phev_core_getCommand(const uint8_t *data)
 {
-    uint8_t xor = 0; //phev_core_getXOR(data);
-
-    uint8_t command = phev_core_validateCommand(data[0] ^ xor);
-
-    if(command == 0)
-    {
-        LOG_E(APP_TAG,"Unknown command %02X",data[0] ^ xor);
-    }
     
+    uint8_t command = phev_core_validateCommand(data[0]);
+
+    if (command == 0)
+    {
+        LOG_E(APP_TAG, "Unknown command %02X", data[0]);
+    }
+
     return command;
-}
-uint8_t phev_core_getMessageLength(const uint8_t *data)
-{
-    uint8_t xor = 0; //phev_core_getXOR(data);
-    uint8_t command = phev_core_getCommand(data);
-
-    if ((command == 0xbb) || (command == 0xcd) || (command == 0xcc))
-        return 4;
-    uint8_t type = phev_core_getType(data);
-
-    uint8_t length = data[1] ^ xor;
-
-    return length;
-}
-uint8_t phev_core_getActualLength(const uint8_t *data)
-{
-    return phev_core_getMessageLength(data) + 2;
-}
-uint8_t phev_core_getActualLengthXOR(const uint8_t *data)
-{
-    return phev_core_getActualLength(data);
-}
-uint8_t phev_core_getDataLength(const uint8_t *data)
-{
-    return phev_core_getMessageLength(data) - 3;
 }
 uint8_t phev_core_getRegister(const uint8_t *data)
 {
@@ -124,17 +284,21 @@ uint8_t phev_core_getRegister(const uint8_t *data)
 
     uint8_t reg = data[3] ^ xor;
     return reg;
-}
+} */
 uint8_t * phev_core_getData(const uint8_t *data)
 {
-    uint8_t length = data[1] + 2;
-    uint8_t *decodedData = NULL;
+    uint8_t length = data[1] - 3;
+    
+    if(length == 0) 
+    {
+        LOG_D(APP_TAG,"No data in message");
+        return NULL;
+    }
+    uint8_t * messageData = malloc(length);
 
-    decodedData = malloc(length);
+    memcpy(messageData, data + 4, length);
 
-    memcpy(decodedData,data,length);
-
-    return decodedData;
+    return messageData;
 }
 uint8_t phev_core_checksum(const uint8_t *data)
 {
@@ -151,70 +315,9 @@ uint8_t phev_core_checksum(const uint8_t *data)
 }
 uint8_t phev_core_getChecksum(const uint8_t *data)
 {
-    uint8_t checksum = data[1] + 1;
+    uint8_t checksum = data[data[1] + 1];
 
     return checksum;
-}
-uint8_t * phev_core_xorData(const uint8_t * data)
-{
-    uint8_t xor = 0; //phev_core_getXOR(data);
-
-    uint8_t length = phev_core_getActualLength(data);
-    uint8_t * decoded = malloc(length);
-
-    for(int i=0;i<length;i++)
-    {
-        decoded[i] = data [i] ^ xor;
-    }
-    return decoded;
-}
-uint8_t * phev_core_xorDataWithValue(const uint8_t * data,uint8_t xor)
-{
-    LOG_V(APP_TAG,"START - xorDataWithValue");
-    
-    size_t length = (data[1] ^ xor) + 2;
-    
-    uint8_t * decoded = malloc(length);
-
-    LOG_D(APP_TAG,"Decoding data with length %d with XOR %02X",length,xor);
-    
-    for(int i=0;i<length;i++)
-    {
-        decoded[i] = data[i] ^ xor;
-    }
-    
-    LOG_BUFFER_HEXDUMP(APP_TAG, decoded, length, LOG_DEBUG);
-    LOG_V(APP_TAG,"END - xorDataWithValue");
-    
-    return decoded;
-}
-bool phev_core_validateChecksum(const uint8_t *data)
-{
-    uint8_t command = phev_core_getCommand(data);
-    if(command == 0xcc || command == 0xcd || command == 0xbb)
-    {
-        return true;
-    }
-    uint8_t checksum = data[data[1] + 1];
-    
-    /*
-    uint8_t * decoded = phev_core_xorData(data);
-
-    if(!decoded)
-    {
-        LOG_E(APP_TAG,"Decoded data is NULL");
-        return false;
-    }
-    
-    uint8_t expectedChecksum = phev_core_checksum(decoded);
-    */
-    uint8_t expectedChecksum = phev_core_checksum(data);
-    
-    LOG_D(APP_TAG,"Expected Checksum %02X Actual %02X\n",expectedChecksum,checksum);
-    
-    //free(decoded);
-
-    return checksum == expectedChecksum;
 }
 phevMessage_t *phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t *data, const size_t length)
 {
@@ -303,95 +406,37 @@ uint8_t *phev_core_unscramble(const uint8_t *data, const size_t len)
 
     return decodedData;
 }
-bool phev_core_validateMessage(const uint8_t * data, const size_t len)
-{
-    LOG_V(APP_TAG, "START - validateMessage");
-
-    if(data[2] > 1)
-    {
-        LOG_W(APP_TAG,"Validate message expects message to be already decoded");
-        return false;
-    }
-    
-    uint8_t command;
-    uint8_t length;
-    uint8_t type;
-    uint8_t reg;
-    uint8_t checksum;
-    uint8_t * messageData;
-
-    if(phev_core_validateChecksum(data))
-    {
-        command = phev_core_getCommand(data);
-
-        if(command == 0)
-        {
-            LOG_E(APP_TAG,"Invalid Command %02X",data[0]);
-            return false;
-        }
-            
-        length = phev_core_getDataLength(data);
-        if(length > len)
-        {
-            LOG_E(APP_TAG,"Invalid Length %02X",length);
-            return false;
-        }
-            
-        type = phev_core_getType(data);
-
-        if(type > 1)
-        {
-            LOG_E(APP_TAG,"Invalid Type %02X",data[2]);
-            return false;
-        }
-        
-        checksum = phev_core_getChecksum(data);
-        reg = phev_core_getRegister(data);
-
-        LOG_D(APP_TAG,"Valid message");
-        LOG_D(APP_TAG, "Command %02x Length %d type %d reg %02x checksum %02X", command,length, type, reg,checksum);
-        
-        messageData = phev_core_getData(data);
-        if (messageData != NULL && length > 0)
-        {
-            LOG_BUFFER_HEXDUMP(APP_TAG, messageData, length, LOG_DEBUG);
-        }
-        return true;    
-    }
-    return false;
-}
 int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t *msg)
 {
     LOG_V(APP_TAG, "START - decodeMessage");
-    
-    if(!data)
+
+    if (!data)
     {
-        LOG_E(APP_TAG,"Invalid pointer to data");
+        LOG_E(APP_TAG, "Invalid pointer to data");
         return 0;
     }
     LOG_BUFFER_HEXDUMP(APP_TAG, data, len, LOG_VERBOSE);
-    if(!msg) 
+    if (!msg)
     {
-        LOG_E(APP_TAG,"Invalid PhevMessage pointer");
+        LOG_E(APP_TAG, "Invalid PhevMessage pointer");
         return 0;
     }
-    
-    bool ret = phev_core_validateMessage(data,len);
 
-    if(ret) 
+    message_t * message = phev_core_extractAndDecodeMessageAndXOR(data);
+
+    if (message)
     {
-       
-        msg->command = data[0];
-        msg->length = data[1] - 3;
-        msg->type = data[2];
-        msg->reg = data[3];
-        msg->checksum = phev_core_getChecksum(data);
-        msg->data = phev_core_getData(data);
-        
-        return 1;
 
+        msg->command = message->data[0];
+        msg->length = message->data[1] - 3;
+        msg->type = message->data[2];
+        msg->reg = message->data[3];
+        msg->checksum = phev_core_getChecksum(message->data);
+        msg->data = phev_core_getData(message->data);
+
+        return 1;
     }
-    LOG_E(APP_TAG,"Invalid message");    
+    LOG_E(APP_TAG, "Invalid message");
     LOG_BUFFER_HEXDUMP(APP_TAG, data, len, LOG_ERROR);
     return 0;
 }
@@ -399,12 +444,12 @@ message_t *phev_core_extractMessage(const uint8_t *data, const size_t len, uint8
 {
     LOG_V(APP_TAG, "START - extractMessage");
 
-    uint8_t * encoded = phev_core_xorDataWithValue(data,xor);
+    uint8_t *encoded = phev_core_xorDataWithValue(data, xor);
 
     message_t *decoded = msg_utils_createMsg(encoded, encoded[1] + 2);
 
-    LOG_BUFFER_HEXDUMP("DECODED", decoded->data, decoded->data[1]+ 2, LOG_DEBUG);
-    
+    LOG_BUFFER_HEXDUMP("DECODED", decoded->data, decoded->data[1] + 2, LOG_DEBUG);
+
     return decoded;
 }
 
@@ -428,7 +473,7 @@ int phev_core_encodeMessage(phevMessage_t *message, uint8_t **data)
 
     d[message->length + 4] = phev_core_checksum(d);
 
-    *data = d;    
+    *data = d;
 
     LOG_D(APP_TAG, "Created message");
     LOG_BUFFER_HEXDUMP(APP_TAG, d, d[1] + 2, LOG_DEBUG);
@@ -475,7 +520,7 @@ phevMessage_t *phev_core_startMessage(const uint8_t *mac)
 {
     uint8_t *data = malloc(7);
     data[6] = 0;
-    
+
     return phev_core_requestMessage(START_SEND_MY18, 0x01, data, 7);
 }
 message_t *phev_core_startMessageEncoded(const uint8_t *mac)
@@ -498,7 +543,7 @@ phevMessage_t *phev_core_pingMessage(const uint8_t number)
 phevMessage_t *phev_core_responseHandler(phevMessage_t *message)
 {
     uint8_t command = ((message->command & 0xf) << 4) | ((message->command & 0xf0) >> 4);
-    phevMessage_t * response = phev_core_ackMessage(command, message->reg);
+    phevMessage_t *response = phev_core_ackMessage(command, message->reg);
     response->XOR = message->XOR;
     return response;
 }
@@ -532,30 +577,30 @@ phevMessage_t *phev_core_copyMessage(phevMessage_t *message)
 
     return out;
 }
-uint8_t * phev_core_xorDataOutbound(const uint8_t * data,uint8_t xor)
+uint8_t *phev_core_xorDataOutbound(const uint8_t *data, uint8_t xor)
 {
     uint8_t length = data[1] + 2;
-    
-    uint8_t * decoded = malloc(length);
 
-    for(int i=0;i<length;i++)
+    uint8_t *decoded = malloc(length);
+
+    for (int i = 0; i < length; i++)
     {
-        decoded[i] = data [i] ^ xor;
+        decoded[i] = data[i] ^ xor;
     }
     return decoded;
 }
 message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t xor)
 {
     LOG_V(APP_TAG, "START - XOROutboundMessage");
-    
+
     uint8_t xorWithType = xor;
     if (xor < 2)
-        return (message_t *) msg_utils_copyMsg((message_t *) message);
+        return (message_t *)msg_utils_copyMsg((message_t *)message);
 
     message_t *encoded = malloc(sizeof(message_t));
     encoded->data = malloc(message->length);
     encoded->length = message->length;
-    encoded->data = phev_core_xorDataOutbound(message->data,xor);
+    encoded->data = phev_core_xorDataOutbound(message->data, xor);
 
     LOG_V(APP_TAG, "END - XOROutboundMessage");
     return encoded;
@@ -563,20 +608,11 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
 message_t *phev_core_XORInboundMessage(const message_t *message, const uint8_t xor)
 {
     LOG_V(APP_TAG, "START - XORInboundMessage");
+
+    message_t * out = phev_core_extractMessage(message->data,message->length,xor);
     
-    if (xor < 2)
-        return (message_t *) msg_utils_copyMsg((message_t *) message);
-
-    
-    uint8_t type = phev_core_getType(message->data);
-
-    uint8_t len = phev_core_getActualLength(message->data);
-
-    message_t *decoded = malloc(sizeof(message_t));
-    decoded->length = len;
-    decoded->data = phev_core_xorData(message->data);
-
     LOG_V(APP_TAG, "END - XORInboundMessage");
-    
-    return decoded;
+
+    return out;
+
 }

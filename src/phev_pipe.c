@@ -628,6 +628,19 @@ void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEventHandler
     LOG_V(APP_TAG, "END - deregisterEventHandler");
 }
 
+void phev_pipe_checkXORChanged(phev_pipe_ctx_t * ctx, message_t * message)
+{
+    if(message->ctx != NULL)
+    {
+        uint8_t xor =phev_core_getMessageXOR(message);
+    
+        if(xor == ctx->currentXOR)
+        {
+            ctx->currentXOR = xor;
+            LOG_D(APP_TAG,"XOR changed to %02X from %02X",xor,ctx->currentXOR);
+        }
+    }
+}
 messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
 {
     LOG_V(APP_TAG, "START - outputSplitter");
@@ -647,16 +660,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     }
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
     
-    uint8_t xor = phev_core_getXOR(message->data, pipeCtx->currentXOR);
-
-    LOG_D(APP_TAG,"Current message XOR is %02X",xor);
-    if(xor != pipeCtx->currentXOR)
-    {
-        LOG_D(APP_TAG,"XOR Changed from %02X to %02X",pipeCtx->currentXOR,xor);
-        pipeCtx->currentXOR = xor;
-    }
-
-    message_t *out = phev_core_extractMessage(message->data, message->length, pipeCtx->currentXOR);
+    message_t * out = phev_core_extractMessageAndXOR(message->data);
 
     if (out == NULL)
     {
@@ -666,7 +670,8 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     LOG_D(APP_TAG,"Extract message output");
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
 
-    if (out == NULL) return NULL;
+
+    phev_pipe_checkXORChanged(pipeCtx,out);
 
     messageBundle_t *messages = malloc(sizeof(messageBundle_t));
 
@@ -677,18 +682,12 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
 
     while (message->length > total)
     {
-        xor = phev_core_getXOR(message->data + total, pipeCtx->currentXOR);
-        LOG_D(APP_TAG,"Current message XOR is %02X",xor);
-        if(xor != pipeCtx->currentXOR)
-        {
-            LOG_D(APP_TAG,"XOR Changed from %02X to %02X",pipeCtx->currentXOR,xor);
-            pipeCtx->currentXOR = xor;
-        }
-        out = phev_core_extractMessage(message->data + total, message->length - total, pipeCtx->currentXOR);
+        out = phev_core_extractMessageAndXOR(message->data + total);
         LOG_D(APP_TAG,"Extract message output");
         LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
         if (out != NULL)
         {
+            phev_pipe_checkXORChanged(pipeCtx,out);
             total += out->length;
             messages->messages[messages->numMessages++] = msg_utils_copyMsg(out);
         }

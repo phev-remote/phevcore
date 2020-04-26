@@ -144,6 +144,14 @@ uint8_t phev_core_getType(const uint8_t *data);
 
 bool phev_core_validateChecksum(const uint8_t *data);
 
+message_t * phev_core_extractMessageAndXOR(const uint8_t * data);
+
+message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data);
+
+message_t * phev_core_createMsgXOR(const uint8_t * data, const size_t length, const uint8_t xor);
+
+uint8_t phev_core_getMessageXOR(const message_t * message);
+
 #define phev_core_strdup(...) strdup(...)
 
 #endif

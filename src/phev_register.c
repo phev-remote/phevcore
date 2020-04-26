@@ -109,7 +109,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_I(TAG,"Remote security present info");
             regCtx->remoteSecurity = true;
             
-            //phev_register_sendRegister(ctx);
+            phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_REG_DISP: {
@@ -120,7 +120,11 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         }
         case PHEV_PIPE_MAX_REGISTRATIONS: {
             LOG_E(TAG,"Max number of allowed registrations");
-            regCtx->errorHandler(event);
+            phevError_t error = {
+                .message = "Maximum number of registrations"
+            };
+            regCtx->errorHandler(&event);
+            return 1;
         }
         default : {
             LOG_W(TAG, "Unknown event %d\n",event->event);

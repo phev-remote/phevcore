@@ -168,6 +168,7 @@ void test_phev_pipe_sendMac(void)
     TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
 
 }
+/* No longer required for MY18
 void test_phev_pipe_start(void)
 {
     test_pipe_global_message_idx = 0;
@@ -200,7 +201,7 @@ void test_phev_pipe_start(void)
     TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
     TEST_ASSERT_EQUAL_MEMORY(expected,test_pipe_global_message[0]->data,sizeof(expected));
 
-}
+} */
 void test_phev_pipe_start_my18(void)
 {
     test_pipe_global_message_idx = 0;
@@ -780,39 +781,191 @@ void test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response(void)
 }
 void test_phev_pipe_splitter_one_message(void)
 {
-    uint8_t msg_data[] = {0x6f,0x04,0x01,0x02,0x00,0xff};
+    uint8_t msg_data[] = {0x3F,0x04,0x01,0x02,0x00,0x46};
+
+        messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     
     message_t * message = malloc(sizeof(message_t));
 
     message->data = msg_data;
     message->length = sizeof(msg_data);
     
-    messageBundle_t * messages = phev_pipe_outputSplitter(NULL, message);
+    messageBundle_t * messages = phev_pipe_outputSplitter(ctx, message);
 
     TEST_ASSERT_EQUAL(1, messages->numMessages);
 } 
 void test_phev_pipe_splitter_two_messages(void)
 {
-    uint8_t msg_data[] = {0x6f,0x04,0x01,0x01,0x00,0xff,0x6f,0x04,0x01,0x02,0x00,0xff};
-    const uint8_t msg1_data[] = {0x6f,0x04,0x01,0x01,0x00,0xff};
-    const uint8_t msg2_data[] = {0x6f,0x04,0x01,0x02,0x00,0xff};
+
+    uint8_t msg_data[] = {0x4E,0x0C,0x00,0x01,0x04,0x69,0x1D,0x04,0x61,0x94,0xF2,0x3F,0x02,0x11,0x3F,0x04,0x01,0x02,0x00,0x46};
+    const uint8_t msg1_data[] = {0x4E,0x0C,0x00,0x01,0x04,0x69,0x1D,0x04,0x61,0x94,0xF2,0x3F,0x02,0x11};
+    const uint8_t msg2_data[] = {0x3F,0x04,0x01,0x02,0x00,0x46};
+        messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
     
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
+
     message_t * message = malloc(sizeof(message_t));
     
     message->data = msg_data;
     message->length = sizeof(msg_data);
      
-    messageBundle_t * messages = phev_pipe_outputSplitter(NULL, message);
+    messageBundle_t * messages = phev_pipe_outputSplitter(ctx, message);
 
     TEST_ASSERT_NOT_NULL(messages);
     TEST_ASSERT_EQUAL(2, messages->numMessages);
-    TEST_ASSERT_EQUAL(6, messages->messages[0]->length);
+    TEST_ASSERT_EQUAL(14, messages->messages[0]->length);
     TEST_ASSERT_EQUAL(6, messages->messages[1]->length);
     
-    TEST_ASSERT_EQUAL_MEMORY(msg1_data, messages->messages[0]->data, 6);
+    TEST_ASSERT_EQUAL_MEMORY(msg1_data, messages->messages[0]->data, 14);
     TEST_ASSERT_EQUAL_MEMORY(msg2_data, messages->messages[1]->data, 6);
 
 }
+void test_phev_pipe_splitter_one_encoded_message(void)
+{
+    uint8_t msg_data[] = {0xFD,0xC6,0xC3,0xDA,0xC2,0x9E};
+
+        messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
+    
+    message_t * message = malloc(sizeof(message_t));
+
+    message->data = msg_data;
+    message->length = sizeof(msg_data);
+    
+    messageBundle_t * messages = phev_pipe_outputSplitter(ctx, message);
+
+    TEST_ASSERT_EQUAL(1, messages->numMessages);
+    TEST_ASSERT_EQUAL_MEMORY(msg_data,messages->messages[0]->data,sizeof(msg_data));
+    TEST_ASSERT_EQUAL(0xc2, phev_core_getMessageXOR(messages->messages[0]));
+} 
+void test_phev_pipe_splitter_two_encoded_messages(void)
+{
+
+    uint8_t msg_data[] = {0xFD,0xC6,0xC3,0xD9,0xC2,0x9D,0xAD,0xCB,0xC2,0xE0,0xC2,0xC2,0x3D,0xBD,0x3D,0xC3,0xDA};
+    const uint8_t msg1_data[] = {0xFD,0xC6,0xC3,0xD9,0xC2,0x9D};
+    const uint8_t msg2_data[] = {0xAD,0xCB,0xC2,0xE0,0xC2,0xC2,0x3D,0xBD,0x3D,0xC3,0xDA};
+        messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
+
+    message_t * message = malloc(sizeof(message_t));
+    
+    message->data = msg_data;
+    message->length = sizeof(msg_data);
+     
+    messageBundle_t * messages = phev_pipe_outputSplitter(ctx, message);
+
+    TEST_ASSERT_NOT_NULL(messages);
+    TEST_ASSERT_EQUAL(2, messages->numMessages);
+    TEST_ASSERT_EQUAL(sizeof(msg1_data), messages->messages[0]->length);
+    TEST_ASSERT_EQUAL(sizeof(msg2_data), messages->messages[1]->length);
+    
+    TEST_ASSERT_EQUAL_MEMORY(msg1_data, messages->messages[0]->data, sizeof(msg1_data));
+    TEST_ASSERT_EQUAL_MEMORY(msg2_data, messages->messages[1]->data, sizeof(msg2_data));
+    TEST_ASSERT_EQUAL(0xc2, phev_core_getMessageXOR(messages->messages[0]));
+    TEST_ASSERT_EQUAL(0xc2, phev_core_getMessageXOR(messages->messages[1]));
+
+}
+
 void test_phev_pipe_no_input_connection(void)
 {
     test_pipe_global_message_idx = 0;
