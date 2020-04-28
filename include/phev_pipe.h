@@ -106,6 +106,7 @@ typedef struct phev_pipe_ctx_t
     phevErrorHandler_t errorHandler;
     time_t lastPingTime;
     uint8_t currentPing;
+    uint8_t pingResponse;
     bool connected;
     phev_pipe_updateRegisterCtx_t *updateRegisterCallbacks;
     uint8_t currentXOR;
