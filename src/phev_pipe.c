@@ -194,15 +194,20 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     
     if(message->ctx != NULL) 
     {
-        //uint8_t xor = phev_core_getMessageXOR(message->data);
-        //LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
-        //pipeCtx->currentXOR = xor;
+        uint8_t xor = phev_core_getMessageXOR(message);
+        LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
+        pipeCtx->currentXOR = xor;
     }
     
-    if(phevMessage->command == 0xbb || phevMessage->command == 0xCC)
+    if(phevMessage->command == 0xcc) 
     {
-        pipeCtx->currentXOR = phevMessage->data[0];
-        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->currentXOR);
+        pipeCtx->commandXOR = phevMessage->data[0];
+        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
+    }
+    if(phevMessage->command == 0xbb) 
+    {
+        pipeCtx->pingXOR = phevMessage->data[0];
+        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
     } 
     
     
@@ -256,7 +261,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     }
     if (out)
     {            
-        message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(out));
+        message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
         
         out = encoded;
     
@@ -740,7 +745,7 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
     message_t *message = phev_core_convertToMessage(dateCmd);
     
 #ifndef NO_TIME_SYNC
-    phev_pipe_outboundPublish(ctx, message);
+    phev_pipe_commandOutboundPublish(ctx, message);
 #endif
     LOG_V(APP_TAG, "END - sendTimeSync");
 }
@@ -756,7 +761,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     message_t *message = phev_core_convertToMessage(ping);
     
 #ifndef NO_PING
-    phev_pipe_outboundPublish(ctx, message);
+    phev_pipe_pingOutboundPublish(ctx, message);
 #endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
@@ -831,7 +836,7 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t re
 
     LOG_W(APP_TAG, "Cannot add update register handler too many allocated");
 }
-void phev_pipe_ping_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
+void phev_pipe_pingOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - pingOutboundPublish");
 
@@ -843,7 +848,7 @@ void phev_pipe_ping_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
 
     return;
 }
-void phev_pipe_command_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
+void phev_pipe_commandOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - commandOutboundPublish");
 
