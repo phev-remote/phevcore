@@ -164,6 +164,7 @@ phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
     ctx->pingXOR = 0;
     ctx->commandXOR = 0;
     ctx->encrypt = false;
+    ctx->pingResponse = 0;
 
     phev_pipe_resetPing(ctx);
 
@@ -201,14 +202,21 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     
     if(phevMessage->command == 0xcc) 
     {
-        pipeCtx->commandXOR = phevMessage->data[0];
+        //pipeCtx->commandXOR = phevMessage->data[0];
         LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
     }
     if(phevMessage->command == 0xbb) 
     {
         pipeCtx->pingXOR = phevMessage->data[0];
+        pipeCtx->commandXOR = phevMessage->data[0];
         LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
     } 
+    if(phevMessage->command == 0x3f)
+    {
+        pipeCtx->pingResponse = phevMessage->reg;
+        
+        
+    }
     
     
 
