@@ -68,11 +68,13 @@ uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 
     uint8_t length = (data[1] ^ xor) + 2;
 
+    if(length > 1023) return NULL;
+
     for (int i = 0; i < length; i++)
     {
         decoded[i] = data[i] ^ xor;
     }
-    return &decoded;
+    return (uint8_t *) decoded;
 }
 static uint8_t *decode(const uint8_t *message)
 {
