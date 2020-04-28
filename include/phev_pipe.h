@@ -109,6 +109,9 @@ typedef struct phev_pipe_ctx_t
     bool connected;
     phev_pipe_updateRegisterCtx_t *updateRegisterCallbacks;
     uint8_t currentXOR;
+    uint8_t pingXOR;
+    uint8_t commandXOR;
+    bool encrypt;
     void *ctx;
 } phev_pipe_ctx_t;
 
@@ -151,6 +154,8 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
 void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback, void * customCtx);
 phevPipeEvent_t *phev_pipe_createRegisterEvent(phev_pipe_ctx_t *phevCtx, phevMessage_t *phevMessage);
 void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
+void phev_pipe_pingOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
+void phev_pipe_commandOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
 
 //void phev_pipe_sendCommand(phev_core_command_t);
 

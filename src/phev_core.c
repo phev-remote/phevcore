@@ -147,13 +147,10 @@ message_t * phev_core_extractMessageAndXOR(const uint8_t *data)
 }
 uint8_t phev_core_getMessageXOR(const message_t * message)
 {
-    if(message)
+    if(message != NULL && message->ctx != NULL)
     {
-        if(message->ctx != NULL)
-        {
-            uint8_t * xor = (uint8_t *) message->ctx;
-            return xor[0];
-        }
+        uint8_t * xor = (uint8_t *) message->ctx;
+        return xor[0];
     }
 
     return 0;
@@ -181,8 +178,6 @@ message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data)
     }
 
     uint8_t xor = phev_core_getMessageXOR(message);
-
-    printf("<<>> %02X\n",xor);
 
     uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
 
@@ -433,6 +428,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         msg->reg = message->data[3];
         msg->checksum = phev_core_getChecksum(message->data);
         msg->data = phev_core_getData(message->data);
+        msg->XOR = phev_core_getMessageXOR(message);
 
         return 1;
     }
@@ -555,7 +551,7 @@ message_t *phev_core_convertToMessage(phevMessage_t *message)
 
     size_t length = phev_core_encodeMessage(message, &data);
 
-    message_t *out = msg_utils_createMsg(data, length);
+    message_t *out = phev_core_createMsgXOR(data, length,message->XOR);
 
     free(data);
 
@@ -593,14 +589,9 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
 {
     LOG_V(APP_TAG, "START - XOROutboundMessage");
 
-    uint8_t xorWithType = xor;
-    if (xor < 2)
-        return (message_t *)msg_utils_copyMsg((message_t *)message);
+    uint8_t * data = phev_core_xorDataOutbound(message->data, xor);
 
-    message_t *encoded = malloc(sizeof(message_t));
-    encoded->data = malloc(message->length);
-    encoded->length = message->length;
-    encoded->data = phev_core_xorDataOutbound(message->data, xor);
+    message_t * encoded = msg_utils_createMsg(data,message->data[1] + 2);
 
     LOG_V(APP_TAG, "END - XOROutboundMessage");
     return encoded;
