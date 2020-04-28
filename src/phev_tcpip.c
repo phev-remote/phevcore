@@ -59,19 +59,20 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
-const static int loglvl = LOG_DEBUG;
+const static int loglvl = LOG_INFO;
+
+static uint8_t decoded[1024];
 
 uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 {
 
     uint8_t length = (data[1] ^ xor) + 2;
-    uint8_t *decoded = malloc(length);
 
     for (int i = 0; i < length; i++)
     {
         decoded[i] = data[i] ^ xor;
     }
-    return decoded;
+    return &decoded;
 }
 static uint8_t *decode(const uint8_t *message)
 {
@@ -169,15 +170,7 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     {
         return -1;
     }
-    if (read_len > 2)
-    {
-        uint8_t * decoded = decode(buffer);
-        if (decoded)
-        {
-   //         phexdump("<< DECODED ", decoded, read_len, LOG_INFO);
-        }
-    }
-    //phexdump(">>", buffer, read_len, LOG_INFO);
+    
     return read_len;
 }
 #ifdef _WIN32
@@ -348,7 +341,6 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
         if (decoded)
         {
             LOG_BUFFER_HEXDUMP("WRITE DECODED",decoded,num,loglvl);
-            //phexdump(">> DECODED ", decoded, num, LOG_INFO);
         }
     }
     LOG_V(APP_TAG, "END - write");
