@@ -38,6 +38,8 @@ bool phev_core_checkCommand(const uint8_t command)
         return true;
     case 0x4e:
         return true;
+    case 0x5e:
+        return true;
     case 0xBB:
         return true;
     case 0xCC:
@@ -83,17 +85,22 @@ message_t *phev_core_unencodedMessage(const uint8_t *data)
         {
         case 0x4e:
         {
-            LOG_V(APP_TAG, "Start unencoded");
+            LOG_D(APP_TAG, "Start (4E) unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0x5e:
+        {
+            LOG_D(APP_TAG, "Start (5E) unencoded");
             return msg_utils_createMsg(data, length);
         }
         case 0x3f:
         {
-            LOG_V(APP_TAG, "Ping response unencoded");
+            LOG_D(APP_TAG, "Ping response unencoded");
             return msg_utils_createMsg(data, length);
         }
         case 0x6f:
         {
-            LOG_V(APP_TAG, "Command unencoded");
+            LOG_D(APP_TAG, "Command unencoded");
             return msg_utils_createMsg(data, length);
         }
         }

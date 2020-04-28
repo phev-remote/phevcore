@@ -240,9 +240,9 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             LOG_V(APP_TAG, "END - commandResponder");
             return NULL;
         }
-        if(phevMsg.command == 0x4e)
+        if(phevMsg.command == 0x4e || phevMsg.command == 0x5e)
         {
-            LOG_D(APP_TAG, "4E Command does not get encrypted response");
+            LOG_D(APP_TAG, "%02X Command does not get encrypted response",phevMsg.command);
             LOG_BUFFER_HEXDUMP(APP_TAG,phevMsg.data,phevMsg.length,LOG_DEBUG);
             phevMessage_t *msg = phev_core_responseHandler(&phevMsg);
             LOG_D(APP_TAG, "Responded with command %02X  type %d", phevMsg.command,phevMsg.type);

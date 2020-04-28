@@ -101,7 +101,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         case PHEV_PIPE_ECU_VERSION2: {
             LOG_I(TAG,"ECU version");
             regCtx->ecu = true;
-             phev_register_sendRegister(ctx);
+            phev_register_sendRegister(ctx);
             
             break;
         };
@@ -116,6 +116,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_I(TAG,"Registration Acknowledged");
 
             regCtx->registrationAck = true;   
+            regCtx->complete(regCtx);
             break;
         }
         case PHEV_PIPE_MAX_REGISTRATIONS: {
