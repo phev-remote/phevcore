@@ -434,7 +434,8 @@ void test_phev_pipe_ping_even_xor(void)
     };
 
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
-    ctx->currentXOR = 0x30;
+    ctx->pingXOR = 0x30;
+
     ctx->currentPing = 0x17;
     phev_pipe_ping(ctx);
     TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
@@ -475,7 +476,7 @@ void test_phev_pipe_ping_odd_xor(void)
     };
 
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
-    ctx->currentXOR = 0x67;
+    ctx->pingXOR = 0x67;
     ctx->currentPing = 0x22;
     phev_pipe_ping(ctx);
     TEST_ASSERT_NOT_NULL(test_pipe_global_message[0]);
