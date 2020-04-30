@@ -144,9 +144,13 @@ uint8_t phev_core_getType(const uint8_t *data);
 
 bool phev_core_validateChecksum(const uint8_t *data);
 
-message_t * phev_core_extractMessageAndXOR(const uint8_t * data);
+message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t * data);
 
-message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data);
+message_t * phev_core_extractOutgoingMessageAndXOR(const uint8_t * data);
+
+message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data);
+
+message_t * phev_core_extractAndDecodeOutgoingMessageAndXOR(const uint8_t *data);
 
 message_t * phev_core_createMsgXOR(const uint8_t * data, const size_t length, const uint8_t xor);
 

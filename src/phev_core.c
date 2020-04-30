@@ -28,7 +28,7 @@ uint8_t *phev_core_xorDataWithValue(const uint8_t *data, const uint8_t xor)
 
     return decoded;
 }
-bool phev_core_checkCommand(const uint8_t command)
+bool phev_core_checkIncomingCommand(const uint8_t command)
 {
     switch (command)
     {
@@ -50,6 +50,29 @@ bool phev_core_checkCommand(const uint8_t command)
         return false;
     }
 }
+bool phev_core_checkOutgoingCommand(const uint8_t command)
+{
+    switch (command)
+    {
+    case 0xf3:
+        return true;
+    case 0xf6:
+        return true;
+    case 0xe4:
+        return true;
+    case 0xe5:
+        return true;
+    case 0xBB:
+        return true;
+    case 0xCC:
+        return true;
+    case 0xf2:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool phev_core_validateChecksum(const uint8_t *data)
 {
     uint8_t length = data[1] + 2;
@@ -74,7 +97,7 @@ bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor)
     
     return phev_core_validateChecksum(decodedData);
 }
-message_t *phev_core_unencodedMessage(const uint8_t *data)
+message_t *phev_core_unencodedIncomingMessage(const uint8_t *data)
 {
     uint8_t command = data[0];
     uint8_t length = data[1] + 2;
@@ -108,13 +131,48 @@ message_t *phev_core_unencodedMessage(const uint8_t *data)
     LOG_E(APP_TAG,"Unknown unencoded command %02X", command);
     return NULL;
 }
-message_t *phev_core_encodedMessage(const uint8_t *data)
+message_t *phev_core_unencodedOutgoingMessage(const uint8_t *data)
+{
+    uint8_t command = data[0];
+    uint8_t length = data[1] + 2;
+
+    if(phev_core_validateChecksum(data))
+    {
+        switch (data[0])
+        {
+        case 0xe4:
+        {
+            LOG_D(APP_TAG, "Start (E4) unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0xe5:
+        {
+            LOG_D(APP_TAG, "Start (E5) unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0xf3:
+        {
+            LOG_D(APP_TAG, "Ping response unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0xf6:
+        {
+            LOG_D(APP_TAG, "Command unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        }
+    }
+    LOG_E(APP_TAG,"Unknown unencoded command %02X", command);
+    return NULL;
+}
+
+message_t *phev_core_encodedIncomingMessage(const uint8_t *data)
 {
     uint8_t xor = data[2];
     uint8_t command = data[0] ^ xor;
     uint8_t length = (data[1] ^ xor) + 2;
 
-    if (phev_core_checkCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    if (phev_core_checkIncomingCommand(command) && phev_core_validateChecksumXOR(data, xor))
     {
         message_t * message = phev_core_createMsgXOR(data,length,xor);
         return message;
@@ -124,7 +182,7 @@ message_t *phev_core_encodedMessage(const uint8_t *data)
     command = data[0] ^ xor;
     length = (data[1] ^ xor) + 2;
 
-    if (phev_core_checkCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    if (phev_core_checkIncomingCommand(command) && phev_core_validateChecksumXOR(data, xor))
     {
         return phev_core_createMsgXOR(data, length, xor);
     }
@@ -133,22 +191,66 @@ message_t *phev_core_encodedMessage(const uint8_t *data)
 
     return NULL;
 }
-message_t * phev_core_extractMessageAndXOR(const uint8_t *data)
+message_t *phev_core_encodedOutgoingMessage(const uint8_t *data)
 {
-    LOG_V(APP_TAG, "START - extractMessageAndXOR");
+    uint8_t xor = data[2];
+    uint8_t command = data[0] ^ xor;
+    uint8_t length = (data[1] ^ xor) + 2;
+
+    if (phev_core_checkOutgoingCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    {
+        message_t * message = phev_core_createMsgXOR(data,length,xor);
+        return message;
+    }
+
+    xor ^= 1;
+    command = data[0] ^ xor;
+    length = (data[1] ^ xor) + 2;
+
+    if (phev_core_checkOutgoingCommand(command) && phev_core_validateChecksumXOR(data, xor))
+    {
+        return phev_core_createMsgXOR(data, length, xor);
+    }
+
+    LOG_E(APP_TAG,"Unknown encoded command %02X or %02X", command, command ^ 1);
+
+    return NULL;
+}
+message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t *data)
+{
+    LOG_V(APP_TAG, "START - extractIncomingMessageAndXOR");
 
     message_t *message = NULL;
 
-    if (phev_core_checkCommand(data[0]))
+    if (phev_core_checkIncomingCommand(data[0]))
     {
-        message = phev_core_unencodedMessage(data);
+        message = phev_core_unencodedIncomingMessage(data);
     }
     else
     {
-        message = phev_core_encodedMessage(data);
+        message = phev_core_encodedIncomingMessage(data);
     }
 
-    LOG_V(APP_TAG, "END - extractMessageAndXOR");
+    LOG_V(APP_TAG, "END - extractIncomingMessageAndXOR");
+
+    return message;
+}
+message_t * phev_core_extractOutgoingMessageAndXOR(const uint8_t *data)
+{
+    LOG_V(APP_TAG, "START - extractOutgoingMessageAndXOR");
+
+    message_t *message = NULL;
+
+    if (phev_core_checkOutgoingCommand(data[0]))
+    {
+        message = phev_core_unencodedOutgoingMessage(data);
+    }
+    else
+    {
+        message = phev_core_encodedOutgoingMessage(data);
+    }
+
+    LOG_V(APP_TAG, "END - extractOutgoingMessageAndXOR");
 
     return message;
 }
@@ -172,11 +274,11 @@ message_t * phev_core_createMsgXOR(const uint8_t * data, const size_t length, co
 
     return message;
 }
-message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data)
+message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data)
 {
-    LOG_V(APP_TAG, "START - extractAndDecodeMessageAndXOR");
+    LOG_V(APP_TAG, "START - extractAndDecodeIncomingMessageAndXOR");
 
-    message_t * message = phev_core_extractMessageAndXOR(data);
+    message_t * message = phev_core_extractIncomingMessageAndXOR(data);
 
     if(message == NULL)
     {
@@ -193,11 +295,35 @@ message_t * phev_core_extractAndDecodeMessageAndXOR(const uint8_t *data)
     free(decodedData);
     //msg_utils_destroyMsg(message);
 
-    LOG_V(APP_TAG, "END - extractAndDecodeMessageAndXOR");
+    LOG_V(APP_TAG, "END - extractAndDecodeIncomingMessageAndXOR");
 
     return decoded;
 }
+message_t * phev_core_extractAndDecodeOutgoingMessageAndXOR(const uint8_t *data)
+{
+    LOG_V(APP_TAG, "START - extractAndDecodeOutgoingMessageAndXOR");
 
+    message_t * message = phev_core_extractOutgoingMessageAndXOR(data);
+
+    if(message == NULL)
+    {
+        LOG_W(APP_TAG,"Cannot extract message");
+        return NULL;
+    }
+
+    uint8_t xor = phev_core_getMessageXOR(message);
+
+    uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
+
+    message_t * decoded = phev_core_createMsgXOR(decodedData,message->length,xor);
+
+    free(decodedData);
+    //msg_utils_destroyMsg(message);
+
+    LOG_V(APP_TAG, "END - extractAndDecodeOutgoingMessageAndXOR");
+
+    return decoded;
+}
 uint8_t phev_core_getXOR(const uint8_t *data, const uint8_t xor)
 {
     LOG_V(APP_TAG, "START - getXOR");
@@ -424,7 +550,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         return 0;
     }
 
-    message_t * message = phev_core_extractAndDecodeMessageAndXOR(data);
+    message_t * message = phev_core_extractAndDecodeIncomingMessageAndXOR(data);
 
     if (message)
     {

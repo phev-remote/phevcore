@@ -688,7 +688,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     }
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
     
-    message_t * out = phev_core_extractMessageAndXOR(message->data);
+    message_t * out = phev_core_extractIncomingMessageAndXOR(message->data);
 
     if (out == NULL)
     {
@@ -710,7 +710,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
 
     while (message->length > total)
     {
-        out = phev_core_extractMessageAndXOR(message->data + total);
+        out = phev_core_extractIncomingMessageAndXOR(message->data + total);
         LOG_D(APP_TAG,"Extract message output");
         LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
         if (out != NULL)

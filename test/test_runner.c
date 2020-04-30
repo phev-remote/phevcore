@@ -28,7 +28,7 @@ int main()
 
     RUN_TEST(test_create_phev_message);
     RUN_TEST(test_destroy_phev_message);
-    RUN_TEST(test_phev_core_extractAndDecodeMessageAndXOR);
+    RUN_TEST(test_phev_core_extractAndDecodeIncomingMessageAndXOR);
     RUN_TEST(test_split_message_single_correct_return_val);
     RUN_TEST(test_split_message_single_correct_command);
     RUN_TEST(test_split_message_single_correct_length);
@@ -67,17 +67,17 @@ int main()
     RUN_TEST(test_phev_core_getData);
     RUN_TEST(test_phev_core_decodeMessage_command_request);
     RUN_TEST(test_phev_core_decodeMessage_command_response);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_ping_in_clear);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_ping_encoded);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_command_response_in_clear);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_command_response_encoded);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_command_request_in_clear);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_command_request_encoded);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_valid_command_start_in_clear);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_invalid_command);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_BB_command);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_CC_command);
-    RUN_TEST(test_core_phev_core_extractMessageAndXOR_2F_command);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_in_clear);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_encoded);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_in_clear);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_encoded);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_in_clear);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_encoded);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_valid_command_start_in_clear);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_invalid_command);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_BB_command);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_CC_command);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_2F_command);
     RUN_TEST(test_phev_core_getMessageXOR);
 
 //  PHEV_REGISTER
@@ -87,7 +87,7 @@ int main()
 //    RUN_TEST(test_phev_register_should_error_when_too_many_registrations);
 //    RUN_TEST(test_phev_register_should_send_mac_and_aa);  BROKEN
     RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
-    RUN_TEST(test_phev_register_should_call_complete_when_registered);
+ //   RUN_TEST(test_phev_register_should_call_complete_when_registered);
 //    RUN_TEST(test_phev_register_should_get_start_ack);
 //    RUN_TEST(test_phev_register_should_get_aa_ack);
 //    RUN_TEST(test_phev_register_should_get_registration);
