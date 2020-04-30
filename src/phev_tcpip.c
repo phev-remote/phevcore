@@ -349,3 +349,8 @@ int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len)
 
     return num;
 }
+int phev_tcpClientDisconnectSocket(int soc)
+{
+    close(soc);
+    return 0;
+}

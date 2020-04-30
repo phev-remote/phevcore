@@ -114,13 +114,18 @@ message_t * phev_incomingHandler(messagingClient_t *client)
 messagingClient_t * phev_createIncomingMessageClient(void)
 {
     LOG_V(TAG,"START - createIncomingMessageClient");
-    
+
     messagingSettings_t inSettings = {
         .incomingHandler = phev_incomingHandler,
         .outgoingHandler = phev_outgoingHandler,
+        .connect = NULL,
+        .disconnect = NULL,
+        .start = NULL,
+        .stop = NULL,
     };
 
     messagingClient_t *in = msg_core_createMessagingClient(inSettings);
+
     LOG_V(TAG,"END - createIncomingMessageClient");
     
     return in;
@@ -132,6 +137,7 @@ messagingClient_t * phev_createOutgoingMessageClient(const char * host, const ui
     
     tcpIpSettings_t outSettings = {
         .connect = phev_tcpClientConnectSocket,
+        .disconnect = phev_tcpClientDisconnectSocket,
         .read = phev_tcpClientRead,
         .write = phev_tcpClientWrite,
         .host = strdup(host),

@@ -9,6 +9,8 @@
 
 int phev_tcpClientConnectSocket(const char *host, uint16_t port);
 
+int phev_tcpClientDisconnectSocket(int soc);
+
 int phev_tcpClientRead(int soc, uint8_t *buf, size_t len);
 
 int phev_tcpClientWrite(int soc, uint8_t *buf, size_t len);

@@ -15,24 +15,37 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
     ctx->connected = false;
     int retries = 0;
 
+    if (!ctx->pipe->in->connected)
+    {
+        LOG_V(APP_TAG, "Calling in connect");
+        msg_pipe_in_connect(ctx->pipe);
+    }
+    if (!ctx->pipe->out->connected)
+    {
+        LOG_V(APP_TAG, "Calling out connect");
+        msg_pipe_out_connect(ctx->pipe);
+    }
     while (!(ctx->pipe->in->connected && ctx->pipe->out->connected))
     {
         LOG_I(APP_TAG, "Not connected waiting...");
-        if (!ctx->pipe->in->connected)
-        {
-            msg_pipe_in_connect(ctx->pipe);
-        }
-        if (!ctx->pipe->out->connected)
-        {
-            msg_pipe_out_connect(ctx->pipe);
-        }
         SLEEP(PHEV_CONNECT_WAIT_TIME);
-        retries++;
         if (retries > PHEV_CONNECT_MAX_RETRIES)
         {
             LOG_E(APP_TAG, "Max retries reached");
             return;
         }
+
+        if (!ctx->pipe->in->connected)
+        {
+            LOG_V(APP_TAG, "Calling in connect");
+            msg_pipe_in_connect(ctx->pipe);
+        }
+        if (!ctx->pipe->out->connected)
+        {
+            LOG_V(APP_TAG, "Calling out connect");
+            msg_pipe_out_connect(ctx->pipe);
+        }
+        retries++;    
     }
 
     ctx->connected = true;
@@ -51,8 +64,10 @@ void phev_pipe_loop(phev_pipe_ctx_t *ctx)
     {
         phev_pipe_waitForConnection(ctx);
     }
+
     if (ctx->pipe->out->connected)
     {
+        LOG_V(APP_TAG, "Sending ping");
         time(&now);
         if (now > ctx->lastPingTime)
         {
@@ -139,6 +154,7 @@ phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
         .in_chain = inputChain,
         .out_chain = outputChain,
         .preOutConnectHook = settings.preConnectHook,
+        .preInConnectHook = NULL,
     };
 
     ctx->pipe = msg_pipe(pipe_settings);
