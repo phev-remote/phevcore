@@ -1,4 +1,5 @@
 FROM ubuntu:latest
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install gcc cmake git
 WORKDIR /phev
 RUN git clone https://github.com/ThrowTheSwitch/Unity.git
