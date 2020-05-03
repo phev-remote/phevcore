@@ -56,7 +56,7 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
     phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,1);
     message_t * message = phev_core_convertToMessage(reg);
 
-    phev_pipe_outboundPublish(ctx,  message);
+    phev_pipe_commandOutboundPublish(ctx,  message);
 //    free(message);
     LOG_V(TAG,"END - sendRegister");
     
@@ -78,13 +78,13 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             phev_register_sendRegister(ctx);
             LOG_I(TAG,"Got VIN %s",vin);
             if(vin) regCtx->vin = strdup(vin);
-            phev_register_sendMac(ctx);
+            //phev_register_sendMac(ctx);
             break;
         }
         case PHEV_PIPE_START_ACK: {
             LOG_I(TAG,"Start acknowledged");
             regCtx->startAck = true;
-            //phev_register_sendRegister(ctx);
+            phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_CONNECTED: {
@@ -117,6 +117,8 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 
             regCtx->registrationAck = true;   
             regCtx->complete(regCtx);
+            LOG_I(TAG,"REGISTERED");
+            while(true);
             break;
         }
         case PHEV_PIPE_MAX_REGISTRATIONS: {
