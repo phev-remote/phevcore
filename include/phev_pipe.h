@@ -113,6 +113,7 @@ typedef struct phev_pipe_ctx_t
     uint8_t pingXOR;
     uint8_t commandXOR;
     bool encrypt;
+    bool registerDevice;
     void *ctx;
 } phev_pipe_ctx_t;
 
@@ -134,6 +135,7 @@ typedef struct phev_pipe_settings_t
     msg_pipe_transformer_t outputOutputTransformer;
     msg_pipe_connectHook_t preConnectHook;
     phevErrorHandler_t errorHandler;
+    bool registerDevice;
     void *ctx;
 } phev_pipe_settings_t;
 

@@ -3,9 +3,9 @@
 #include "msg_utils.h"
 #include "logger.h"
 
-//#define NO_PING
-//#define NO_CMD_RESP
-//#define NO_TIME_SYNC
+#define NO_PING
+#define NO_CMD_RESP
+#define NO_TIME_SYNC
 
 const static char *APP_TAG = "PHEV_PIPE";
 
@@ -96,30 +96,6 @@ void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac)
     phev_pipe_outboundPublish(ctx, message);
     phev_pipe_sendMac(ctx, mac);
     LOG_V(APP_TAG, "END - start");
-}
-
-phev_pipe_ctx_t *phev_pipe_create(messagingClient_t *in, messagingClient_t *out)
-{
-    LOG_V(APP_TAG, "START - create");
-
-    phev_pipe_settings_t settings = {
-        .ctx = NULL,
-        .in = in,
-        .out = out,
-        .inputSplitter = NULL,
-        .outputSplitter = phev_pipe_outputSplitter,
-        .inputResponder = NULL,
-        .outputResponder = (msg_pipe_responder_t)phev_pipe_commandResponder,
-        .outputOutputTransformer = (msg_pipe_transformer_t)phev_pipe_outputEventTransformer,
-        .preConnectHook = NULL,
-        .outputInputTransformer = (msg_pipe_transformer_t)phev_pipe_outputChainInputTransformer,
-    };
-
-    phev_pipe_ctx_t *ctx = phev_pipe_createPipe(settings);
-
-    LOG_V(APP_TAG, "END - create");
-
-    return ctx;
 }
 phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
 {
@@ -214,6 +190,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         uint8_t xor = phev_core_getMessageXOR(message);
         LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
         pipeCtx->currentXOR = xor;
+        pipeCtx->commandXOR = xor;
     }
     
     if(phevMessage->command == 0xcc) 
@@ -224,7 +201,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if(phevMessage->command == 0xbb) 
     {
         pipeCtx->pingXOR = phevMessage->data[0];
-        pipeCtx->commandXOR = phevMessage->data[0];
+        //pipeCtx->commandXOR = phevMessage->data[0];
         LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
     } 
     if(phevMessage->command == 0x3f)
@@ -286,7 +263,6 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     if (out)
     {            
         message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
-        
         out = encoded;
     
     }

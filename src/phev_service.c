@@ -15,27 +15,6 @@ const static char *TAG = "PHEV_SERVICE";
 
 const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
-int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
-{
-
-    LOG_V(TAG, "START - eventHandler");
-    /* 
-    phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
-    switch (event->event)
-    {
-    case PHEV_PIPE_CONNECTED:
-    {
-        break;
-    }
-    default:
-    {
-    }
-    }
-*/
-    LOG_V(TAG, "END - eventHandler");
-    return 0;
-}
-
 phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
 {
     LOG_V(TAG, "START - create");
@@ -46,14 +25,7 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
         phev_core_my18 = true;
     }
 
-    if (settings.registerDevice)
-    {
-        ctx = phev_service_initForRegistration(settings.in, settings.out);
-    }
-    else
-    {
-        ctx = phev_service_init(settings.in, settings.out);
-    }
+    ctx = phev_service_init(settings.in, settings.out,settings.registerDevice);
 
     ctx->yieldHandler = settings.yieldHandler;
     ctx->exit = false;
@@ -72,8 +44,6 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
         LOG_D(TAG,"Settings event handler %p",settings.eventHandler);
         phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
     }
-
-    phev_pipe_registerEventHandler(ctx->pipe, phev_service_eventHandler);
 
     LOG_V(TAG, "END - create");
 
@@ -96,7 +66,7 @@ void phev_service_start(phevServiceCtx_t *ctx)
     }
     LOG_V(TAG, "END - start");
 }
-phevServiceCtx_t *phev_service_init(messagingClient_t *in, messagingClient_t *out)
+phevServiceCtx_t *phev_service_init(messagingClient_t *in, messagingClient_t *out, bool registerDevice)
 {
     LOG_V(TAG, "START - init");
 
@@ -104,23 +74,11 @@ phevServiceCtx_t *phev_service_init(messagingClient_t *in, messagingClient_t *ou
 
     LOG_D(TAG, "Creating model and pipe");
     ctx->model = phev_model_create();
+    ctx->registerDevice = registerDevice;
     ctx->pipe = phev_service_createPipe(ctx, in, out);
     ctx->pipe->ctx = ctx;
 
     LOG_V(TAG, "END - init");
-
-    return ctx;
-}
-phevServiceCtx_t *phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out)
-{
-    LOG_V(TAG, "START - initForRegistration");
-    phevServiceCtx_t *ctx = malloc(sizeof(phevServiceCtx_t));
-
-    ctx->model = phev_model_create();
-    ctx->pipe = phev_service_createPipeRegister(ctx, in, out);
-
-    LOG_V(TAG, "END - initForRegistration");
-
     return ctx;
 }
 messageBundle_t *phev_service_inputSplitter(void *ctx, message_t *message)
@@ -231,6 +189,7 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_
         .preConnectHook = NULL,
         .outputInputTransformer = phev_pipe_outputChainInputTransformer,
         .outputOutputTransformer = phev_service_jsonOutputTransformer,
+        .registerDevice = ctx->registerDevice,
     };
 
     phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
@@ -238,35 +197,6 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_
     LOG_V(TAG, "END - createPipe");
     return pipe;
 }
-
-phev_pipe_ctx_t *phev_service_createPipeRegister(phevServiceCtx_t *ctx, messagingClient_t *in, messagingClient_t *out)
-{
-    LOG_V(TAG, "START - createPipeRegister");
-
-    phev_pipe_settings_t settings = {
-        .ctx = ctx,
-        .in = in,
-        .out = out,
-        .inputInputTransformer = NULL,
-        .inputOutputTransformer = NULL,
-        .inputSplitter = NULL,
-        .inputAggregator = NULL,
-        .outputAggregator = NULL,
-        .outputSplitter = phev_pipe_outputSplitter,
-        .outputFilter = NULL,
-        .inputResponder = NULL,
-        .outputResponder = phev_pipe_commandResponder,
-        .preConnectHook = NULL,
-        .outputInputTransformer = phev_pipe_outputChainInputTransformer,
-        .outputOutputTransformer = phev_pipe_outputEventTransformer,
-    };
-
-    phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
-
-    LOG_V(TAG, "END - createPipeRegister");
-    return pipe;
-}
-
 bool phev_service_checkByte(uint16_t num)
 {
     return (num >= 0 && num < 256);
@@ -652,22 +582,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     {
         return NULL;
     }
-    /*  DONT THINK WE NEED THIS AS FILTER NOW IMPLEMENTED
-    if(serviceCtx)
-    {
-        phevRegister_t * reg = phev_model_getRegister(serviceCtx->model, phevMessage->reg);
-    
-        if(reg)
-        {
-            bool changed = phev_model_compareRegister(serviceCtx->model,phevMessage->reg, phevMessage->data);
 
-            if(!changed) 
-            {
-                return NULL;
-            }
-        }
-    }
-    */
     cJSON *response = cJSON_CreateObject();
     if (response == NULL)
     {
