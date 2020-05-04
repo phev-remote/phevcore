@@ -89,6 +89,7 @@ typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
 typedef int (*phevPipeEventHandler_t)(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
 typedef void (*phevErrorHandler_t)(phevError_t *error);
 typedef void (*phev_pipe_updateRegisterCallback_t)(phev_pipe_ctx_t *ctx, uint8_t reg, void *customCtx);
+typedef void (* phevPipeRegistrationComplete_t)(phev_pipe_ctx_t *ctx);
 
 typedef struct phev_pipe_updateRegisterCtx_t
 {
@@ -114,6 +115,7 @@ typedef struct phev_pipe_ctx_t
     uint8_t commandXOR;
     bool encrypt;
     bool registerDevice;
+    phevPipeRegistrationComplete_t registrationCompleteCallback;
     void *ctx;
 } phev_pipe_ctx_t;
 
@@ -136,6 +138,7 @@ typedef struct phev_pipe_settings_t
     msg_pipe_connectHook_t preConnectHook;
     phevErrorHandler_t errorHandler;
     bool registerDevice;
+    phevPipeRegistrationComplete_t registrationCompleteCallback;
     void *ctx;
 } phev_pipe_settings_t;
 

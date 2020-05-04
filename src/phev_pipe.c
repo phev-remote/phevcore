@@ -430,7 +430,22 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
         if (phevMessage->type == REQUEST_TYPE)
         {
             event = phev_pipe_createVINEvent(phevMessage->data);
+
+            if(ctx->registerDevice)
+            {
+                LOG_D(APP_TAG, "Got VIN and in registration mode so sending register device request");
+                phev_register_sendRegister(ctx);
+            }
         }
+        break;
+    }
+    case PHEV_PIPE_REG_DISP: {
+        LOG_I(APP_TAG,"Registration Acknowledged");
+        if(ctx->registrationCompleteCallback)
+        {
+            ctx->registrationCompleteCallback(ctx);
+        }
+        LOG_I(APP_TAG,"REGISTERED");
         break;
     }
     case KO_WF_CONNECT_INFO_GS_SP:

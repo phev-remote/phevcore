@@ -40,11 +40,14 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     ctx->errorHandler = settings.errorHandler;    
     ctx->pipe->errorHandler = settings.errorHandler;
     ctx->ctx = settings.ctx;
+    ctx->pipe->registrationCompleteCallback = settings.complete;
 
     if(settings.eventHandler) 
     {
         phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);    
-    } else {
+    } 
+    else 
+    {
         phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
     }
     LOG_V(TAG,"END - init");

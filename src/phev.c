@@ -186,40 +186,18 @@ phevCtx_t * phev_init(phevSettings_t settings)
     ctx->eventHandler = settings.handler;
     ctx->ctx = settings.ctx;
 
-    if(settings.registerDevice) 
-    {
-        LOG_D(TAG,"Creating service with registration settings");
-        phevServiceSettings_t s = {
-            .in = in,
-            .out = out,
-            .mac = settings.mac, 
-            .registerDevice = true,
-            .eventHandler = phev_pipeEventHandler,
-            .errorHandler = NULL,
-            .yieldHandler = NULL,
-            .my18 = settings.my18,
-            .ctx = ctx, 
-        };
-        srvCtx = phev_service_create(s);
-
-    } else {
-        LOG_D(TAG,"Creating service with normal settings");
-        
-        phevServiceSettings_t s = {
-            .in = in,
-            .out = out,
-            .mac = settings.mac, 
-            .registerDevice = false,
-            .eventHandler = phev_pipeEventHandler,
-            .errorHandler = NULL,
-            .yieldHandler = NULL,
-            .my18 = settings.my18,
-            .ctx = ctx,
-        };
-        srvCtx = phev_service_create(s);
-    }
-    
-    ctx->serviceCtx = srvCtx;
+    phevServiceSettings_t s = {
+        .in = in,
+        .out = out,
+        .mac = settings.mac, 
+        .registerDevice = settings.registerDevice,
+        .eventHandler = phev_pipeEventHandler,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,
+        .my18 = settings.my18,
+        .ctx = ctx, 
+    };
+    ctx->serviceCtx = phev_service_create(s);
     
     LOG_V(TAG,"END - init");
     
