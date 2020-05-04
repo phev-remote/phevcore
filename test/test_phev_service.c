@@ -274,7 +274,9 @@ void test_phev_service_createPipe(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx = phev_service_createPipe(NULL,in,out);
+    phevServiceCtx_t * srvCtx = phev_service_init(in,out,false);
+    
+    phev_pipe_ctx_t * ctx = phev_service_createPipe(srvCtx,in,out);
 
     TEST_ASSERT_NOT_NULL(ctx);
 }
@@ -320,7 +322,7 @@ void test_phev_service_jsonOutputTransformer_not_updated_register(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,10,data,1);
     
     message_t * outmsg = phev_service_jsonOutputTransformer(ctx->pipe,msg_utils_createMsg(message, sizeof(message)));
@@ -345,7 +347,7 @@ void test_phev_service_jsonOutputTransformer_has_updated_register(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,10,data,1);
     
     message_t * outmsg = phev_service_jsonOutputTransformer(ctx->pipe,msg_utils_createMsg(message, sizeof(message)));
@@ -504,7 +506,7 @@ void test_phev_service_init(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
 
     TEST_ASSERT_NOT_NULL(ctx);
     TEST_ASSERT_NOT_NULL(ctx->model);
@@ -525,7 +527,7 @@ void test_phev_service_get_battery_level()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
 
     phev_model_setRegister(ctx->model,29,data,1);
     int level = phev_service_getBatteryLevel(ctx);
@@ -546,7 +548,7 @@ void test_phev_service_get_battery_level_not_set()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     int level = phev_service_getBatteryLevel(ctx);
 
     TEST_ASSERT_EQUAL(-1,level);
@@ -565,7 +567,7 @@ void test_phev_service_statusAsJson()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -587,7 +589,7 @@ void test_phev_service_statusAsJson_has_status_object()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -610,7 +612,7 @@ void test_phev_service_statusAsJson_has_battery_object()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -635,7 +637,7 @@ void test_phev_service_statusAsJson_has_no_battery_level()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     char * str = phev_service_statusAsJson(ctx);
     
     cJSON * json = cJSON_Parse(str);
@@ -663,7 +665,7 @@ void test_phev_service_statusAsJson_has_battery_level_correct()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,29,data,1);
 
     char * str = phev_service_statusAsJson(ctx);
@@ -693,7 +695,7 @@ void test_phev_service_statusAsJson_dateSync()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,18,data,sizeof(data));
 
     char * str = phev_service_statusAsJson(ctx);
@@ -723,7 +725,7 @@ void test_phev_service_statusAsJson_not_charging()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,31,data,sizeof(data));
 
     char * str = phev_service_statusAsJson(ctx);
@@ -753,7 +755,7 @@ void test_phev_service_statusAsJson_is_charging()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,31,data,sizeof(data));
 
     char * str = phev_service_statusAsJson(ctx);
@@ -793,7 +795,7 @@ void test_phev_service_statusAsJson_hvac_operating()
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     phev_model_setRegister(ctx->model,26,data,sizeof(data));
 
     char * str = phev_service_statusAsJson(ctx);
@@ -827,7 +829,7 @@ void test_phev_service_outputFilter(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);    
     const uint8_t data[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(data, sizeof(data));
     bool outbool = phev_service_outputFilter(ctx->pipe, message);
@@ -848,7 +850,7 @@ void test_phev_service_outputFilter_no_change(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);    
     const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
@@ -874,7 +876,7 @@ void test_phev_service_outputFilter_change(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);    
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);    
     const uint8_t inData[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     message_t * message = msg_utils_createMsg(inData, sizeof(inData));
 
@@ -958,7 +960,7 @@ void test_phev_service_end_to_end_operations(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
     
     phev_pipe_loop(ctx->pipe);
     TEST_ASSERT_NOT_NULL(test_phev_service_global_out_out_message);
@@ -986,7 +988,7 @@ void test_phev_service_end_to_end_updated_register(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
 
     phev_service_loop(ctx);
 
@@ -1032,7 +1034,7 @@ void test_phev_service_end_to_end_multiple_updated_registers(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
 
     phev_service_loop(ctx);
 
@@ -1109,7 +1111,7 @@ void test_phev_service_init_settings(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,false);
 
     TEST_ASSERT_NULL(ctx->pipe->pipe->in_chain->aggregator);
     TEST_ASSERT_NOT_NULL(ctx->pipe->pipe->out_chain->aggregator);
@@ -1138,7 +1140,7 @@ void test_phev_service_register(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_initForRegistration(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
 
     phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
 
@@ -1167,7 +1169,7 @@ void test_phev_service_register_complete_called(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_initForRegistration(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
 
     phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
 
@@ -1211,7 +1213,7 @@ void test_phev_service_register_complete_resets_transformers(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_initForRegistration(in,out);
+    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
 
     phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
 

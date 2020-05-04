@@ -87,29 +87,6 @@ void test_phev_pipe_createPipe(void)
     TEST_ASSERT_NOT_NULL(ctx);
 
 }
-void test_phev_pipe_create(void)
-{
-    test_pipe_global_message_idx = 0;
-    test_pipe_global_message[0] = NULL;
-    test_pipe_global_in_message = NULL;
-    
-    messagingSettings_t inSettings = {
-        .incomingHandler = test_phev_pipe_inHandlerIn,
-        .outgoingHandler = test_phev_pipe_outHandlerIn,
-    };
-    messagingSettings_t outSettings = {
-        .incomingHandler = test_phev_pipe_inHandlerOut,
-        .outgoingHandler = test_phev_pipe_outHandlerOut,
-    };
-    
-    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
-    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
-
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
-    
-    TEST_ASSERT_NOT_NULL(ctx);
-
-}
 void test_phev_pipe_loop(void)
 {
 
@@ -129,7 +106,18 @@ void test_phev_pipe_loop(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     
     phev_pipe_loop(ctx);
 
@@ -158,7 +146,18 @@ void test_phev_pipe_sendMac(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     phev_pipe_sendMac(ctx, mac);
 
@@ -191,7 +190,7 @@ void test_phev_pipe_start(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(in,out);
 
     phev_pipe_start(ctx,mac);
 
@@ -224,7 +223,18 @@ void test_phev_pipe_start_my18(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     phev_pipe_start(ctx,mac);
 
@@ -1023,7 +1033,20 @@ void test_phev_pipe_waitForConnection_should_timeout(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     in->connected = 0;
     out->connected = 0;
@@ -1050,7 +1073,20 @@ void test_phev_pipe_waitForConnection(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     in->connected = 1;
     out->connected = 1;
@@ -1079,7 +1115,20 @@ void test_phev_pipe_updateRegister(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     phev_pipe_updateRegister(ctx, 0x10, 1);
 
@@ -1117,8 +1166,21 @@ void test_phev_pipe_updateRegisterWithCallback(void)
     
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     phev_pipe_updateRegisterWithCallback(ctx, 0x10, 1,(phev_pipe_updateRegisterCallback_t) test_phev_pipe_update_register_callback,NULL);
 
@@ -1152,7 +1214,20 @@ void test_phev_pipe_updateRegisterWithCallback_encoded(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     ctx->currentXOR = 0x0d;
 
     phev_pipe_updateRegisterWithCallback(ctx, KO_WF_H_LAMP_CONT_SP, 1,(phev_pipe_updateRegisterCallback_t) test_phev_pipe_update_register_callback,NULL);
@@ -1191,7 +1266,20 @@ void test_phev_pipe_registerEventHandler(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     TEST_ASSERT_EQUAL(0,ctx->eventHandlers);
     phev_pipe_registerEventHandler(ctx,test_phev_pipe_event_handler);
@@ -1218,7 +1306,20 @@ void test_phev_pipe_register_multiple_registerEventHandlers(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
 
     TEST_ASSERT_EQUAL(0,ctx->eventHandlers);
     phev_pipe_registerEventHandler(ctx,test_phev_pipe_event_handler);
@@ -1245,7 +1346,20 @@ void test_phev_pipe_createRegisterEvent_ack(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     phevMessage_t * message = phev_core_createMessage(0x6f,RESPONSE_TYPE,0x12,data, sizeof(data));
 
     phevPipeEvent_t * event = phev_pipe_createRegisterEvent(ctx,message);
@@ -1273,7 +1387,20 @@ void test_phev_pipe_createRegisterEvent_update(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     phevMessage_t * message = phev_core_createMessage(0x6f,REQUEST_TYPE,0x12,data, sizeof(data));
 
     phevPipeEvent_t * event = phev_pipe_createRegisterEvent(ctx,message);
@@ -1303,7 +1430,7 @@ void test_phev_pipe_default_event_handler(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phev_pipe_ctx_t * ctx =  phev_pipe_create(in,out);
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(in,out);
     
     phevMessage_t * message = phev_core_createMessage(0x6f,REQUEST_TYPE,0x12,data, sizeof(data));
 

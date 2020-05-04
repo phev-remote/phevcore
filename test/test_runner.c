@@ -99,8 +99,6 @@ int main()
 
 //  PHEV PIPE
     
-    RUN_TEST(test_phev_pipe_createPipe);
-    RUN_TEST(test_phev_pipe_create);
     RUN_TEST(test_phev_pipe_loop);
 
 //    RUN_TEST(test_phev_pipe_outputChainInputTransformer);

@@ -140,7 +140,6 @@ typedef struct phev_pipe_settings_t
 } phev_pipe_settings_t;
 
 void phev_pipe_loop(phev_pipe_ctx_t *);
-phev_pipe_ctx_t *phev_pipe_create(messagingClient_t *in, messagingClient_t *out);
 phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t);
 void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx);
 message_t *phev_pipe_outputChainInputTransformer(void *, message_t *);

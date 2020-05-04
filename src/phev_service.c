@@ -192,6 +192,15 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_
         .registerDevice = ctx->registerDevice,
     };
 
+    if(ctx)
+    {
+        settings.registerDevice = ctx->registerDevice;
+    }
+    else
+    {
+        settings.registerDevice = false;
+    }
+    
     phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
 
     LOG_V(TAG, "END - createPipe");

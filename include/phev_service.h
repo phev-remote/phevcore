@@ -69,6 +69,7 @@ typedef struct phevServiceCtx_t {
     uint8_t mac[6];
     bool exit;
     phevRegisterCtx_t * registrationCtx;
+    bool registerDevice;
     void * ctx;
 } phevServiceCtx_t;
 
@@ -79,7 +80,7 @@ typedef struct phevServiceHVAC_t {
 
 phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings);
 void phev_service_start(phevServiceCtx_t * ctx);
-phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out);
+phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out,bool registerDevice);
 phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out);
 phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
 phevServiceCtx_t * phev_service_resetPipeAfterRegistration(phevServiceCtx_t * ctx);

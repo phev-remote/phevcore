@@ -3,9 +3,9 @@
 #include "msg_utils.h"
 #include "logger.h"
 
-#define NO_PING
-#define NO_CMD_RESP
-#define NO_TIME_SYNC
+//#define NO_PING
+//#define NO_CMD_RESP
+//#define NO_TIME_SYNC
 
 const static char *APP_TAG = "PHEV_PIPE";
 
