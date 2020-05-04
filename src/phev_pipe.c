@@ -410,6 +410,17 @@ phevPipeEvent_t *phev_pipe_dateInfoEvent(uint8_t *data)
 
     return event;
 }
+void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG,"START - sendRegister");
+    phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,1);
+    message_t * message = phev_core_convertToMessage(reg);
+
+    phev_pipe_commandOutboundPublish(ctx,  message);
+//    free(message);
+    LOG_V(APP_TAG,"END - sendRegister");
+    
+}
 phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *phevMessage)
 {
     LOG_V(APP_TAG, "START - messageToEvent");
@@ -434,7 +445,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
             if(ctx->registerDevice)
             {
                 LOG_D(APP_TAG, "Got VIN and in registration mode so sending register device request");
-                phev_register_sendRegister(ctx);
+                phev_pipe_sendRegister(ctx);
             }
         }
         break;
