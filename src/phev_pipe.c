@@ -251,6 +251,12 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             pipeCtx->encrypt = true;
             return out;
         }
+        if(pipeCtx->registerDevice == true) 
+        {
+            //This is a hack to keep registration working
+            LOG_D(APP_TAG,"Not responding to command for registration");
+            return NULL;
+        }
         LOG_D(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
         if (phevMsg.type == REQUEST_TYPE)
         {
@@ -755,13 +761,28 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
 
     if (((ctx->currentPing) % 30) == 0)
     {
-        phev_pipe_sendTimeSync(ctx);
+        if(!ctx->registerDevice)
+        {   
+            phev_pipe_sendTimeSync(ctx);
+        } 
+        else
+        {
+            LOG_D(APP_TAG,"Not sending time sync in register device mode");
+        }
     }
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
     message_t *message = phev_core_convertToMessage(ping);
     
 #ifndef NO_PING
-    phev_pipe_pingOutboundPublish(ctx, message);
+    if(!ctx->registerDevice)
+    {
+        phev_pipe_pingOutboundPublish(ctx, message);
+    } 
+    else 
+    {
+        LOG_D(APP_TAG,"Not sending ping in register device mode");
+    }
+
 #endif
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
