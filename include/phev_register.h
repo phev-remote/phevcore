@@ -8,8 +8,6 @@
 
 typedef struct phevRegisterCtx_t phevRegisterCtx_t;
 
-typedef void (* phevRegistrationComplete_t)(phevRegisterCtx_t *);
-
 typedef struct phevRegisterSettings_t {
     phev_pipe_ctx_t * pipe;
     phevPipeEventHandler_t eventHandler;

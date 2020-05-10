@@ -1119,33 +1119,10 @@ void test_phev_service_init_settings(void)
 }
 static int test_phev_service_complete_callback_called = 0;
 
-void test_phev_service_complete_callback(phevRegisterCtx_t * ctx)
+void test_phev_service_complete_callback(phev_pipe_ctx_t * ctx)
 {
     test_phev_service_complete_callback_called ++;
 }
-void test_phev_service_register(void)
-{
-    test_phev_service_complete_callback_called = 0;
-
-    messagingSettings_t inSettings = {
-        .incomingHandler = test_phev_service_inHandlerIn,
-        .outgoingHandler = test_phev_service_outHandlerIn,
-    };
-    messagingSettings_t outSettings = {
-        .incomingHandler = test_phev_service_inHandlerOut,
-        .outgoingHandler = test_phev_service_outHandlerOut,
-    };
-    const char mac[] = {0x11,0x22,0x33,0x44,0x55,0x66};
-
-    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
-    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
-
-    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
-
-    phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
-
-    TEST_ASSERT_NOT_NULL(regCtx);
-} 
 void test_phev_service_register_complete_called(void)
 {
     test_phev_service_complete_callback_called = 0;
@@ -1169,20 +1146,22 @@ void test_phev_service_register_complete_called(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
-
-    phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
-
-    regCtx->startAck = true;
-    regCtx->aaAck = true;
-    regCtx->registrationRequest = true;
-    regCtx->ecu = true;
-    regCtx->remoteSecurity = true;
-    regCtx->vin = strdup("1234");
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = true,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
+    
+    phev_service_register(mac, ctx, test_phev_service_complete_callback);
 
     phev_service_loop(ctx);
 
-    TEST_ASSERT_NOT_NULL(regCtx);
     TEST_ASSERT_EQUAL(1, test_phev_service_complete_callback_called);
 }
 void test_phev_service_complete_resets_transfomers_callback(phevRegisterCtx_t * ctx)
@@ -1213,16 +1192,19 @@ void test_phev_service_register_complete_resets_transformers(void)
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
-    phevServiceCtx_t * ctx = phev_service_init(in,out,true);
+    phevServiceSettings_t settings = {
+        .in = in,
+        .out = out,
+        .mac = mac, 
+        .registerDevice = true,
+        .eventHandler = NULL,
+        .errorHandler = NULL,
+        .yieldHandler = NULL,    
+    };
+ 
+    phevServiceCtx_t * ctx = phev_service_create(settings);
 
-    phevRegisterCtx_t * regCtx = phev_service_register(mac, ctx, test_phev_service_complete_callback);
-
-    regCtx->startAck = true;
-    regCtx->aaAck = true;
-    regCtx->registrationRequest = true;
-    regCtx->ecu = true;
-    regCtx->remoteSecurity = true;
-    regCtx->vin = strdup("1234");
+    phev_service_register(mac, ctx, test_phev_service_complete_callback);
 
     phev_service_loop(ctx);
 

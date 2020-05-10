@@ -48,7 +48,7 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     } 
     else 
     {
-        phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
+        //phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
     }
     LOG_V(TAG,"END - init");
     return ctx;

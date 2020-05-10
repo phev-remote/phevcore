@@ -206,7 +206,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
 
 static phevCtx_t * glob_phev_ctx = NULL;
 
-void phev_registrationComplete(phevRegisterCtx_t * ctx)
+void phev_registrationComplete(phev_pipe_ctx_t * ctx)
 {
     phevCtx_t * phevCtx = glob_phev_ctx;
 

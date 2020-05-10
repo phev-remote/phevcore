@@ -4,7 +4,7 @@
 #define _GNU_SOURCE 1
 #endif
 #ifndef LOG_LEVEL 
-#define LOG_LEVEL LOG_NONE
+#define LOG_LEVEL LOG_DEBUG
 #endif
 
 #include <stddef.h>

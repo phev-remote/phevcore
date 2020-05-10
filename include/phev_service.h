@@ -82,7 +82,7 @@ phevServiceCtx_t * phev_service_create(phevServiceSettings_t settings);
 void phev_service_start(phevServiceCtx_t * ctx);
 phevServiceCtx_t * phev_service_init(messagingClient_t *in, messagingClient_t *out,bool registerDevice);
 phevServiceCtx_t * phev_service_initForRegistration(messagingClient_t *in, messagingClient_t *out);
-phevRegisterCtx_t * phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
+void phev_service_register(const char * mac, phevServiceCtx_t * ctx, phevRegistrationComplete_t complete);
 phevServiceCtx_t * phev_service_resetPipeAfterRegistration(phevServiceCtx_t * ctx);
 bool phev_service_validateCommand(const char * command);
 phevMessage_t * phev_service_jsonCommandToPhevMessage(const char * command);
@@ -103,4 +103,5 @@ char * phev_service_getDateSync(const phevServiceCtx_t * ctx);
 bool phev_service_getChargingStatus(const phevServiceCtx_t * ctx);
 int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx);
 phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx);
+int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
 #endif

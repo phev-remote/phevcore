@@ -410,6 +410,17 @@ phevPipeEvent_t *phev_pipe_dateInfoEvent(uint8_t *data)
 
     return event;
 }
+phevPipeEvent_t *phev_pipe_registrationCompleteEvent(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG, "START - registrationCompleteEvent");
+    phevPipeEvent_t *event = malloc(sizeof(phevPipeEvent_t));
+    event->event = PHEV_PIPE_REGISTRATION_COMPLETE;
+    event->data = NULL;
+    LOG_D(APP_TAG, "Created Event ID %d", event->event);
+
+    LOG_V(APP_TAG, "END - registrationCompleteEvent");
+    return event;
+}
 void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx)
 {
     LOG_V(APP_TAG,"START - sendRegister");
@@ -450,18 +461,20 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
         }
         break;
     }
-    case PHEV_PIPE_REG_DISP: {
-        LOG_I(APP_TAG,"Registration Acknowledged");
-        if(ctx->registrationCompleteCallback)
+    case KO_WF_REG_DISP_SP: 
+    {
+        LOG_D(APP_TAG, "KO_WF_REG_DISP_SP");
+        if (phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
         {
-            ctx->registrationCompleteCallback(ctx);
+            LOG_I(APP_TAG,"Registration Acknowledged");
+            event = phev_pipe_registrationCompleteEvent(ctx);
+            LOG_I(APP_TAG,"REGISTERED");
         }
-        LOG_I(APP_TAG,"REGISTERED");
+        
         break;
     }
     case KO_WF_CONNECT_INFO_GS_SP:
     {
-
         if (phevMessage->type == RESPONSE_TYPE && (phevMessage->command == START_RESP || phevMessage->command == START_RESP_MY18))
         {
             LOG_D(APP_TAG, "KO_WF_CONNECT_INFO_GS_SP");
@@ -471,7 +484,6 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
     }
     case KO_WF_START_AA_EVR:
     {
-
         if (phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
         {
             LOG_D(APP_TAG, "KO_WF_START_AA_EVR");
@@ -483,6 +495,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
     {
         if (phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
         {
+            LOG_D(APP_TAG,"KO_WF_REGISTRATION_EVR");
             event = phev_pipe_registrationEvent();
         }
         break;
@@ -491,23 +504,17 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
     {
         if (phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
         {
+            LOG_D(APP_TAG,"KO_WF_ECU_VERSION2_EVR");
             event = phev_pipe_ecuVersion2Event(phevMessage->data);
         }
         break;
     }
     case KO_WF_REMOTE_SECURTY_PRSNT_INFO:
     {
+
         if (phevMessage->type == REQUEST_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
         {
             event = phev_pipe_remoteSecurityPresentInfoEvent();
-        }
-        break;
-    }
-    case KO_WF_REG_DISP_SP:
-    {
-        if (phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
-        {
-            event = phev_pipe_regDispEvent();
         }
         break;
     }
@@ -597,6 +604,7 @@ void phev_pipe_sendEvent(void *ctx, phevMessage_t *phevMessage)
         LOG_W(APP_TAG, "Context not passed");
         return;
     }
+     LOG_D(APP_TAG, "Number of event handlers %d",phevCtx->eventHandlers);
     if (phevCtx->eventHandlers > 0)
     {
 

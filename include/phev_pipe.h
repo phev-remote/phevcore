@@ -60,6 +60,7 @@ enum
     PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO,
     PHEV_PIPE_REG_DISP,
     PHEV_PIPE_MAX_REGISTRATIONS,
+    PHEV_PIPE_REGISTRATION_COMPLETE,
     PHEV_PIPE_REG_UPDATE,
     PHEV_PIPE_REG_UPDATE_ACK,
     PHEV_PIPE_DATE_INFO,
@@ -86,10 +87,10 @@ typedef struct phevError_t
 } phevError_t;
 
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
-typedef int (*phevPipeEventHandler_t)(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
-typedef void (*phevErrorHandler_t)(phevError_t *error);
-typedef void (*phev_pipe_updateRegisterCallback_t)(phev_pipe_ctx_t *ctx, uint8_t reg, void *customCtx);
-typedef void (* phevPipeRegistrationComplete_t)(phev_pipe_ctx_t *ctx);
+typedef int (* phevPipeEventHandler_t)(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
+typedef void (* phevErrorHandler_t)(phevError_t *error);
+typedef void (* phev_pipe_updateRegisterCallback_t)(phev_pipe_ctx_t *ctx, uint8_t reg, void *customCtx);
+typedef void (* phevRegistrationComplete_t)(phev_pipe_ctx_t *ctx);
 
 typedef struct phev_pipe_updateRegisterCtx_t
 {
@@ -115,7 +116,7 @@ typedef struct phev_pipe_ctx_t
     uint8_t commandXOR;
     bool encrypt;
     bool registerDevice;
-    phevPipeRegistrationComplete_t registrationCompleteCallback;
+    phevRegistrationComplete_t registrationCompleteCallback;
     void *ctx;
 } phev_pipe_ctx_t;
 
@@ -138,7 +139,7 @@ typedef struct phev_pipe_settings_t
     msg_pipe_connectHook_t preConnectHook;
     phevErrorHandler_t errorHandler;
     bool registerDevice;
-    phevPipeRegistrationComplete_t registrationCompleteCallback;
+    phevRegistrationComplete_t registrationCompleteCallback;
     void *ctx;
 } phev_pipe_settings_t;
 

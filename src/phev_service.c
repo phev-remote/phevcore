@@ -15,6 +15,26 @@ const static char *TAG = "PHEV_SERVICE";
 
 const static uint8_t *DEFAULT_MAC[6] = {0, 0, 0, 0, 0, 0};
 
+int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
+{
+    LOG_V(TAG, "START - eventHandler");
+    switch (event->event)
+    {
+        case PHEV_PIPE_REGISTRATION_COMPLETE:
+        {
+            LOG_I(TAG,"Registration completed");
+            phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
+            if(srvCtx->registrationCompleteCallback != NULL)
+            {
+                LOG_D(TAG,"Calling registration callback");
+                srvCtx->registrationCompleteCallback(ctx);
+            }
+            break;
+        }
+    }
+    LOG_V(TAG, "END - eventHandler");
+    return 0;
+}
 phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
 {
     LOG_V(TAG, "START - create");
@@ -30,6 +50,7 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
     ctx->yieldHandler = settings.yieldHandler;
     ctx->exit = false;
     ctx->ctx = settings.ctx;
+    ctx->registrationCompleteCallback = NULL;
     if (settings.mac)
     {
         memcpy(ctx->mac, settings.mac, 6);
@@ -43,6 +64,12 @@ phevServiceCtx_t *phev_service_create(phevServiceSettings_t settings)
     {
         LOG_D(TAG,"Settings event handler %p",settings.eventHandler);
         phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);
+    }
+
+    if(settings.registerDevice) 
+    {
+        LOG_D(TAG,"Settings registration event handler %p",phev_service_eventHandler);
+        phev_pipe_registerEventHandler(ctx->pipe, phev_service_eventHandler);
     }
 
     LOG_V(TAG, "END - create");
@@ -736,7 +763,7 @@ message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundl
 void phev_service_errorHandler(phevError_t *error)
 {
 }
-void phev_service_registrationCompleteCallback(phevRegisterCtx_t *ctx)
+void phev_service_registrationCompleteCallback(phev_pipe_ctx_t *ctx)
 {
     phevServiceCtx_t *serviceCtx = (phevServiceCtx_t *)ctx->ctx;
 
@@ -754,27 +781,12 @@ phevServiceCtx_t *phev_service_resetPipeAfterRegistration(phevServiceCtx_t *ctx)
 
     return ctx;
 }
-phevRegisterCtx_t *phev_service_register(const char *mac, phevServiceCtx_t *ctx, phevRegistrationComplete_t complete)
+void phev_service_register(const char *mac, phevServiceCtx_t *ctx, phevRegistrationComplete_t complete)
 {
-    phevRegisterSettings_t settings = {
-        .pipe = ctx->pipe,
-        .complete = (phevRegistrationComplete_t)phev_service_registrationCompleteCallback,
-        .errorHandler = (phevErrorHandler_t)phev_service_errorHandler,
-        .ctx = ctx,
-    };
 
-    if (settings.mac)
-    {
-        memcpy(&settings.mac, mac, 6);
-    }
-    else
-    {
-        memcpy(&settings.mac, DEFAULT_MAC, 6);
-    }
     ctx->registrationCompleteCallback = complete;
-    ctx->registrationCtx = phev_register_init(settings);
 
-    return ctx->registrationCtx;
+    return;
 }
 
 phevRegister_t *phev_service_getRegister(const phevServiceCtx_t *ctx, const uint8_t reg)

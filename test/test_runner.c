@@ -80,23 +80,6 @@ int main()
     RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_2F_command);
     RUN_TEST(test_phev_core_getMessageXOR);
 
-//  PHEV_REGISTER
-
-    RUN_TEST(test_phev_register_bootstrap);
-    RUN_TEST(test_phev_register_getVin);
-//    RUN_TEST(test_phev_register_should_error_when_too_many_registrations);
-//    RUN_TEST(test_phev_register_should_send_mac_and_aa);  BROKEN
-    RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
- //   RUN_TEST(test_phev_register_should_call_complete_when_registered);
-//    RUN_TEST(test_phev_register_should_get_start_ack);
-//    RUN_TEST(test_phev_register_should_get_aa_ack);
-//    RUN_TEST(test_phev_register_should_get_registration);
-//    RUN_TEST(test_phev_register_should_get_ecu_version);
-//    RUN_TEST(test_phev_register_should_get_remote_security_present);
-    RUN_TEST(test_phev_register_should_get_reg_disp);
-
-//    RUN_TEST(test_phev_register_end_to_end);
-
 //  PHEV PIPE
     
     RUN_TEST(test_phev_pipe_loop);
@@ -191,9 +174,8 @@ int main()
     RUN_TEST(test_phev_service_end_to_end_multiple_updated_registers);
     RUN_TEST(test_phev_service_jsonResponseAggregator);
     RUN_TEST(test_phev_service_init_settings);
-    RUN_TEST(test_phev_service_register);
-//    RUN_TEST(test_phev_service_register_complete_called);
-//    RUN_TEST(test_phev_service_register_complete_resets_transformers);
+    RUN_TEST(test_phev_service_register_complete_called);
+    RUN_TEST(test_phev_service_register_complete_resets_transformers);
     RUN_TEST(test_phev_service_create);
     RUN_TEST(test_phev_service_getRegister);
     RUN_TEST(test_phev_service_setRegister);

@@ -48,6 +48,8 @@ else()
     )
 endif()
 
+set_property(TARGET phev PROPERTY C_STANDARD 11)
+
 target_include_directories(phev PUBLIC include)
 
 install(
