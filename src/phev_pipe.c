@@ -208,11 +208,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     {
         pipeCtx->pingResponse = phevMessage->reg;
         
-        
     }
-    
-    
-
     
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
