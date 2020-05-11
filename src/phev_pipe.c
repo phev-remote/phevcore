@@ -217,6 +217,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
     
+    phev_core_destroyMessage(phevMessage);
     return message;
     
 }
@@ -239,6 +240,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
         {
             LOG_D(APP_TAG, "Ignoring ping");
             LOG_V(APP_TAG, "END - commandResponder");
+            free(phevMsg.data);
             return NULL;
         }
         if(phevMsg.command == 0x4e || phevMsg.command == 0x5e)
@@ -249,12 +251,14 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             LOG_D(APP_TAG, "Responded with command %02X  type %d", phevMsg.command,phevMsg.type);
             out = phev_core_convertToMessage(msg);
             pipeCtx->encrypt = true;
+            free(phevMsg.data);
             return out;
         }
         if(pipeCtx->registerDevice == true) 
         {
             //This is a hack to keep registration working
             LOG_D(APP_TAG,"Not responding to command for registration");
+            free(phevMsg.data);
             return NULL;
         }
         LOG_D(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
@@ -264,14 +268,16 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             LOG_D(APP_TAG, "Responded with command %02X  type %d", phevMsg.command,phevMsg.type);
         
             out = phev_core_convertToMessage(msg);
+            free(phevMsg.data);
         }
     }
     if (out)
     {            
         message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
-        out = encoded;
+        out = msg_utils_copyMsg(encoded);
+        msg_utils_destroyMsg(encoded);
     
-    }
+    } 
 
 #ifndef NO_CMD_RESP
     return out;
@@ -452,12 +458,6 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
         if (phevMessage->type == REQUEST_TYPE)
         {
             event = phev_pipe_createVINEvent(phevMessage->data);
-
-            if(ctx->registerDevice)
-            {
-                LOG_D(APP_TAG, "Got VIN and in registration mode so sending register device request");
-                phev_pipe_sendRegister(ctx);
-            }
         }
         break;
     }
@@ -740,6 +740,8 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
 
     int total = out->length;
 
+    msg_utils_destroyMsg(out);
+
     while (message->length > total)
     {
         out = phev_core_extractIncomingMessageAndXOR(message->data + total);
@@ -750,12 +752,15 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
             phev_pipe_checkXORChanged(pipeCtx,out);
             total += out->length;
             messages->messages[messages->numMessages++] = msg_utils_copyMsg(out);
+            msg_utils_destroyMsg(out);
         }
         else
         {
             break;
         }
     }
+
+    //msg_utils_destroyMsg(message);  Cannot destroy until tests are fixed
     LOG_D(APP_TAG, "Split messages into %d", messages->numMessages);
     LOG_MSG_BUNDLE(APP_TAG, messages);
     LOG_V(APP_TAG, "END - outputSplitter");
@@ -805,6 +810,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
         }
     }
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
+    ctx->currentPing %= 0x30;
     message_t *message = phev_core_convertToMessage(ping);
     
 #ifndef NO_PING

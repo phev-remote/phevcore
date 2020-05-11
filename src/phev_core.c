@@ -393,26 +393,6 @@ uint8_t phev_core_validateCommand(const uint8_t command)
 
     return 0;
 }
-/*
-uint8_t phev_core_getCommand(const uint8_t *data)
-{
-    
-    uint8_t command = phev_core_validateCommand(data[0]);
-
-    if (command == 0)
-    {
-        LOG_E(APP_TAG, "Unknown command %02X", data[0]);
-    }
-
-    return command;
-}
-uint8_t phev_core_getRegister(const uint8_t *data)
-{
-    uint8_t xor = 0; //phev_core_getXOR(data);
-
-    uint8_t reg = data[3] ^ xor;
-    return reg;
-} */
 uint8_t * phev_core_getData(const uint8_t *data)
 {
     uint8_t length = data[1] - 3;
@@ -725,6 +705,8 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
     uint8_t * data = phev_core_xorDataOutbound(message->data, xor);
 
     message_t * encoded = msg_utils_createMsg(data,message->data[1] + 2);
+
+    free(data);
 
     LOG_V(APP_TAG, "END - XOROutboundMessage");
     return encoded;

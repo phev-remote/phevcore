@@ -31,6 +31,17 @@ int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             }
             break;
         }
+        case PHEV_PIPE_GOT_VIN:
+        {
+            phevServiceCtx_t * srvCtx = (phevServiceCtx_t *) ctx->ctx;
+            
+            if(ctx->registerDevice)
+            {
+                LOG_D(TAG, "Got VIN and in registration mode so sending register device request");
+                phev_pipe_sendRegister(ctx);
+            }
+            break;
+        }
     }
     LOG_V(TAG, "END - eventHandler");
     return 0;
