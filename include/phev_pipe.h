@@ -163,6 +163,7 @@ void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
 void phev_pipe_pingOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
 void phev_pipe_commandOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message);
 void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx);
+void phev_pipe_destroyEvent(phevPipeEvent_t * event);
 
 //void phev_pipe_sendCommand(phev_core_command_t);
 

@@ -230,15 +230,6 @@ phev_pipe_ctx_t *phev_service_createPipe(phevServiceCtx_t *ctx, messagingClient_
         .registerDevice = ctx->registerDevice,
     };
 
-    if(ctx)
-    {
-        settings.registerDevice = ctx->registerDevice;
-    }
-    else
-    {
-        settings.registerDevice = false;
-    }
-    
     phev_pipe_ctx_t *pipe = phev_pipe_createPipe(settings);
 
     LOG_V(TAG, "END - createPipe");
@@ -655,7 +646,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     message_t *outputMessage = msg_utils_createMsg((uint8_t *)output, strlen(output) );
     LOG_BUFFER_HEXDUMP(TAG, outputMessage->data, outputMessage->length, LOG_DEBUG);
     cJSON_Delete(response);
-
+    phev_core_destroyMessage(phevMessage);
     free(output);
     LOG_V(TAG, "END - jsonOutputTransformer");
 

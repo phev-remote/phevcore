@@ -282,18 +282,20 @@ message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data)
 
     if(message == NULL)
     {
-        LOG_W(APP_TAG,"Cannot extract message");
+        LOG_W(APP_TAG,"Cannot extract incoming message");
         return NULL;
     }
 
     uint8_t xor = phev_core_getMessageXOR(message);
 
+    
     uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
 
     message_t * decoded = phev_core_createMsgXOR(decodedData,message->length,xor);
 
     free(decodedData);
-    //msg_utils_destroyMsg(message);
+
+    msg_utils_destroyMsg(message);
 
     LOG_V(APP_TAG, "END - extractAndDecodeIncomingMessageAndXOR");
 
@@ -307,7 +309,7 @@ message_t * phev_core_extractAndDecodeOutgoingMessageAndXOR(const uint8_t *data)
 
     if(message == NULL)
     {
-        LOG_W(APP_TAG,"Cannot extract message");
+        LOG_W(APP_TAG,"Cannot extract outgoing message");
         return NULL;
     }
 
@@ -545,8 +547,8 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
 
         return 1;
     }
-    LOG_E(APP_TAG, "Invalid message");
-    LOG_BUFFER_HEXDUMP(APP_TAG, data, len, LOG_ERROR);
+
+    LOG_E(APP_TAG, "Invalid message command %02X length %d",data[0],len);
     return 0;
 }
 message_t *phev_core_extractMessage(const uint8_t *data, const size_t len, uint8_t xor)
@@ -558,6 +560,8 @@ message_t *phev_core_extractMessage(const uint8_t *data, const size_t len, uint8
     message_t *decoded = msg_utils_createMsg(encoded, encoded[1] + 2);
 
     LOG_BUFFER_HEXDUMP("DECODED", decoded->data, decoded->data[1] + 2, LOG_DEBUG);
+
+    free(encoded);
 
     return decoded;
 }

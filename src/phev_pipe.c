@@ -9,6 +9,19 @@
 
 const static char *APP_TAG = "PHEV_PIPE";
 
+void phev_pipe_destroyEvent(phevPipeEvent_t * event)
+{
+    if(event != NULL)
+    {
+        if(event->data != NULL)
+        {
+            free(event->data);
+        }
+        free(event);
+        event = NULL;
+    }
+
+}
 void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
 {
     LOG_V(APP_TAG, "START - waitForConnection");
@@ -157,6 +170,7 @@ phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
     ctx->commandXOR = 0;
     ctx->encrypt = false;
     ctx->pingResponse = 0;
+    ctx->registerDevice = settings.registerDevice;
 
     phev_pipe_resetPing(ctx);
 
@@ -180,7 +194,8 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     {
         LOG_E(APP_TAG, "Invalid message received");
         LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_ERROR);
-
+        phev_core_destroyMessage(phevMessage);
+        msg_utils_destroyMsg(message);
         return NULL;
     }
     
@@ -253,10 +268,11 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
         if(pipeCtx->registerDevice == true) 
         {
             //This is a hack to keep registration working
-            LOG_D(APP_TAG,"Not responding to command for registration");
+            LOG_I(APP_TAG,"Not responding to command for registration");
             free(phevMsg.data);
             return NULL;
-        }
+        } 
+        
         LOG_D(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
         if (phevMsg.type == REQUEST_TYPE)
         {
@@ -363,7 +379,7 @@ phevPipeEvent_t *phev_pipe_ecuVersion2Event(uint8_t *data)
     event->event = PHEV_PIPE_ECU_VERSION2;
     event->data = malloc(PHEV_PIPE_ECU_VERSION_SIZE);
     memcpy(event->data, data, PHEV_PIPE_ECU_VERSION_SIZE);
-    event->length = 0;
+    event->length = PHEV_PIPE_ECU_VERSION_SIZE;
     LOG_D(APP_TAG, "Created Event ID %d", event->event);
 
     LOG_V(APP_TAG, "END - ecuVersion2Event");
@@ -430,7 +446,7 @@ void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx)
     message_t * message = phev_core_convertToMessage(reg);
 
     phev_pipe_commandOutboundPublish(ctx,  message);
-//    free(message);
+
     LOG_V(APP_TAG,"END - sendRegister");
     
 }
@@ -560,6 +576,7 @@ void phev_pipe_sendEventToHandlers(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 }
             }
         }
+        phev_pipe_destroyEvent(event);
     }
     else
     {
@@ -608,11 +625,12 @@ void phev_pipe_sendEvent(void *ctx, phevMessage_t *phevMessage)
 
         LOG_D(APP_TAG, "Sending register event to handler");
         phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
-
+        
         phevPipeEvent_t *evt = phev_pipe_messageToEvent(phevCtx, phevMessage);
         LOG_D(APP_TAG, "Sending message event to handler");
 
         phev_pipe_sendEventToHandlers(phevCtx, evt);
+
     }
 
     LOG_V(APP_TAG, "END - sendEvent");
@@ -636,8 +654,6 @@ message_t *phev_pipe_outputEventTransformer(void *ctx, message_t *message)
     phev_pipe_sendEvent(ctx, phevMessage);
 
     message_t *ret = phev_core_convertToMessage(phevMessage);
-
-    phev_core_destroyMessage(phevMessage);
 
     LOG_V(APP_TAG, "END - outputEventTransformer");
 
@@ -788,6 +804,7 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
 #ifndef NO_TIME_SYNC
     phev_pipe_commandOutboundPublish(ctx, message);
 #endif
+    phev_core_destroyMessage(dateCmd);
     LOG_V(APP_TAG, "END - sendTimeSync");
 }
 void phev_pipe_ping(phev_pipe_ctx_t *ctx)
@@ -816,12 +833,12 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     } 
     else 
     {
-        LOG_D(APP_TAG,"Not sending ping in register device mode");
+        LOG_I(APP_TAG,"Not sending ping in register device mode");
     }
 
 #endif
     //msg_utils_destroyMsg(message);
-    //phev_core_destroyMessage(ping);
+    phev_core_destroyMessage(ping);
     LOG_V(APP_TAG, "END - ping");
 }
 void phev_pipe_resetPing(phev_pipe_ctx_t *ctx)
@@ -901,6 +918,8 @@ void phev_pipe_pingOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
         
     msg_pipe_outboundPublish(ctx->pipe, encoded);
     
+    msg_utils_destroyMsg(message);
+
     LOG_V(APP_TAG,"END - pingOutboundPublish");
 
     return;
@@ -913,6 +932,8 @@ void phev_pipe_commandOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message
         
     msg_pipe_outboundPublish(ctx->pipe, encoded);
     
+    msg_utils_destroyMsg(message);
+
     LOG_V(APP_TAG,"END - commandOutboundPublish");
 
     return;
@@ -924,7 +945,9 @@ void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
     message_t * encoded = phev_core_XOROutboundMessage(message, ctx->currentXOR);
         
     msg_pipe_outboundPublish(ctx->pipe, encoded);
-    
+
+    msg_utils_destroyMsg(message);
+
     LOG_V(APP_TAG,"END - outboundPublish");
 
     return;
