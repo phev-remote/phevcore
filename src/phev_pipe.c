@@ -3,7 +3,7 @@
 #include "msg_utils.h"
 #include "logger.h"
 
-//#define NO_PING
+#define NO_PING
 //#define NO_CMD_RESP
 //#define NO_TIME_SYNC
 
@@ -106,7 +106,7 @@ void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac)
     phev_pipe_waitForConnection(ctx);
     message_t *message = phev_core_convertToMessage(phev_core_pingMessage(0));
     
-    phev_pipe_outboundPublish(ctx, message);
+    //phev_pipe_pingOutboundPublish(ctx, message);
     phev_pipe_sendMac(ctx, mac);
     LOG_V(APP_TAG, "END - start");
 }
@@ -193,13 +193,10 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
-        LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_ERROR);
         phev_core_destroyMessage(phevMessage);
         msg_utils_destroyMsg(message);
         return NULL;
     }
-    
-    
     if(message->ctx != NULL) 
     {
         uint8_t xor = phev_core_getMessageXOR(message);
@@ -207,17 +204,18 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         pipeCtx->currentXOR = xor;
         pipeCtx->commandXOR = xor;
     }
-    
-    if(phevMessage->command == 0xcc) 
-    {
-        //pipeCtx->commandXOR = phevMessage->data[0];
-        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
-    }
     if(phevMessage->command == 0xbb) 
     {
-        pipeCtx->pingXOR = phevMessage->data[0];
-        //pipeCtx->commandXOR = phevMessage->data[0];
-        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
+        pipeCtx->commandXOR = phevMessage->data[0];
+      //  pipeCtx->pingXOR = phevMessage->data[0];
+        
+        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
+    }
+    if(phevMessage->command == 0xcc) 
+    {
+      //  pipeCtx->pingXOR = phevMessage->data[0];
+      //  pipeCtx->commandXOR = phevMessage->data[0];
+      //  LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
     } 
     if(phevMessage->command == 0x3f)
     {
@@ -740,7 +738,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
         return NULL;
     }
     LOG_D(APP_TAG,"Extract message output");
-    LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
+    LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
 
 
     phev_pipe_checkXORChanged(pipeCtx,out);

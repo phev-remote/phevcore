@@ -46,6 +46,8 @@ bool phev_core_checkIncomingCommand(const uint8_t command)
         return true;
     case 0x2f:
         return true;
+    case 0x2e:
+        return true;
     default:
         return false;
     }
@@ -124,6 +126,21 @@ message_t *phev_core_unencodedIncomingMessage(const uint8_t *data)
         case 0x6f:
         {
             LOG_D(APP_TAG, "Command unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0xbb:
+        {
+            LOG_D(APP_TAG, "BB Command unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0xcc:
+        {
+            LOG_D(APP_TAG, "CC Command unencoded");
+            return msg_utils_createMsg(data, length);
+        }
+        case 0x2e:
+        {
+            LOG_D(APP_TAG, "2E Command unencoded");
             return msg_utils_createMsg(data, length);
         }
         }
@@ -222,7 +239,7 @@ message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t *data)
 
     message_t *message = NULL;
 
-    if (phev_core_checkIncomingCommand(data[0]))
+    if (phev_core_checkIncomingCommand(data[0]) && phev_core_validateChecksumXOR(data, 0))
     {
         message = phev_core_unencodedIncomingMessage(data);
     }
