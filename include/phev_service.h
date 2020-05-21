@@ -44,6 +44,10 @@
 #define PHEV_SERVICE_HVAC_MODE_JSON "mode"
 #define PHEV_SERVICE_HVAC_TIME_JSON "time"
 
+#define PHEV_SERVICE_START_MESSAGE_JSON "startMessage"
+#define PHEV_SERVICE_START_MESSAGE_DATA_JSON "data"
+
+
 typedef struct phevServiceCtx_t phevServiceCtx_t;
 
 typedef void (* phevServiceYieldHandler_t)(phevServiceCtx_t *);

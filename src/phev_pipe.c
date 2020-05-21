@@ -3,7 +3,7 @@
 #include "msg_utils.h"
 #include "logger.h"
 
-#define NO_PING
+//    #define NO_PING
 //#define NO_CMD_RESP
 //#define NO_TIME_SYNC
 
@@ -178,7 +178,14 @@ phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
 
     return ctx;
 }
+static bool waiting = false;
+static bool bb_waiting = false;
 
+void refreshCallback2(phev_pipe_ctx_t *ctx, uint8_t reg, void *customCtx)
+{
+    waiting = false;
+    LOG_I(APP_TAG,"                        REFRESH ACK");
+}
 message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
 {
     LOG_V(APP_TAG, "START - outputChainInputTransformer");
@@ -193,8 +200,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
-        phev_core_destroyMessage(phevMessage);
-        msg_utils_destroyMsg(message);
+        //msg_utils_destroyMsg(message);
         return NULL;
     }
     if(message->ctx != NULL) 
@@ -203,23 +209,48 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
         pipeCtx->currentXOR = xor;
         pipeCtx->commandXOR = xor;
+
     }
     if(phevMessage->command == 0xbb) 
     {
         pipeCtx->commandXOR = phevMessage->data[0];
-      //  pipeCtx->pingXOR = phevMessage->data[0];
+        pipeCtx->pingXOR = phevMessage->data[0];
+        
+        /*
+        if(!bb_waiting)
+        {
+            LOG_I(APP_TAG,"           BB REFRESH COMMAND");
+            bb_waiting = true;
+            phev_pipe_updateRegisterWithCallback(pipeCtx,10,1,refreshCallback2,NULL);
+        
+        }
+        */
+        //NOT WORKING HERE
+            
+        
+
         
         LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
+        
     }
     if(phevMessage->command == 0xcc) 
     {
-      //  pipeCtx->pingXOR = phevMessage->data[0];
-      //  pipeCtx->commandXOR = phevMessage->data[0];
-      //  LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
+        // NOT WORKING HERE
+        
+        pipeCtx->pingXOR = phevMessage->data[0];
+        pipeCtx->commandXOR = phevMessage->data[0];
+        LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
+        // NOT WORKING HERE  
     } 
     if(phevMessage->command == 0x3f)
     {
         pipeCtx->pingResponse = phevMessage->reg;
+        if(!waiting )
+        {
+            waiting = true;
+            //LOG_I(APP_TAG,"              REFRESH COMMAND");
+            //phev_pipe_updateRegisterWithCallback(pipeCtx,10,1,refreshCallback2,NULL);
+        }
         
     }
     
@@ -448,12 +479,31 @@ void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx)
     LOG_V(APP_TAG,"END - sendRegister");
     
 }
+phevPipeEvent_t *phev_pipe_createBBEvent(const uint8_t * data)
+{
+    LOG_V(APP_TAG, "START - BBEvent");
+    phevPipeEvent_t *event = malloc(sizeof(phevPipeEvent_t));
+    event->data = malloc(1);
+    memcpy(event->data, data, 1);
+    event->event = PHEV_PIPE_BB,
+    event->length = 1;
+    LOG_D(APP_TAG, "Created Event ID %d", event->event);
+
+    LOG_V(APP_TAG, "END - BBEvent");
+
+    return event;
+}
 phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *phevMessage)
 {
     LOG_V(APP_TAG, "START - messageToEvent");
     LOG_D(APP_TAG, "Message to Event Reg %d Len %d Type %d", phevMessage->reg, phevMessage->length, phevMessage->type);
     phevPipeEvent_t *event = NULL;
  
+    if(phevMessage->command == 0xbb)
+    {
+        event = phev_pipe_createBBEvent(phevMessage->data);
+        return event;
+    }
     if (phevMessage->command == PING_RESP_CMD || phevMessage->command == PING_RESP_CMD_MY18 || phevMessage->command == 0xbb || phevMessage->command == 0xcd)
     {
         LOG_D(APP_TAG, "Ignoring ping");
@@ -851,12 +901,16 @@ void phev_pipe_resetPing(phev_pipe_ctx_t *ctx)
 }
 void phev_pipe_updateRegister(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value)
 {
+    phev_pipe_updateRegisterWithCallback(ctx, reg, value, NULL, NULL);
+}
+void phev_pipe_updateRegisterNoRetry(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value)
+{
     LOG_V(APP_TAG, "START - updateRegister");
     phevMessage_t *update = phev_core_simpleRequestCommandMessage(reg, value);
     
     message_t *message = phev_core_convertToMessage(update);
     
-    phev_pipe_outboundPublish(ctx, message);
+    phev_pipe_commandOutboundPublish(ctx, message);
 
     LOG_V(APP_TAG, "END - updateRegister");
 }
@@ -865,15 +919,33 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
 {
     LOG_V(APP_TAG, "START - updateRegisterEventHandler");
 
+    if (event->event == PHEV_PIPE_BB && ctx->updateRegisterCallbacks->numberOfCallbacks > 0)
+    {
+        LOG_I(APP_TAG,"Resending commands");
+        for(int i=0; i< ctx->updateRegisterCallbacks->numberOfCallbacks; i++)
+        {
+            if(ctx->updateRegisterCallbacks->used[i])
+            {
+                phev_pipe_updateRegisterNoRetry(ctx, ctx->updateRegisterCallbacks->registers[i], ctx->updateRegisterCallbacks->values[i]);
+            }
+        }
+        
+    }
     if (event->event == PHEV_PIPE_REG_UPDATE_ACK)
     {
         for (int i = 0; i < PHEV_PIPE_MAX_UPDATE_CALLBACKS; i++)
         {
-            if (ctx->updateRegisterCallbacks->callbacks[i] != NULL && ctx->updateRegisterCallbacks->registers[i] == ((phevMessage_t *)event->data)->reg)
+            if (ctx->updateRegisterCallbacks->used[i] && ctx->updateRegisterCallbacks->registers[i] == ((phevMessage_t *)event->data)->reg)
             {
-                ctx->updateRegisterCallbacks->callbacks[i](ctx, ctx->updateRegisterCallbacks->registers[i], ctx->updateRegisterCallbacks->ctx[i]);
+                if(ctx->updateRegisterCallbacks->callbacks[i]!= NULL)
+                {
+                    ctx->updateRegisterCallbacks->callbacks[i](ctx, ctx->updateRegisterCallbacks->registers[i], ctx->updateRegisterCallbacks->ctx[i]);
+                }
                 ctx->updateRegisterCallbacks->callbacks[i] = NULL;
                 ctx->updateRegisterCallbacks->registers[i] = 0;
+                ctx->updateRegisterCallbacks->values[i] = 0;
+                
+                ctx->updateRegisterCallbacks->used[i] = false;
 
                 ctx->updateRegisterCallbacks->numberOfCallbacks--;
             }
@@ -889,17 +961,19 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t re
 
     for (int i = 0; i < PHEV_PIPE_MAX_UPDATE_CALLBACKS; i++)
     {
-        if (ctx->updateRegisterCallbacks->callbacks[i] == NULL)
+        if (ctx->updateRegisterCallbacks->used[i] == false)
         {
+            ctx->updateRegisterCallbacks->used[i] = true;
             ctx->updateRegisterCallbacks->callbacks[i] = callback;
             ctx->updateRegisterCallbacks->registers[i] = reg;
+            ctx->updateRegisterCallbacks->values[i] = value;
             ctx->updateRegisterCallbacks->ctx[i] = customCtx;
 
             ctx->updateRegisterCallbacks->numberOfCallbacks++;
 
             phev_pipe_registerEventHandler(ctx, (phevPipeEventHandler_t)phev_pipe_updateRegisterEventHandler);
 
-            phev_pipe_updateRegister(ctx, reg, value);
+            phev_pipe_updateRegisterNoRetry(ctx, reg, value);
 
             LOG_V(APP_TAG, "END - updateRegisterWithCallback");
             return;

@@ -64,6 +64,7 @@ enum
     PHEV_PIPE_REG_UPDATE,
     PHEV_PIPE_REG_UPDATE_ACK,
     PHEV_PIPE_DATE_INFO,
+    PHEV_PIPE_BB,
 };
 typedef struct phevPipeEvent_t
 {
@@ -95,7 +96,9 @@ typedef void (* phevRegistrationComplete_t)(phev_pipe_ctx_t *ctx);
 typedef struct phev_pipe_updateRegisterCtx_t
 {
     phev_pipe_updateRegisterCallback_t callbacks[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
+    bool used[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     uint8_t registers[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
+    uint8_t values[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     void * ctx[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     size_t numberOfCallbacks;
 } phev_pipe_updateRegisterCtx_t;

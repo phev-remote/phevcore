@@ -95,6 +95,11 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             };
             return phevCtx->eventHandler(&ev);
         }
+        case PHEV_PIPE_BB:
+        {
+            LOG_I(TAG,"BB Event");
+            return 0;
+        }
     }
     
     
