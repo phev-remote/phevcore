@@ -173,7 +173,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
     }
     LOG_D(TAG, "Reg %d", phevMessage.reg);
 
-    if (phevMessage.command == RESP_CMD)
+    if (phevMessage.command == RESP_CMD && phevMessage.type == REQUEST_TYPE)
     {
         phevRegister_t *reg = phev_model_getRegister(serviceCtx->model, phevMessage.reg);
 
@@ -512,6 +512,7 @@ phevMessage_t *phev_service_jsonCommandToPhevMessage(const char *command)
     }
     return NULL;
 }
+
 message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 {
     phev_pipe_ctx_t * pipeCtx = (phev_pipe_ctx_t *) ctx;
@@ -525,6 +526,7 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
             message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->commandXOR);
             if (encoded)
             {
+                phev_pipe_updateRegister(pipeCtx,phevMessage->reg,phevMessage->data[0]);
                 return encoded;
             }
         }
@@ -574,6 +576,14 @@ cJSON *phev_service_updatedRegister(cJSON *json, phevMessage_t *phevMessage)
         }
         cJSON_AddItemToArray(data, item);
     }
+    cJSON *xor = cJSON_CreateNumber(phevMessage->XOR);
+    if (xor == NULL)
+    {
+        return NULL;
+    }
+
+    cJSON_AddItemToObject(updatedRegister, "xor", xor);
+
 
     return json;
 }
@@ -595,9 +605,52 @@ cJSON *phev_service_updateRegisterAck(cJSON *json, phevMessage_t *phevMessage)
 
     cJSON_AddItemToObject(updatedRegisterAck, "register", reg);
 
+    cJSON *xor = cJSON_CreateNumber(phevMessage->XOR);
+    if (xor == NULL)
+    {
+        return NULL;
+    }
+
+    cJSON_AddItemToObject(updatedRegisterAck, "xor", xor);
+
     return json;
 }
+cJSON * phev_service_sendStart(cJSON *json, phevMessage_t *phevMessage)
+{
+    cJSON *startMessage = cJSON_CreateObject();
+    if (startMessage == NULL)
+    {
+        return NULL;
+    }
 
+    cJSON_AddItemToObject(json, PHEV_SERVICE_START_MESSAGE_JSON, startMessage);
+
+    cJSON *length = cJSON_CreateNumber(phevMessage->length);
+    if (length == NULL)
+    {
+        return NULL;
+    }
+    cJSON_AddItemToObject(startMessage, "length", length);
+
+    cJSON *data = cJSON_CreateArray();
+    if (data == NULL)
+    {
+        return NULL;
+    }
+    cJSON_AddItemToObject(startMessage, "data", data);
+
+    for (int i = 0; i < phevMessage->length; i++)
+    {
+        cJSON *item = cJSON_CreateNumber(phevMessage->data[i]);
+        if (item == NULL)
+        {
+            return NULL;
+        }
+        cJSON_AddItemToArray(data, item);
+    }
+
+    return startMessage;
+}
 message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
 {
     LOG_V(TAG, "START - jsonOutputTransformer");
@@ -616,31 +669,58 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     char *output;
     cJSON *out = NULL;
 
-    if (phevMessage->command != 0x6f)
-    {
-        return NULL;
-    }
-
     cJSON *response = cJSON_CreateObject();
+
     if (response == NULL)
     {
         return NULL;
     }
-
-    if (phevMessage->type == REQUEST_TYPE)
+   
+    switch(phevMessage->command)
     {
-        out = phev_service_updatedRegister(response, phevMessage);
-    }
-    else
+    case 0x4e:
+    case 0x5e:
     {
-        out = phev_service_updateRegisterAck(response, phevMessage);
+        LOG_I(TAG,"****%02X command******",phevMessage->command);
+        out = phev_service_sendStart(response, phevMessage);
+        break;
     }
-
+    case 0x6f:
+    {
+        if (phevMessage->type == REQUEST_TYPE)
+        {
+            out = phev_service_updatedRegister(response, phevMessage);
+        }
+        else
+        {
+            out = phev_service_updateRegisterAck(response, phevMessage);
+        }
+        break;
+    }
+    default:
+    {
+        cJSON_Delete(response);
+        return NULL;
+    }
+    }
+    
     if (!out)
     {
+        cJSON_Delete(response);
         return NULL;
     }
 
+    time_t now;
+    struct tm *timeinfo;
+    time(&now);
+    
+    char buf[21];
+    strftime(buf, sizeof buf, "%FT%TZ", gmtime(&now));
+    
+    cJSON * time = cJSON_CreateString(buf);
+
+    cJSON_AddItemToObject(out, "time", time);
+    
     output = cJSON_Print(out);
 
     message_t *outputMessage = msg_utils_createMsg((uint8_t *)output, strlen(output) );
