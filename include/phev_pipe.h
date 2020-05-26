@@ -98,7 +98,8 @@ typedef struct phev_pipe_updateRegisterCtx_t
     phev_pipe_updateRegisterCallback_t callbacks[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     bool used[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     uint8_t registers[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
-    uint8_t values[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
+    uint8_t * values[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
+    size_t lengths[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     void * ctx[PHEV_PIPE_MAX_UPDATE_CALLBACKS];
     size_t numberOfCallbacks;
 } phev_pipe_updateRegisterCtx_t;
@@ -160,6 +161,8 @@ void phev_pipe_resetPing(phev_pipe_ctx_t *);
 void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac);
 void phev_pipe_sendMac(phev_pipe_ctx_t *ctx, uint8_t *mac);
 void phev_pipe_updateRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t);
+void phev_pipe_updateComplexRegister(phev_pipe_ctx_t *, const uint8_t, const uint8_t *, size_t);
+void phev_pipe_updateComplexRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t * data, size_t length, phev_pipe_updateRegisterCallback_t callback, void * customCtx);
 void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t value, phev_pipe_updateRegisterCallback_t callback, void * customCtx);
 phevPipeEvent_t *phev_pipe_createRegisterEvent(phev_pipe_ctx_t *phevCtx, phevMessage_t *phevMessage);
 void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message);

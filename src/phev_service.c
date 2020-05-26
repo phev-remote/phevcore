@@ -42,6 +42,11 @@ int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             }
             break;
         }
+        case PHEV_PIPE_REG_UPDATE_ACK:
+        {
+            phevMessage_t * message = (phevMessage_t *) event->data;
+            LOG_I(TAG,"Register ACK %02X", message->reg);
+        }
     }
     LOG_V(TAG, "END - eventHandler");
     return 0;
@@ -519,16 +524,30 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 
     if (message)
     {
+        if(!pipeCtx->connected)
+        {
+            LOG_W(TAG,"Not sending command as not connected");
+            return NULL;
+        }
         phevMessage_t *phevMessage = phev_service_jsonCommandToPhevMessage((char *)message->data);
         if (phevMessage)
         {
-            message_t *out = phev_core_convertToMessage(phevMessage);
-            message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->commandXOR);
-            if (encoded)
+            //message_t *out = phev_core_convertToMessage(phevMessage);
+            //message_t *encoded = phev_core_XOROutboundMessage(out,pipeCtx->commandXOR);
+            //if (encoded)
+            //{
+            
+            LOG_I(TAG,"Phev message command %02X reg %02X type %02X length %02X",phevMessage->command,phevMessage->reg,phevMessage->type,phevMessage->length);
+            if(phevMessage->length == 1)
             {
                 phev_pipe_updateRegister(pipeCtx,phevMessage->reg,phevMessage->data[0]);
-                return encoded;
             }
+            else 
+            {
+                phev_pipe_updateComplexRegister(pipeCtx,phevMessage->reg,phevMessage->data,phevMessage->length);
+            }
+            return NULL;//encoded;
+        //    }
         }
     }
     return NULL;
@@ -681,7 +700,6 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     case 0x4e:
     case 0x5e:
     {
-        LOG_I(TAG,"****%02X command******",phevMessage->command);
         out = phev_service_sendStart(response, phevMessage);
         break;
     }
