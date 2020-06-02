@@ -285,7 +285,7 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 {
     LOG_V(TAG,"START - airCon");
-        phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
 
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
@@ -301,6 +301,38 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
     LOG_V(TAG,"END - airCon");
     
 }
+void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - airConMode");
+
+    uint8_t val = mode;
+
+    switch(time)
+    {
+        case T10MIN: val |= 0; break;
+        case T20MIN: val |= 16; break;
+        case T30MIN: val |= 32; break;
+    }
+
+    uint8_t data[] = {0, 0, 255, 255, 255, 255, val, 255, 255, 255, 255, 255, 255, 255, 255};
+
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+   
+    LOG_D(TAG,"Switching air conditioning mode %d",val);
+        
+    if(callback)
+    {
+        phev_pipe_updateComplexRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data),phev_headLightsCallback,cbCtx);
+    } 
+    else 
+    {
+        phev_pipe_updateComplexRegister(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data));
+    }
+    LOG_V(TAG,"END - airConMode");
+}
 int phev_batteryLevel(phevCtx_t * ctx)
 {
     LOG_V(TAG,"START - batteryLevel");
@@ -314,6 +346,7 @@ phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
 {
     return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg); 
 }
+
 
 char * phev_statusAsJson(phevCtx_t * ctx)
 {

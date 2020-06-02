@@ -81,6 +81,19 @@ typedef struct phevSettings_t {
     messagingClient_t * out;
 } phevSettings_t;
 
+typedef enum phevAirConMode_t {
+    NONE,
+    HEAT,
+    COOL,
+    WINDSCREEN,
+} phevAirConMode_t;
+
+typedef enum phevAirConTime_t {
+    T10MIN,
+    T20MIN,
+    T30MIN,
+} phevAirConTime_t;
+
 phevCtx_t * phev_init(phevSettings_t settings);
 void * phev_getUserCtx(phevCtx_t * ctx);
 void phev_start(phevCtx_t * ctx);
@@ -89,6 +102,7 @@ void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
 void phev_exit(phevCtx_t * ctx);
 void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback);
+void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
 int phev_batteryLevel(phevCtx_t * ctx);
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg);
