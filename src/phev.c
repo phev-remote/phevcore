@@ -95,6 +95,15 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             };
             return phevCtx->eventHandler(&ev);
         }
+        case PHEV_PIPE_REG_UPDATE_ACK:
+        {
+            phevEvent_t ev = {
+                .type = PHEV_REGISTER_UPDATE_ACK,
+                .reg = ((phevMessage_t *) event->data)->reg,
+                .ctx = phevCtx,
+            };
+            return phevCtx->eventHandler(&ev);
+        }
         case PHEV_PIPE_BB:
         {
             LOG_I(TAG,"BB Event");
