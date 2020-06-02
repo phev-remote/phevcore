@@ -562,6 +562,8 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         msg->data = phev_core_getData(message->data);
         msg->XOR = phev_core_getMessageXOR(message);
 
+        msg_utils_destroyMsg(message);
+
         return 1;
     }
 
@@ -688,6 +690,8 @@ message_t *phev_core_convertToMessage(phevMessage_t *message)
     message_t *out = phev_core_createMsgXOR(data, length,message->XOR);
 
     free(data);
+
+    phev_core_destroyMessage(message);
 
     LOG_V(APP_TAG, "END - convertToMessage");
 

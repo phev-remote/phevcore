@@ -688,10 +688,12 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     char *output;
     cJSON *out = NULL;
 
+    msg_utils_destroyMsg(message);
     cJSON *response = cJSON_CreateObject();
 
     if (response == NULL)
     {
+        phev_core_destroyMessage(phevMessage);
         return NULL;
     }
    
@@ -718,6 +720,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     default:
     {
         cJSON_Delete(response);
+        phev_core_destroyMessage(phevMessage);
         return NULL;
     }
     }
@@ -725,6 +728,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     if (!out)
     {
         cJSON_Delete(response);
+        phev_core_destroyMessage(phevMessage);
         return NULL;
     }
 

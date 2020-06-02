@@ -676,13 +676,15 @@ message_t *phev_pipe_outputEventTransformer(void *ctx, message_t *message)
     {
         LOG_E(APP_TAG, "Invalid message received - something serious happened here as we should only have a valid message at this point");
         LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
-
+        
         return NULL;
     }
 
     phev_pipe_sendEvent(ctx, phevMessage);
 
     message_t *ret = phev_core_convertToMessage(phevMessage);
+
+    phev_core_destroyMessage(phevMessage);
 
     LOG_V(APP_TAG, "END - outputEventTransformer");
 
