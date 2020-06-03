@@ -201,6 +201,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
+        phev_core_destroyMessage(phevMessage);
         //msg_utils_destroyMsg(message);
         return NULL;
     }
@@ -239,6 +240,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
     
     phev_core_destroyMessage(phevMessage);
+    free(phevMessage);
     return message;
     
 }
@@ -682,13 +684,13 @@ message_t *phev_pipe_outputEventTransformer(void *ctx, message_t *message)
 
     phev_pipe_sendEvent(ctx, phevMessage);
 
-    message_t *ret = phev_core_convertToMessage(phevMessage);
+//    message_t *ret = phev_core_convertToMessage(phevMessage);
 
     phev_core_destroyMessage(phevMessage);
 
-    LOG_V(APP_TAG, "END - outputEventTransformer");
+//    LOG_V(APP_TAG, "END - outputEventTransformer");
 
-    return ret;
+    return NULL; //ret;
 }
 
 void phev_pipe_registerEventHandler(phev_pipe_ctx_t *ctx, phevPipeEventHandler_t eventHandler)
@@ -803,7 +805,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
         }
     }
 
-    //msg_utils_destroyMsg(message);  Cannot destroy until tests are fixed
+    //msg_utils_destroyMsg(message); // Cannot destroy until tests are fixed
     LOG_D(APP_TAG, "Split messages into %d", messages->numMessages);
     LOG_MSG_BUNDLE(APP_TAG, messages);
     LOG_V(APP_TAG, "END - outputSplitter");
@@ -869,7 +871,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
 
 #endif
     //msg_utils_destroyMsg(message);
-    phev_core_destroyMessage(ping);
+    //phev_core_destroyMessage(ping);
     LOG_V(APP_TAG, "END - ping");
 }
 void phev_pipe_resetPing(phev_pipe_ctx_t *ctx)

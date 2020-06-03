@@ -97,7 +97,11 @@ bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor)
 {
     uint8_t *decodedData = phev_core_xorDataWithValue(data, xor);
     
-    return phev_core_validateChecksum(decodedData);
+    bool valid = phev_core_validateChecksum(decodedData);
+
+    free(decodedData);
+
+    return valid;
 }
 message_t *phev_core_unencodedIncomingMessage(const uint8_t *data)
 {
@@ -477,7 +481,6 @@ void phev_core_destroyMessage(phevMessage_t *message)
     {
         free(message->data);
     }
-    free(message);
     LOG_V(APP_TAG, "END - destroyMessage");
 }
 int phev_core_validate_buffer(const uint8_t *msg, const size_t len)
@@ -662,8 +665,8 @@ message_t *phev_core_startMessageEncoded(const uint8_t *mac)
     message_t *message = msg_utils_concatMessages(
         phev_core_convertToMessage(start),
         phev_core_convertToMessage(startaa));
-    phev_core_destroyMessage(start);
-    phev_core_destroyMessage(startaa);
+    //phev_core_destroyMessage(start);
+    //phev_core_destroyMessage(startaa);
     return message;
 }
 phevMessage_t *phev_core_pingMessage(const uint8_t number)

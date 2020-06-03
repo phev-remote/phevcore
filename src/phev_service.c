@@ -680,7 +680,8 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     {
         serviceCtx = ((phev_pipe_ctx_t *)ctx)->ctx;
 
-        phev_pipe_outputEventTransformer(ctx, message);
+        message_t * ret = phev_pipe_outputEventTransformer(ctx, message);
+        msg_utils_destroyMsg(ret);
     }
     phevMessage_t *phevMessage = malloc(sizeof(phevMessage_t));
 
