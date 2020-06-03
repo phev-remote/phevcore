@@ -30,6 +30,7 @@ typedef struct phevCtx_t phevCtx_t;
 typedef enum {
     PHEV_CONNECTED,
     PHEV_REGISTER_UPDATE,
+    PHEV_REGISTER_UPDATE_ACK,
     PHEV_DISCONNECTED,
     PHEV_REGISTERED,
     PHEV_REGISTRATION_COMPLETE,
