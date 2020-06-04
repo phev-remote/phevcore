@@ -247,7 +247,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if(phevMessage->command == 0x3f)
     {
         pipeCtx->pingResponse = phevMessage->reg;    
-        printf("\n*** Server Ping %d\n",phevMessage->reg);
+        LOG_D(APP_TAG,"Server Ping %d\n",phevMessage->reg);
         
     }
     
@@ -872,7 +872,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     }
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
     ctx->currentPing %= 0x30;
-    printf("*** Client Ping %d\n",ctx->currentPing);
+    LOG_D(APP_TAG,"Client Ping %d\n",ctx->currentPing);
     message_t *message = phev_core_convertToMessage(ping);
     
 #ifndef NO_PING
