@@ -668,7 +668,7 @@ cJSON * phev_service_sendStart(cJSON *json, phevMessage_t *phevMessage)
         cJSON_AddItemToArray(data, item);
     }
 
-    return startMessage;
+    return json;
 }
 message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
 {
