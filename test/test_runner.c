@@ -79,6 +79,7 @@ int main()
     RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_CC_command);
     RUN_TEST(test_core_phev_core_extractIncomingMessageAndXOR_2F_command);
     RUN_TEST(test_phev_core_getMessageXOR);
+    RUN_TEST(test_core_phev_core_extractIncomingMessageValidFirstByteCommand);
 
 //  PHEV PIPE
     

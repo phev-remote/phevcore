@@ -890,7 +890,16 @@ void test_core_phev_core_extractIncomingMessageAndXOR_2F_command(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
     TEST_ASSERT_EQUAL(0x15,phev_core_getMessageXOR(message)); 
 }
+void test_core_phev_core_extractIncomingMessageValidFirstByteCommand(void)
+{
+    uint8_t input[]= {0x6f,0xa7,0xa2,0x8b,0x62,0x19};
+    uint8_t expected[] = {0xcc,0x04,0x28,0x8b,0xba};
+    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
 
+    TEST_ASSERT_NOT_NULL(message);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,message->data,sizeof(expected));
+    
+}
 /*
 void test_phev_core_decode_encode(void)
 {

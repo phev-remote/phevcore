@@ -352,3 +352,16 @@ char * phev_statusAsJson(phevCtx_t * ctx)
 {
     return phev_service_statusAsJson(ctx->serviceCtx);
 }
+
+void phev_disconnectCar(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - disconnectCar");
+    phev_service_disconnectOutput(ctx->serviceCtx);
+    LOG_V(TAG,"END - disconnectCar");
+}
+void phev_disconnect(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - disconnect");
+    phev_service_disconnect(ctx->serviceCtx);
+    LOG_V(TAG,"END - disconnect");
+}

@@ -1023,3 +1023,29 @@ phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx)
     }
     return NULL;
 }
+void phev_service_disconnectInput(phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - disconnectInput");
+    
+    phev_pipe_disconnectInput(ctx->pipe);
+    
+    LOG_V(TAG,"END - disconnectInput");
+}
+void phev_service_disconnectOutput(phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - disconnectOutput");
+    
+    phev_pipe_disconnectOutput(ctx->pipe);
+    
+    LOG_V(TAG,"END - disconnectOutput");
+}
+void phev_service_disconnect(phevServiceCtx_t * ctx)
+{
+    LOG_V(TAG,"START - disconnect");
+    
+    phev_service_disconnectInput(ctx);
+    phev_service_disconnectOutput(ctx);
+    
+    LOG_V(TAG,"END - disconnect");
+    
+}

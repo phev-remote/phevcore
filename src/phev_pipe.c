@@ -22,6 +22,22 @@ void phev_pipe_destroyEvent(phevPipeEvent_t * event)
     }
 
 }
+void phev_pipe_disconnectInput(phev_pipe_ctx_t *ctx)
+{
+    LOG_V(APP_TAG,"START - disconnectInput");
+    
+    msg_pipe_in_disconnect(ctx->pipe);
+    
+    LOG_V(APP_TAG,"END - disconnectInput");
+}
+void phev_pipe_disconnectOutput(phev_pipe_ctx_t *ctx)
+{
+    LOG_V(APP_TAG,"START - disconnectOutput");
+
+    msg_pipe_out_disconnect(ctx->pipe);
+    
+    LOG_V(APP_TAG,"END - disconnectOutput");
+}
 void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
 {
     LOG_V(APP_TAG, "START - waitForConnection");
@@ -96,7 +112,6 @@ void phev_pipe_sendMac(phev_pipe_ctx_t *ctx, uint8_t *mac)
     message_t *message = phev_core_startMessageEncoded(mac);
     phev_pipe_outboundPublish(ctx, message);
 
-    //free(message);
     LOG_V(APP_TAG, "END - sendMac");
 }
 void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac)
@@ -104,9 +119,7 @@ void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac)
     LOG_V(APP_TAG, "START - start");
 
     phev_pipe_waitForConnection(ctx);
-    message_t *message = phev_core_convertToMessage(phev_core_pingMessage(0));
-    
-    //phev_pipe_pingOutboundPublish(ctx, message);
+
     phev_pipe_sendMac(ctx, mac);
     LOG_V(APP_TAG, "END - start");
 }
@@ -233,7 +246,9 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     } 
     if(phevMessage->command == 0x3f)
     {
-        pipeCtx->pingResponse = phevMessage->reg;        
+        pipeCtx->pingResponse = phevMessage->reg;    
+        printf("\n*** Server Ping %d\n",phevMessage->reg);
+        
     }
     
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
@@ -837,7 +852,7 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
 #ifndef NO_TIME_SYNC
     phev_pipe_commandOutboundPublish(ctx, message);
 #endif
-    phev_core_destroyMessage(dateCmd);
+
     LOG_V(APP_TAG, "END - sendTimeSync");
 }
 void phev_pipe_ping(phev_pipe_ctx_t *ctx)
@@ -857,6 +872,7 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     }
     phevMessage_t *ping = phev_core_pingMessage(ctx->currentPing++);
     ctx->currentPing %= 0x30;
+    printf("*** Client Ping %d\n",ctx->currentPing);
     message_t *message = phev_core_convertToMessage(ping);
     
 #ifndef NO_PING

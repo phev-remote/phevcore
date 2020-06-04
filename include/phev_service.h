@@ -108,4 +108,7 @@ bool phev_service_getChargingStatus(const phevServiceCtx_t * ctx);
 int phev_service_getRemainingChargeTime(const phevServiceCtx_t * ctx);
 phevServiceHVAC_t * phev_service_getHVACStatus(const phevServiceCtx_t * ctx);
 int phev_service_eventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
+void phev_service_disconnectInput(phevServiceCtx_t * ctx);
+void phev_service_disconnectOutput(phevServiceCtx_t * ctx);
+void phev_service_disconnect(phevServiceCtx_t * ctx);
 #endif

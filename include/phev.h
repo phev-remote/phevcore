@@ -109,4 +109,5 @@ int phev_batteryLevel(phevCtx_t * ctx);
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg);
 char * phev_statusAsJson(phevCtx_t * ctx);
 messagingClient_t * phev_createIncomingMessageClient(void);
+void phev_disconnect(phevCtx_t * ctx);
 #endif
