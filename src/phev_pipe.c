@@ -9,6 +9,18 @@
 
 const static char *APP_TAG = "PHEV_PIPE";
 
+
+void phev_pipe_resetPing(phev_pipe_ctx_t *ctx)
+{
+    LOG_V(APP_TAG, "START - resetPing");
+    time_t now;
+
+    time(&now);
+    ctx->currentPing = 1;
+    ctx->lastPingTime = now;
+    LOG_V(APP_TAG, "END - resetPing");
+}
+
 void phev_pipe_destroyEvent(phevPipeEvent_t * event)
 {
     if(event != NULL)
@@ -35,6 +47,16 @@ void phev_pipe_disconnectOutput(phev_pipe_ctx_t *ctx)
     LOG_V(APP_TAG,"START - disconnectOutput");
 
     msg_pipe_out_disconnect(ctx->pipe);
+
+    ctx->connected = false;
+
+    phev_pipe_resetPing(ctx);
+
+    ctx->currentXOR = 0;
+    ctx->pingXOR = 0;
+    ctx->commandXOR = 0;
+    ctx->encrypt = false;
+    ctx->pingResponse = 0;
     
     LOG_V(APP_TAG,"END - disconnectOutput");
 }
@@ -889,16 +911,6 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     //msg_utils_destroyMsg(message);
     //phev_core_destroyMessage(ping);
     LOG_V(APP_TAG, "END - ping");
-}
-void phev_pipe_resetPing(phev_pipe_ctx_t *ctx)
-{
-    LOG_V(APP_TAG, "START - resetPing");
-    time_t now;
-
-    time(&now);
-    ctx->currentPing = 1;
-    ctx->lastPingTime = now;
-    LOG_V(APP_TAG, "END - resetPing");
 }
 void phev_pipe_updateComplexRegister(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t * data, const size_t length)
 {
