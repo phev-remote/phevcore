@@ -187,6 +187,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
             LOG_D(TAG, "Register has previously been set Reg %02X",phevMessage.reg);
             LOG_D(TAG,"Register Data len is %d and data",reg->length);
             LOG_BUFFER_HEXDUMP(TAG,reg->data,reg->length,LOG_DEBUG);
+
             int same = phev_model_compareRegister(serviceCtx->model, phevMessage.reg, phevMessage.data);
             if (same != 0)
             {
@@ -198,7 +199,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
             }
             LOG_D(TAG, "Is same %d", same);
 
-            return false;
+            return true;
         }
         else
         {
@@ -860,9 +861,16 @@ message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundl
     }
 
     char *str = cJSON_Print(out);
-    message_t *message = msg_utils_createMsg((uint8_t *)str, strlen(str) );
 
-    return message;
+    if(str)
+    {
+        message_t *message = msg_utils_createMsg((uint8_t *)str, strlen(str) );
+        return message;
+    } 
+    else
+    {
+        return NULL
+    }
 }
 
 void phev_service_errorHandler(phevError_t *error)

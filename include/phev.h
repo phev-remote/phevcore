@@ -39,6 +39,7 @@ typedef enum {
     PHEV_ECU_VERSION,
     PHEV_MAX_REGISTRATIONS,
     PHEV_DATE_SYNC,
+    PHEV_PING_RESPONSE,
 } phevEventTypes_t;
 
 typedef struct phevEvent_t {

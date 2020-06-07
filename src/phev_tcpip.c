@@ -59,7 +59,7 @@
 
 const static char *APP_TAG = "PHEV_TCPIP";
 
-const static int loglvl = LOG_INFO;
+const static int loglvl = LOG_DEBUG;
 
 static uint8_t decoded[1024];
 
