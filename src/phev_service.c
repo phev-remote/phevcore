@@ -869,7 +869,7 @@ message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundl
     } 
     else
     {
-        return NULL
+        return NULL;
     }
 }
 
