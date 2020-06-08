@@ -481,6 +481,8 @@ void phev_core_destroyMessage(phevMessage_t *message)
     {
         free(message->data);
     }
+
+    free(message);
     LOG_V(APP_TAG, "END - destroyMessage");
 }
 int phev_core_validate_buffer(const uint8_t *msg, const size_t len)
@@ -562,7 +564,14 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         msg->type = message->data[2];
         msg->reg = message->data[3];
         msg->checksum = phev_core_getChecksum(message->data);
-        msg->data = phev_core_getData(message->data);
+        if(msg->length > 0 && message->data)
+        {
+            msg->data = phev_core_getData(message->data);
+        }
+        else
+        {
+            msg->data = NULL;
+        }
         msg->XOR = phev_core_getMessageXOR(message);
 
         msg_utils_destroyMsg(message);

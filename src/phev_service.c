@@ -158,6 +158,37 @@ messageBundle_t *phev_service_inputSplitter(void *ctx, message_t *message)
     
     return messages;
 }
+void phev_service_bufferDump(const uint8_t * buffer, const size_t length)
+{
+    if(length <= 0 || buffer == NULL) return;
+
+    char out[17];
+    memset(&out,'\0',17);
+        
+    printf("%s: ",TAG);
+    int i = 0;
+    for(i=0;i<length;i++)
+    {
+        printf("%02x ",buffer[i]);
+        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
+        if((i+1) % 8 == 0) printf(" ");
+        if((i+1) % 16 ==0) {
+            out[16] = '\0';
+            printf(" | %s |\n%s: ",out,TAG);
+        }
+    }
+    if((i % 16) + 1 != 0)
+    {
+        int num = (16 - (i % 16)) * 3;
+        num = ((i % 16) < 8 ? num + 1 : num);
+        out[(i % 16)] = '\0';
+        char padding[(16 * 3) + 2];
+        memset(&padding,' ',num+1);
+        padding[(16-i)*3] = '\0';
+        printf("%s | %s |\n",padding,out);
+    }
+    printf("\n");
+}
 bool phev_service_outputFilter(void *ctx, message_t *message)
 {
     LOG_V(TAG, "START - outputFilter");
@@ -174,6 +205,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
     if ((phevMessage.command == PING_RESP_CMD )|| (phevMessage.command == START_RESP))
     {
         LOG_D(TAG, "Not sending ping or start response");
+        free(phevMessage.data);
         return true;
     }
     LOG_D(TAG, "Reg %d", phevMessage.reg);
@@ -195,20 +227,30 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
 
                 phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
 
+                printf("Register change %d\n",phevMessage.reg);
+                phev_service_bufferDump(phevMessage.data,phevMessage.length);
+            
+                phev_service_bufferDump(reg->data,reg->length);
+                free(phevMessage.data);
+        
                 return true;
             }
             LOG_D(TAG, "Is same %d", same);
-
-            return true;
+            free(phevMessage.data);
+        
+            return false;
         }
         else
         {
-
+            printf("Set register\n");
+            phev_service_bufferDump(phevMessage.data,phevMessage.length);
             LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
 
             phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
         }
     }
+    free(phevMessage.data);
+        
     LOG_V(TAG, "END - outputFilter");
     
     return true;
@@ -690,7 +732,7 @@ message_t *phev_service_jsonOutputTransformer(void *ctx, message_t *message)
     char *output;
     cJSON *out = NULL;
 
-    msg_utils_destroyMsg(message);
+    //msg_utils_destroyMsg(message);
     cJSON *response = cJSON_CreateObject();
 
     if (response == NULL)

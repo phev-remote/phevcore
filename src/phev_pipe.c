@@ -278,7 +278,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     
     phev_core_destroyMessage(phevMessage);
 
-    free(phevMessage);
+    //free(phevMessage);
     return message;
     
 }
@@ -288,6 +288,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     phev_pipe_ctx_t *pipeCtx = (phev_pipe_ctx_t *)ctx;
 
     message_t *out = NULL;
+    message_t *ret = NULL;
 
     if (message != NULL)
     {
@@ -336,13 +337,15 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     if (out)
     {            
         message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
-        out = msg_utils_copyMsg(encoded);
+        
+        ret = msg_utils_copyMsg(encoded);
         msg_utils_destroyMsg(encoded);
+        msg_utils_destroyMsg(out);
     
     } 
 
 #ifndef NO_CMD_RESP
-    return out;
+    return ret;
 #else
     return NULL;
 #endif
