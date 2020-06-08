@@ -822,6 +822,7 @@ char *phev_service_statusAsJson(phevServiceCtx_t *ctx)
 
         char *out = cJSON_Print(json);
 
+        cJSON_Delete(json);
         //LOG_I(TAG, "Return json %s", out);
         LOG_V(TAG, "END - statusAsJson");
 
@@ -862,6 +863,7 @@ message_t *phev_service_jsonResponseAggregator(void *ctx, messageBundle_t *bundl
 
     char *str = cJSON_Print(out);
 
+    cJSON_Delete(out);
     if(str)
     {
         message_t *message = msg_utils_createMsg((uint8_t *)str, strlen(str) );
@@ -944,7 +946,7 @@ char *phev_service_getRegisterJson(const phevServiceCtx_t *ctx, const uint8_t re
         cJSON_AddItemToObject(json, PHEV_SERVICE_REGISTER_DATA_JSON, data);
 
         char *ret = cJSON_PrintUnformatted(json);
-
+        cJSON_Delete(json);
         LOG_V(TAG, "END - getRegisterJson");
         return ret;
     }

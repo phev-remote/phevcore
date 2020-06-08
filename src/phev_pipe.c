@@ -1043,7 +1043,7 @@ void phev_pipe_updateComplexRegisterWithCallback(phev_pipe_ctx_t *ctx, const uin
     {
         if (ctx->updateRegisterCallbacks->used[i] == false)
         {
-            const uint8_t * dataCopy = malloc(length);
+            uint8_t * dataCopy = malloc(length);
             memcpy(dataCopy,data,length);
             ctx->updateRegisterCallbacks->used[i] = true;
             ctx->updateRegisterCallbacks->callbacks[i] = callback;
