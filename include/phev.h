@@ -40,6 +40,7 @@ typedef enum {
     PHEV_MAX_REGISTRATIONS,
     PHEV_DATE_SYNC,
     PHEV_PING_RESPONSE,
+    PHEV_FILTERED_MESSAGE,
 } phevEventTypes_t;
 
 typedef struct phevEvent_t {

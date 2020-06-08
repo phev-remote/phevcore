@@ -66,6 +66,7 @@ enum
     PHEV_PIPE_DATE_INFO,
     PHEV_PIPE_BB,
     PHEV_PIPE_PING_RESP,
+    PHEV_PIPE_FILTERED_MESSAGE,
 };
 typedef struct phevPipeEvent_t
 {
@@ -173,6 +174,7 @@ void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx);
 void phev_pipe_destroyEvent(phevPipeEvent_t * event);
 void phev_pipe_disconnectInput(phev_pipe_ctx_t *ctx);
 void phev_pipe_disconnectOutput(phev_pipe_ctx_t *ctx);
+void phev_pipe_sendEventToHandlers(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event);
 
 //void phev_pipe_sendCommand(phev_core_command_t);
 

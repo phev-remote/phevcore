@@ -227,23 +227,22 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
 
                 phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);
 
-                printf("Register change %d\n",phevMessage.reg);
-                phev_service_bufferDump(phevMessage.data,phevMessage.length);
-            
-                phev_service_bufferDump(reg->data,reg->length);
                 free(phevMessage.data);
         
                 return true;
             }
             LOG_D(TAG, "Is same %d", same);
             free(phevMessage.data);
-        
+            phevPipeEvent_t *event = malloc(sizeof(phevPipeEvent_t));
+            event->data = NULL;
+            event->event = PHEV_PIPE_FILTERED_MESSAGE;
+            event->length = 0;
+            phev_pipe_sendEventToHandlers((phev_pipe_ctx_t *) ctx, event);
+
             return false;
         }
         else
         {
-            printf("Set register\n");
-            phev_service_bufferDump(phevMessage.data,phevMessage.length);
             LOG_D(TAG, "Setting Reg %d", phevMessage.reg);
 
             phev_model_setRegister(serviceCtx->model, phevMessage.reg, phevMessage.data, phevMessage.length);

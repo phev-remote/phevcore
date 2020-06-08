@@ -236,8 +236,8 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
-        phev_core_destroyMessage(phevMessage);
-        //msg_utils_destroyMsg(message);
+
+        msg_utils_destroyMsg(message);
         return NULL;
     }
     if(message->ctx != NULL) 
@@ -955,7 +955,7 @@ void phev_pipe_updateRegisterNoRetry(phev_pipe_ctx_t *ctx, const uint8_t reg, co
         LOG_W(APP_TAG,"Cannot send data with no data");
         return;
     }
-    LOG_I(APP_TAG,"Phev message %d %p",length, data);
+    
     if(length == 1)
     {
         update = phev_core_simpleRequestCommandMessage(reg, data[0]);
@@ -1013,6 +1013,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
                 }
                 ctx->updateRegisterCallbacks->callbacks[i] = NULL;
                 ctx->updateRegisterCallbacks->registers[i] = 0;
+                free(ctx->updateRegisterCallbacks->values[i]);
                 ctx->updateRegisterCallbacks->values[i] = NULL;
                 ctx->updateRegisterCallbacks->lengths[i] = 0;
                 

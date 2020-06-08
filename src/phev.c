@@ -110,6 +110,16 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             };
             return phevCtx->eventHandler(&ev);
         }
+        case PHEV_PIPE_FILTERED_MESSAGE:
+        {
+            phevEvent_t ev = {
+                .type = PHEV_FILTERED_MESSAGE,
+                .data = event->data,
+                .length = event->length,
+                .ctx = phevCtx,
+            };
+            return phevCtx->eventHandler(&ev);
+        }
     }
     
     
