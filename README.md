@@ -10,6 +10,12 @@ More features will be avalable soon.
 
 It requires that the device is connected to the same network as the car, the 192.168.8.x subnet.
 
+### The CLI 
+
+Has been tested on a raspberry pi and other linux systems can be found here.
+
+https://github.com/phev-remote/phevctl
+
 ### Pre-reqs
 
 #### Messaging core library
@@ -43,8 +49,4 @@ cmake ..
 make
 sudo make install
 ```
-### The CLI 
 
-Has been tested on a raspberry pi and other linux systems can be found here.
-
-https://github.com/phev-remote/phevctl
