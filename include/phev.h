@@ -104,6 +104,7 @@ phevCtx_t * phev_registerDevice(phevSettings_t settings);
 void phev_updateRegister(uint8_t reg, uint8_t * data, size_t length);
 void phev_exit(phevCtx_t * ctx);
 void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback);
+void phev_parkingLights(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
