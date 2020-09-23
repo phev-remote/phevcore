@@ -846,19 +846,16 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     while (message->length > total)
     {
         out = phev_core_extractIncomingMessageAndXOR(message->data + total);
-        LOG_D(APP_TAG,"Extract message output");
-        LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
-        if (out != NULL)
-        {
-            phev_pipe_checkXORChanged(pipeCtx,out);
-            total += out->length;
-            messages->messages[messages->numMessages++] = msg_utils_copyMsg(out);
-            msg_utils_destroyMsg(out);
-        }
-        else
-        {
+        if (out == NULL) {
             break;
         }
+
+        LOG_D(APP_TAG,"Extract message output");
+        LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
+        phev_pipe_checkXORChanged(pipeCtx,out);
+        total += out->length;
+        messages->messages[messages->numMessages++] = msg_utils_copyMsg(out);
+        msg_utils_destroyMsg(out);
     }
 
     //msg_utils_destroyMsg(message); // Cannot destroy until tests are fixed
