@@ -23,7 +23,6 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
     LOG_V(TAG,"START - pipeEventHandler");
     
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
-    
 
     if(!phevCtx->eventHandler)
     {
@@ -270,17 +269,20 @@ void phev_exit(phevCtx_t * ctx)
     LOG_V(TAG,"START - exit");
     
 }
+
 bool phev_running(phevCtx_t * ctx)
 {
     return !ctx->serviceCtx->exit;
 }
-static void phev_headLightsCallback(phev_pipe_ctx_t *ctx, uint8_t reg, void * customCtx)
+
+static void phev_registerUpdateCallback(phev_pipe_ctx_t *ctx, uint8_t reg, void * customCtx)
 {
     phevCallBackCtx_t * cbCtx = (phevCallBackCtx_t *) customCtx;
 
-    cbCtx->callback(cbCtx->ctx,NULL);
-
+    cbCtx->callback(cbCtx->ctx, NULL);
+    free(cbCtx);
 }
+
 void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 {
     LOG_V(TAG,"START - headLights");
@@ -289,19 +291,34 @@ void phev_headLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
 
-    LOG_D(TAG,"Switching %s head lights",(on ? "ON" : "OFF"));
-    if(callback)
-    {
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2),phev_headLightsCallback,cbCtx);
-    } 
-    else
-    {
-        phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2));    
+    LOG_D(TAG,"Switching %s head lights", on ? "ON" : "OFF");
+    if (callback) {
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe, KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2), phev_registerUpdateCallback, cbCtx);
+    } else {
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe, KO_WF_H_LAMP_CONT_SP, (on ? 1 : 2));
     }
 
     LOG_V(TAG,"END - headLights");
-    
 }
+
+void phev_parkingLights(phevCtx_t * ctx, bool on, phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - parkingLights");
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+    LOG_D(TAG,"Switching %s parking lights", on ? "ON" : "OFF");
+    if (callback) {
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe, KO_WF_P_LAMP_CONT_SP, (on ? 1 : 2), phev_registerUpdateCallback, cbCtx);
+    } else {
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe, KO_WF_P_LAMP_CONT_SP, (on ? 1 : 2));
+    }
+
+    LOG_V(TAG,"END - parkingLights");
+}
+
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 {
     LOG_V(TAG,"START - airCon");
@@ -310,11 +327,10 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
    
-    LOG_D(TAG,"Switching %s air conditioning",(on ? "ON" : "OFF"));
+    LOG_D(TAG,"Switching %s air conditioning", on ? "ON" : "OFF");
         
-    if(callback)
-    {
-        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 2 : 1),phev_headLightsCallback,cbCtx);
+    if (callback) {
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 2 : 1), phev_registerUpdateCallback, cbCtx);
     } else {
         phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 1 : 2));
     }
@@ -341,18 +357,17 @@ void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t ti
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
    
-    LOG_D(TAG,"Switching air conditioning mode %d",val);
+    LOG_D(TAG,"Switching air conditioning mode %d", val);
         
-    if(callback)
-    {
-        phev_pipe_updateComplexRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data),phev_headLightsCallback,cbCtx);
-    } 
-    else 
-    {
+    if (callback) {
+        phev_pipe_updateComplexRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data), phev_registerUpdateCallback, cbCtx);
+    } else {
         phev_pipe_updateComplexRegister(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data));
     }
+
     LOG_V(TAG,"END - airConMode");
 }
+
 int phev_batteryLevel(phevCtx_t * ctx)
 {
     LOG_V(TAG,"START - batteryLevel");
@@ -362,11 +377,11 @@ int phev_batteryLevel(phevCtx_t * ctx)
     LOG_V(TAG,"END - batteryLevel");
     return level;
 }
+
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
 {
     return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg); 
 }
-
 
 char * phev_statusAsJson(phevCtx_t * ctx)
 {
@@ -379,6 +394,7 @@ void phev_disconnectCar(phevCtx_t * ctx)
     phev_service_disconnectOutput(ctx->serviceCtx);
     LOG_V(TAG,"END - disconnectCar");
 }
+
 void phev_disconnect(phevCtx_t * ctx)
 {
     LOG_V(TAG,"START - disconnect");

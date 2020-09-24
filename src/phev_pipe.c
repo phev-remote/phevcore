@@ -831,8 +831,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     LOG_D(APP_TAG,"Extract message output");
     LOG_BUFFER_HEXDUMP(APP_TAG, out->data, out->length, LOG_DEBUG);
 
-
-    phev_pipe_checkXORChanged(pipeCtx,out);
+    phev_pipe_checkXORChanged(pipeCtx, out);
 
     messageBundle_t *messages = malloc(sizeof(messageBundle_t));
 
@@ -944,6 +943,7 @@ void phev_pipe_updateRegister(phev_pipe_ctx_t *ctx, const uint8_t reg, const uin
 {
     phev_pipe_updateRegisterWithCallback(ctx, reg, value, NULL, NULL);
 }
+
 void phev_pipe_updateRegisterNoRetry(phev_pipe_ctx_t *ctx, const uint8_t reg, const uint8_t * data, const size_t length)
 {
     LOG_V(APP_TAG, "START - updateRegister");
@@ -1034,7 +1034,7 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t re
     uint8_t * data = malloc(1);
     data[0] = value;
             
-    phev_pipe_updateComplexRegisterWithCallback(ctx,reg,data,1,callback,customCtx);
+    phev_pipe_updateComplexRegisterWithCallback(ctx, reg, data, 1, callback, customCtx);
 
     LOG_V(APP_TAG, "END - updateRegisterWithCallback");
 
@@ -1048,7 +1048,7 @@ void phev_pipe_updateComplexRegisterWithCallback(phev_pipe_ctx_t *ctx, const uin
         if (ctx->updateRegisterCallbacks->used[i] == false)
         {
             uint8_t * dataCopy = malloc(length);
-            memcpy(dataCopy,data,length);
+            memcpy(dataCopy, data, length);
             ctx->updateRegisterCallbacks->used[i] = true;
             ctx->updateRegisterCallbacks->callbacks[i] = callback;
             ctx->updateRegisterCallbacks->registers[i] = reg;
