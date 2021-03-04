@@ -21,7 +21,7 @@ void * phev_getUserCtx(phevCtx_t * ctx)
 int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
 {
     LOG_V(TAG,"START - pipeEventHandler");
-    
+
     phevCtx_t * phevCtx = (phevCtx_t *) ((phevServiceCtx_t *) ctx->ctx)->ctx;
 
     if(!phevCtx->eventHandler)
@@ -35,7 +35,7 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
                 .type = PHEV_CONNECTED,
                 .ctx =  phevCtx,
             };
-            
+
             return phevCtx->eventHandler(&ev);
         }
         case PHEV_PIPE_START_ACK: {
@@ -57,11 +57,11 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
         }
         case PHEV_PIPE_GOT_VIN:
         {
-            phevVinEvent_t * vinEv = (phevVinEvent_t *) event->data; 
+            phevVinEvent_t * vinEv = (phevVinEvent_t *) event->data;
             char * vin = malloc(19);
-          
+
             strncpy(vin,vinEv->vin,18);
-            
+
             phevEvent_t ev = {
                 .type = PHEV_VIN,
                 .data = (unsigned char *) vin,
@@ -120,10 +120,10 @@ int phev_pipeEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *event)
             return phevCtx->eventHandler(&ev);
         }
     }
-    
-    
+
+
     LOG_V(TAG,"END - pipeEventHandler");
-    
+
     return 0;
 }
 void phev_outgoingHandler(messagingClient_t *client, message_t *message)
@@ -151,14 +151,14 @@ messagingClient_t * phev_createIncomingMessageClient(void)
     messagingClient_t *in = msg_core_createMessagingClient(inSettings);
 
     LOG_V(TAG,"END - createIncomingMessageClient");
-    
+
     return in;
 }
 
 messagingClient_t * phev_createOutgoingMessageClient(const char * host, const uint16_t port)
 {
     LOG_V(TAG,"START - createOutgoingMessageClient");
-    
+
     tcpIpSettings_t outSettings = {
         .connect = phev_tcpClientConnectSocket,
         .disconnect = phev_tcpClientDisconnectSocket,
@@ -170,32 +170,32 @@ messagingClient_t * phev_createOutgoingMessageClient(const char * host, const ui
     messagingClient_t *out = msg_tcpip_createTcpIpClient(outSettings);
 
     LOG_V(TAG,"END - createOutgoingMessageClient");
-    
+
     return out;
 }
 
 phevCtx_t * phev_init(phevSettings_t settings)
 {
     LOG_V(TAG,"START - init");
-    
-    phevCtx_t * ctx = malloc(sizeof(phevCtx_t)); 
+
+    phevCtx_t * ctx = malloc(sizeof(phevCtx_t));
     phevServiceCtx_t * srvCtx = NULL;
     phevServiceSettings_t * serviceSettings;
     messagingClient_t * in = NULL;
     messagingClient_t * out = NULL;
 
-    if(settings.in) 
+    if(settings.in)
     {
         LOG_D(TAG,"Using passed in incoming messaging client");
 
         in = settings.in;
     } else {
         LOG_D(TAG,"Using default incoming messaging client");
-        
+
         in = phev_createIncomingMessageClient();
     }
-    
-    if(settings.out) 
+
+    if(settings.out)
     {
         LOG_D(TAG,"Using passed in messaging client");
 
@@ -205,7 +205,7 @@ phevCtx_t * phev_init(phevSettings_t settings)
 
         out = phev_createOutgoingMessageClient(settings.host,settings.port);
     }
-    
+
     LOG_D(TAG,"Settings event handler %p", phev_pipeEventHandler);
     ctx->eventHandler = settings.handler;
     ctx->ctx = settings.ctx;
@@ -213,18 +213,18 @@ phevCtx_t * phev_init(phevSettings_t settings)
     phevServiceSettings_t s = {
         .in = in,
         .out = out,
-        .mac = settings.mac, 
+        .mac = settings.mac,
         .registerDevice = settings.registerDevice,
         .eventHandler = phev_pipeEventHandler,
         .errorHandler = NULL,
         .yieldHandler = NULL,
         .my18 = settings.my18,
-        .ctx = ctx, 
+        .ctx = ctx,
     };
     ctx->serviceCtx = phev_service_create(s);
-    
+
     LOG_V(TAG,"END - init");
-    
+
     return ctx;
 }
 
@@ -243,17 +243,17 @@ void phev_registrationComplete(phev_pipe_ctx_t * ctx)
 phevCtx_t * phev_registerDevice(phevSettings_t settings)
 {
     LOG_V(TAG,"START - registerDevice");
-    
+
     phevCtx_t * ctx = phev_init(settings);
 
     glob_phev_ctx = ctx;
-    
+
     phev_service_register((const char *) settings.mac, ctx->serviceCtx, phev_registrationComplete);
 
     LOG_V(TAG,"END - registerDevice");
-    
+
     return ctx;
-} 
+}
 void phev_start(phevCtx_t * ctx)
 {
     LOG_V(TAG,"START - start");
@@ -263,11 +263,11 @@ void phev_start(phevCtx_t * ctx)
 void phev_exit(phevCtx_t * ctx)
 {
     LOG_V(TAG,"START - exit");
-    
+
     ctx->serviceCtx->exit = true;
 
     LOG_V(TAG,"START - exit");
-    
+
 }
 
 bool phev_running(phevCtx_t * ctx)
@@ -326,17 +326,56 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
-   
+
     LOG_D(TAG,"Switching %s air conditioning", on ? "ON" : "OFF");
-        
+
     if (callback) {
         phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 2 : 1), phev_registerUpdateCallback, cbCtx);
     } else {
         phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_MANUAL_AC_ON_RQ_SP, (on ? 1 : 2));
     }
     LOG_V(TAG,"END - airCon");
-    
+
 }
+
+void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - airConMY19");
+
+    uint8_t val = mode;
+    uint8_t val0 = 1;
+
+    switch(time)
+    {
+        case T10MIN:
+         case 10:
+         val0 = 0; break;
+        case T20MIN:
+        case 20:
+         val0 = 1; break;
+        case T30MIN:
+        case 30:
+         val0 = 2; break;
+    }
+
+    uint8_t data[] = {02, val, val0, 00};
+
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+    LOG_D(TAG,"Switching air conditioning mode %d", val);
+
+    if (callback) {
+        phev_pipe_updateComplexRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP_MY19, data, sizeof(data), phev_registerUpdateCallback, cbCtx);
+    } else {
+        phev_pipe_updateComplexRegister(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP_MY19, data, sizeof(data));
+    }
+
+    LOG_V(TAG,"END - airConMY19");
+}
+
 void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback)
 {
     LOG_V(TAG,"START - airConMode");
@@ -356,9 +395,9 @@ void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t ti
 
     cbCtx->callback = callback;
     cbCtx->ctx = ctx;
-   
+
     LOG_D(TAG,"Switching air conditioning mode %d", val);
-        
+
     if (callback) {
         phev_pipe_updateComplexRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_AC_SCH_SP, data, sizeof(data), phev_registerUpdateCallback, cbCtx);
     } else {
@@ -380,7 +419,7 @@ int phev_batteryLevel(phevCtx_t * ctx)
 
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
 {
-    return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg); 
+    return (phevData_t *) phev_service_getRegister(ctx->serviceCtx, reg);
 }
 
 char * phev_statusAsJson(phevCtx_t * ctx)
