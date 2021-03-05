@@ -110,6 +110,9 @@ void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t ti
 void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
 int phev_batteryLevel(phevCtx_t * ctx);
+int phev_chargingStatus(phevCtx_t * ctx);
+int phev_remainingChargeTime(phevCtx_t * ctx);
+phevServiceHVAC_t *  phev_HVACStatus(phevCtx_t * ctx);
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg);
 char * phev_statusAsJson(phevCtx_t * ctx);
 messagingClient_t * phev_createIncomingMessageClient(void);

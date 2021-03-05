@@ -416,6 +416,35 @@ int phev_batteryLevel(phevCtx_t * ctx)
     LOG_V(TAG,"END - batteryLevel");
     return level;
 }
+int phev_chargingStatus(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - Charging Status");
+
+    int level = phev_service_getChargingStatus(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - Charging Status");
+    return level;
+}
+
+int phev_remainingChargeTime(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - Charging Status");
+
+    int level = phev_service_getRemainingChargeTime(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - Charging Status");
+    return level;
+}
+
+phevServiceHVAC_t* phev_HVACStatus(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - HVAC Status");
+
+    phevServiceHVAC_t * ph = phev_service_getHVACStatus(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - HVAC Status");
+    return ph;
+}
 
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
 {
