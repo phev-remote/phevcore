@@ -37,9 +37,9 @@ void phev_pipe_destroyEvent(phevPipeEvent_t * event)
 void phev_pipe_disconnectInput(phev_pipe_ctx_t *ctx)
 {
     LOG_V(APP_TAG,"START - disconnectInput");
-    
+
     msg_pipe_in_disconnect(ctx->pipe);
-    
+
     LOG_V(APP_TAG,"END - disconnectInput");
 }
 void phev_pipe_disconnectOutput(phev_pipe_ctx_t *ctx)
@@ -57,7 +57,7 @@ void phev_pipe_disconnectOutput(phev_pipe_ctx_t *ctx)
     ctx->commandXOR = 0;
     ctx->encrypt = false;
     ctx->pingResponse = 0;
-    
+
     LOG_V(APP_TAG,"END - disconnectOutput");
 }
 void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
@@ -96,7 +96,7 @@ void phev_pipe_waitForConnection(phev_pipe_ctx_t *ctx)
             LOG_V(APP_TAG, "Calling out connect");
             msg_pipe_out_connect(ctx->pipe);
         }
-        retries++;    
+        retries++;
     }
 
     ctx->connected = true;
@@ -143,6 +143,7 @@ void phev_pipe_start(phev_pipe_ctx_t *ctx, uint8_t *mac)
     phev_pipe_waitForConnection(ctx);
 
     phev_pipe_sendMac(ctx, mac);
+    phev_pipe_updateRegister(ctx, KO_WF_EV_UPDATE_SP, 3);
     LOG_V(APP_TAG, "END - start");
 }
 phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
@@ -190,7 +191,7 @@ phev_pipe_ctx_t *phev_pipe_createPipe(phev_pipe_settings_t settings)
     {
         ctx->eventHandler[i] = NULL;
     }
-    
+
     ctx->updateRegisterCallbacks = malloc(sizeof(phev_pipe_updateRegisterCtx_t));
     ctx->updateRegisterCallbacks->numberOfCallbacks = 0;
 
@@ -232,7 +233,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     phev_pipe_ctx_t *pipeCtx = (phev_pipe_ctx_t *)ctx;
 
     int ret = phev_core_decodeMessage(message->data, message->length, phevMessage);
-    
+
     if (ret == 0)
     {
         LOG_E(APP_TAG, "Invalid message received");
@@ -240,7 +241,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         msg_utils_destroyMsg(message);
         return NULL;
     }
-    if(message->ctx != NULL) 
+    if(message->ctx != NULL)
     {
         uint8_t xor = phev_core_getMessageXOR(message);
         //LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
@@ -249,38 +250,38 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         pipeCtx->pingXOR = xor;
 
     }
-    if(phevMessage->command == 0xbb) 
+    if(phevMessage->command == 0xbb)
     {
         pipeCtx->commandXOR = phevMessage->data[0];
         pipeCtx->pingXOR = phevMessage->data[0];
-        
+
         //LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->commandXOR);
-        
+
     }
-    if(phevMessage->command == 0xcc) 
+    if(phevMessage->command == 0xcc)
     {
         // NOT WORKING HERE
-        
+
         pipeCtx->pingXOR = phevMessage->data[0];
         //pipeCtx->commandXOR = phevMessage->data[0];
         //LOG_I(APP_TAG,"%02X command recieved XOR changed to %02X",phevMessage->command, pipeCtx->pingXOR);
-        // NOT WORKING HERE  
-    } 
+        // NOT WORKING HERE
+    }
     if(phevMessage->command == 0x3f)
     {
-        pipeCtx->pingResponse = phevMessage->reg;    
+        pipeCtx->pingResponse = phevMessage->reg;
         LOG_D(APP_TAG,"Server Ping %d\n",phevMessage->reg);
-        
+
     }
-    
+
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
-    
+
     phev_core_destroyMessage(phevMessage);
 
     //free(phevMessage);
     return message;
-    
+
 }
 message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
 {
@@ -316,33 +317,33 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
             free(phevMsg.data);
             return out;
         }
-        if(pipeCtx->registerDevice == true) 
+        if(pipeCtx->registerDevice == true)
         {
             //This is a hack to keep registration working
             LOG_I(APP_TAG,"Not responding to command for registration");
             free(phevMsg.data);
             return NULL;
-        } 
-        
+        }
+
         LOG_D(APP_TAG, "Responding to %02X %02X", phevMsg.command, phevMsg.type);
         if (phevMsg.type == REQUEST_TYPE)
         {
             phevMessage_t *msg = phev_core_responseHandler(&phevMsg);
             LOG_D(APP_TAG, "Responded with command %02X  type %d", phevMsg.command,phevMsg.type);
-        
+
             out = phev_core_convertToMessage(msg);
             free(phevMsg.data);
         }
     }
     if (out)
-    {            
+    {
         message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
-        
+
         ret = msg_utils_copyMsg(encoded);
         msg_utils_destroyMsg(encoded);
         msg_utils_destroyMsg(out);
-    
-    } 
+
+    }
 
 #ifndef NO_CMD_RESP
     return ret;
@@ -501,7 +502,7 @@ void phev_pipe_sendRegister(phev_pipe_ctx_t * ctx)
     phev_pipe_commandOutboundPublish(ctx,  message);
 
     LOG_V(APP_TAG,"END - sendRegister");
-    
+
 }
 phevPipeEvent_t *phev_pipe_createBBEvent(const uint8_t * data)
 {
@@ -537,7 +538,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
     LOG_V(APP_TAG, "START - messageToEvent");
     LOG_D(APP_TAG, "Message to Event Reg %d Len %d Type %d", phevMessage->reg, phevMessage->length, phevMessage->type);
     phevPipeEvent_t *event = NULL;
- 
+
     if(phevMessage->command == 0xbb || phevMessage->command == 0xcc)
     {
         event = phev_pipe_createBBEvent(phevMessage->data);
@@ -560,7 +561,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
         }
         break;
     }
-    case KO_WF_REG_DISP_SP: 
+    case KO_WF_REG_DISP_SP:
     {
         LOG_D(APP_TAG, "KO_WF_REG_DISP_SP");
         if (phevMessage->type == RESPONSE_TYPE && (phevMessage->command == RESP_CMD || phevMessage->command == RESP_CMD_MY18))
@@ -569,7 +570,7 @@ phevPipeEvent_t *phev_pipe_messageToEvent(phev_pipe_ctx_t *ctx, phevMessage_t *p
             event = phev_pipe_registrationCompleteEvent(ctx);
             LOG_I(APP_TAG,"REGISTERED");
         }
-        
+
         break;
     }
     case KO_WF_CONNECT_INFO_GS_SP:
@@ -712,7 +713,7 @@ void phev_pipe_sendEvent(void *ctx, phevMessage_t *phevMessage)
 
         LOG_D(APP_TAG, "Sending register event to handler");
         phev_pipe_sendEventToHandlers(phevCtx, registerEvent);
-        
+
         phevPipeEvent_t *evt = phev_pipe_messageToEvent(phevCtx, phevMessage);
         LOG_D(APP_TAG, "Sending message event to handler");
 
@@ -734,7 +735,7 @@ message_t *phev_pipe_outputEventTransformer(void *ctx, message_t *message)
     {
         LOG_E(APP_TAG, "Invalid message received - something serious happened here as we should only have a valid message at this point");
         LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
-        
+
         return NULL;
     }
 
@@ -794,7 +795,7 @@ void phev_pipe_checkXORChanged(phev_pipe_ctx_t * ctx, message_t * message)
     if(message->ctx != NULL)
     {
         uint8_t xor =phev_core_getMessageXOR(message);
-    
+
         if(xor == ctx->currentXOR)
         {
             ctx->currentXOR = xor;
@@ -820,7 +821,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
         return NULL;
     }
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
-    
+
     message_t * out = phev_core_extractIncomingMessageAndXOR(message->data);
 
     if (out == NULL)
@@ -885,7 +886,7 @@ void phev_pipe_sendTimeSync(phev_pipe_ctx_t *ctx)
 
     phevMessage_t *dateCmd = phev_core_commandMessage(KO_WF_DATE_INFO_SYNC_SP, pingTime, sizeof(pingTime));
     message_t *message = phev_core_convertToMessage(dateCmd);
-    
+
 #ifndef NO_TIME_SYNC
     phev_pipe_commandOutboundPublish(ctx, message);
 #endif
@@ -904,9 +905,9 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     if (((ctx->currentPing) % 30) == 0)
     {
         if(!ctx->registerDevice)
-        {   
+        {
             phev_pipe_sendTimeSync(ctx);
-        } 
+        }
         else
         {
             LOG_D(APP_TAG,"Not sending time sync in register device mode");
@@ -916,13 +917,13 @@ void phev_pipe_ping(phev_pipe_ctx_t *ctx)
     ctx->currentPing %= 0x30;
     LOG_D(APP_TAG,"Client Ping %d\n",ctx->currentPing);
     message_t *message = phev_core_convertToMessage(ping);
-    
+
 #ifndef NO_PING
     if(!ctx->registerDevice)
     {
         phev_pipe_pingOutboundPublish(ctx, message);
-    } 
-    else 
+    }
+    else
     {
         LOG_I(APP_TAG,"Not sending ping in register device mode");
     }
@@ -952,18 +953,18 @@ void phev_pipe_updateRegisterNoRetry(phev_pipe_ctx_t *ctx, const uint8_t reg, co
         LOG_W(APP_TAG,"Cannot send data with no data");
         return;
     }
-    
+
     if(length == 1)
     {
         update = phev_core_simpleRequestCommandMessage(reg, data[0]);
-    } 
+    }
     else
     {
         update = phev_core_commandMessage(reg,data,length);
-    } 
-    
+    }
+
     message_t *message = phev_core_convertToMessage(update);
-    
+
     phev_pipe_commandOutboundPublish(ctx, message);
 
     LOG_V(APP_TAG, "END - updateRegister");
@@ -973,9 +974,9 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
 {
     LOG_V(APP_TAG, "START - updateRegisterEventHandler");
 
-    
+
     if(!event)
-    { 
+    {
         return 0;
     }
 
@@ -996,7 +997,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
                 phev_pipe_updateRegisterNoRetry(ctx, ctx->updateRegisterCallbacks->registers[i], ctx->updateRegisterCallbacks->values[i],ctx->updateRegisterCallbacks->lengths[i]);
             }
         }
-        
+
     }
     if (event->event == PHEV_PIPE_REG_UPDATE_ACK)
     {
@@ -1013,7 +1014,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
                 free(ctx->updateRegisterCallbacks->values[i]);
                 ctx->updateRegisterCallbacks->values[i] = NULL;
                 ctx->updateRegisterCallbacks->lengths[i] = 0;
-                
+
                 ctx->updateRegisterCallbacks->used[i] = false;
 
                 ctx->updateRegisterCallbacks->numberOfCallbacks--;
@@ -1030,7 +1031,7 @@ void phev_pipe_updateRegisterWithCallback(phev_pipe_ctx_t *ctx, const uint8_t re
 
     uint8_t * data = malloc(1);
     data[0] = value;
-            
+
     phev_pipe_updateComplexRegisterWithCallback(ctx, reg, data, 1, callback, customCtx);
 
     LOG_V(APP_TAG, "END - updateRegisterWithCallback");
@@ -1072,9 +1073,9 @@ void phev_pipe_pingOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
     LOG_V(APP_TAG,"START - pingOutboundPublish");
 
     message_t * encoded = phev_core_XOROutboundMessage(message, ctx->pingXOR);
-        
+
     msg_pipe_outboundPublish(ctx->pipe, encoded);
-    
+
     msg_utils_destroyMsg(message);
 
     LOG_V(APP_TAG,"END - pingOutboundPublish");
@@ -1086,9 +1087,9 @@ void phev_pipe_commandOutboundPublish(phev_pipe_ctx_t * ctx, message_t * message
     LOG_V(APP_TAG,"START - commandOutboundPublish");
 
     message_t * encoded = phev_core_XOROutboundMessage(message, ctx->commandXOR);
-        
+
     msg_pipe_outboundPublish(ctx->pipe, encoded);
-    
+
     msg_utils_destroyMsg(message);
 
     LOG_V(APP_TAG,"END - commandOutboundPublish");
@@ -1100,7 +1101,7 @@ void phev_pipe_outboundPublish(phev_pipe_ctx_t * ctx, message_t * message)
     LOG_V(APP_TAG,"START - outboundPublish");
 
     message_t * encoded = phev_core_XOROutboundMessage(message, ctx->currentXOR);
-        
+
     msg_pipe_outboundPublish(ctx->pipe, encoded);
 
     msg_utils_destroyMsg(message);

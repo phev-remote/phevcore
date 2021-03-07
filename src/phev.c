@@ -338,6 +338,26 @@ void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback)
 
 }
 
+void phev_updateAll(phevCtx_t * ctx, phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - updateAll");
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+    LOG_D(TAG,"Start Update All");
+
+    if (callback) {
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_EV_UPDATE_SP, 3, phev_registerUpdateCallback, cbCtx);
+    } else {
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,KO_WF_EV_UPDATE_SP, 3);
+    }
+    LOG_V(TAG,"END - updateAll");
+
+}
+
+
 void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback)
 {
     LOG_V(TAG,"START - airConMY19");
@@ -415,6 +435,52 @@ int phev_batteryLevel(phevCtx_t * ctx)
 
     LOG_V(TAG,"END - batteryLevel");
     return level;
+}
+int phev_isLocked(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - batteryLevel");
+
+    int isLocked = phev_service_doorIsLocked(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - batteryLevel");
+    if (isLocked == 1){
+      return 1; // locked
+    } else if (isLocked == 2){
+       return 0; //unlocked
+    } else{
+      return -1; //unknown
+    }
+}
+
+
+int phev_chargingStatus(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - Charging Status");
+
+    int level = phev_service_getChargingStatus(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - Charging Status");
+    return level;
+}
+
+int phev_remainingChargeTime(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - Charging Status");
+
+    int level = phev_service_getRemainingChargeTime(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - Charging Status");
+    return level;
+}
+
+phevServiceHVAC_t* phev_HVACStatus(phevCtx_t * ctx)
+{
+    LOG_V(TAG,"START - HVAC Status");
+
+    phevServiceHVAC_t * ph = phev_service_getHVACStatus(ctx->serviceCtx);
+
+    LOG_V(TAG,"END - HVAC Status");
+    return ph;
 }
 
 phevData_t * phev_getRegister(phevCtx_t * ctx, uint8_t reg)
