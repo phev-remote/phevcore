@@ -96,7 +96,7 @@ bool phev_core_validateChecksum(const uint8_t *data)
 bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor)
 {
     uint8_t *decodedData = phev_core_xorDataWithValue(data, xor);
-    
+
     bool valid = phev_core_validateChecksum(decodedData);
 
     free(decodedData);
@@ -309,7 +309,7 @@ message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data)
 
     uint8_t xor = phev_core_getMessageXOR(message);
 
-    
+
     uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
 
     message_t * decoded = phev_core_createMsgXOR(decodedData,message->length,xor);
@@ -419,8 +419,8 @@ uint8_t phev_core_validateCommand(const uint8_t command)
 uint8_t * phev_core_getData(const uint8_t *data)
 {
     uint8_t length = data[1] - 3;
-    
-    if(length == 0) 
+
+    if(length == 0)
     {
         LOG_D(APP_TAG,"No data in message");
         return NULL;
@@ -643,6 +643,11 @@ phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, 
 
     return phev_core_requestMessage(SEND_CMD, reg, data, length);
 }
+phevMessage_t *phev_core_commandMessageMY18(const uint8_t reg, const uint8_t *data, const size_t length)
+{
+
+    return phev_core_requestMessage(SEND_CMD_MY18, reg, data, length);
+}
 phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;
@@ -753,7 +758,7 @@ message_t *phev_core_XORInboundMessage(const message_t *message, const uint8_t x
     LOG_V(APP_TAG, "START - XORInboundMessage");
 
     message_t * out = phev_core_extractMessage(message->data,message->length,xor);
-    
+
     LOG_V(APP_TAG, "END - XORInboundMessage");
 
     return out;

@@ -348,6 +348,14 @@ void phev_updateAll(phevCtx_t * ctx, phevCallBack_t callback)
 
     LOG_D(TAG,"Start Update All");
     phev_pipe_sendTimeSync(ctx->serviceCtx->pipe);
+        const uint8_t data[] = {
+            01,
+            00};
+            phevMessage_t *dataCmd = phev_core_commandMessageMY18(1, data, sizeof(data));
+       message_t *message = phev_core_convertToMessage(dataCmd);
+           phev_pipe_commandOutboundPublish(ctx->serviceCtx->pipe, message);
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,7, 1);
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,23, 17);
     if (callback) {
         phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_EV_UPDATE_SP, 3, phev_registerUpdateCallback, cbCtx);
     } else {
