@@ -643,11 +643,6 @@ phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, 
 
     return phev_core_requestMessage(SEND_CMD, reg, data, length);
 }
-phevMessage_t *phev_core_commandMessageMY18(const uint8_t reg, const uint8_t *data, const size_t length)
-{
-
-    return phev_core_requestMessage(SEND_CMD_MY18, reg, data, length);
-}
 phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const uint8_t value)
 {
     const uint8_t data = value;

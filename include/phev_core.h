@@ -80,9 +80,9 @@ typedef struct phevMessage_t
     uint8_t XOR;
 } phevMessage_t;
 
-static bool phev_core_my18 = true;
+static bool phev_core_my18 = false;
 
-const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, SEND_CMD_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e,0xcd,0xba,0x6e,0xcc,0xbb,0x3e,0x4f,0x4e,0xe4};
+const static uint8_t allowedCommands[] = {START_SEND, START_RESP, SEND_CMD, RESP_CMD, PING_SEND_CMD, PING_RESP_CMD, START_RESP_MY18, START_SEND_MY18, PING_SEND_CMD_MY18, PING_RESP_CMD_MY18,0x5e,0xcd,0xba,0x6e,0xcc,0xbb,0x3e,0x4f,0x4e,0xe4};
 
 phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length);
 
@@ -109,8 +109,6 @@ phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const ui
 phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const uint8_t value);
 
 phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, const size_t length);
-
-phevMessage_t *phev_core_commandMessageMY18(const uint8_t reg, const uint8_t *data, const size_t length);
 
 phevMessage_t *phev_core_ackMessage(const uint8_t command, const uint8_t reg);
 
