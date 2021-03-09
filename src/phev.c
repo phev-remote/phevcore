@@ -347,7 +347,7 @@ void phev_updateAll(phevCtx_t * ctx, phevCallBack_t callback)
     cbCtx->ctx = ctx;
 
     LOG_D(TAG,"Start Update All");
-
+    phev_pipe_sendTimeSync(ctx->serviceCtx->pipe);
     if (callback) {
         phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,KO_WF_EV_UPDATE_SP, 3, phev_registerUpdateCallback, cbCtx);
     } else {
