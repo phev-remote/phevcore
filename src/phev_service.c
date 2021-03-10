@@ -807,6 +807,16 @@ int phev_service_getBatteryLevel(phevServiceCtx_t *ctx)
     return (reg ? (int )reg->data[0] : -1);
 }
 
+int phev_service_getBatteryWarning(phevServiceCtx_t *ctx)
+{
+    LOG_V(TAG, "START - getBatteryWarning");
+
+    phevRegister_t *reg = phev_model_getRegister(ctx->model, KO_WF_CHG_GUN_STATUS_EVR);
+
+    LOG_V(TAG, "END - getBatteryWarning");
+    return (reg ? (int )reg->data[2] : -1);
+}
+
 int phev_service_doorIsLocked(phevServiceCtx_t *ctx)
 {
     LOG_V(TAG, "START - doorIsLocked");
