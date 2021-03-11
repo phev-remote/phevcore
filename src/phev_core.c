@@ -663,6 +663,7 @@ phevMessage_t *phev_core_ackMessage(const uint8_t command, const uint8_t reg)
 phevMessage_t *phev_core_startMessage(const uint8_t *mac)
 {
     uint8_t *data = malloc(7);
+    memcpy(data, mac, 6);
     data[6] = 0;
 
     return phev_core_requestMessage(START_SEND_MY18, 0x01, data, 7);
