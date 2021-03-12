@@ -357,6 +357,24 @@ void phev_updateAll(phevCtx_t * ctx, phevCallBack_t callback)
 
 }
 
+void phev_removeACError(phevCtx_t * ctx, phevCallBack_t callback)
+{
+    LOG_V(TAG,"START - remove ACError");
+    phevCallBackCtx_t * cbCtx = malloc(sizeof(phevCallBackCtx_t));
+
+    cbCtx->callback = callback;
+    cbCtx->ctx = ctx;
+
+
+    if (callback) {
+        phev_pipe_updateRegisterWithCallback(ctx->serviceCtx->pipe,19, 1, phev_registerUpdateCallback, cbCtx);
+    } else {
+        phev_pipe_updateRegister(ctx->serviceCtx->pipe,19, 1);
+    }
+    LOG_V(TAG,"END - remove ACError");
+
+}
+
 
 void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback)
 {
@@ -438,7 +456,7 @@ int phev_batteryLevel(phevCtx_t * ctx)
 }
 int phev_batteryWarning(phevCtx_t * ctx)
 {
-    LOG_V(TAG,"START - batteryLevel");
+    LOG_V(TAG,"START - batteryWarning");
 
     int warningMessage = phev_service_getBatteryWarning(ctx->serviceCtx);
     /*
@@ -450,8 +468,18 @@ int phev_batteryWarning(phevCtx_t * ctx)
     5 - topbattwarminginfo_stop_1 - There is a possibility that the low temperature of the drive battery is causing it not to run. To heat the drive battery, please put the vehicle in the READY state or plug-in the charger.
     6 - topbattwarminginfo - Please insert the charge cable to prevent low drive battery temp. Warm-up will start upon insertion.
     */
-    LOG_V(TAG,"END - batteryLevel");
+    LOG_V(TAG,"END - batteryWarning");
     return warningMessage;
+}
+
+bool phev_isACError(phevCtx_t * ctx)
+{
+
+    LOG_V(TAG,"START - batteryWarning");
+
+    int error = phev_service_getACError(ctx->serviceCtx);
+    LOG_V(TAG,"END - batteryWarning");
+    return error == 3 // errACinfo. True if Door is Open or Main battery level is Low.
 }
 
 

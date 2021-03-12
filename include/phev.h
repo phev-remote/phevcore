@@ -108,6 +108,8 @@ void phev_parkingLights(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_airCon(phevCtx_t * ctx, bool on, phevCallBack_t callback);
 void phev_updateAll(phevCtx_t * ctx, phevCallBack_t callback);
 int phev_isLocked(phevCtx_t * ctx);
+bool phev_isACError(phevCtx_t * ctx);
+void phev_removeACError(phevCtx_t * ctx, phevCallBack_t callback);
 void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback);
 void phev_airConMode(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t time,phevCallBack_t callback);
 bool phev_running(phevCtx_t * ctx);
