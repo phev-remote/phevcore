@@ -475,10 +475,10 @@ int phev_batteryWarning(phevCtx_t * ctx)
 bool phev_isACError(phevCtx_t * ctx)
 {
 
-    LOG_V(TAG,"START - batteryWarning");
+    LOG_V(TAG,"START - errACinfo");
 
     int error = phev_service_getACError(ctx->serviceCtx);
-    LOG_V(TAG,"END - batteryWarning");
+    LOG_V(TAG,"END - errACinfo");
     return error == 3 // errACinfo. True if Door is Open or Main battery level is Low.
 }
 
