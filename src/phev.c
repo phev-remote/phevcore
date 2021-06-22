@@ -479,7 +479,7 @@ bool phev_isACError(phevCtx_t * ctx)
 
     int error = phev_service_getACError(ctx->serviceCtx);
     LOG_V(TAG,"END - errACinfo");
-    return error == 3 // errACinfo. True if Door is Open or Main battery level is Low.
+    return error == 3; // errACinfo. True if Door is Open or Main battery level is Low.
 }
 
 
