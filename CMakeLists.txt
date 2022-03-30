@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_C_STANDARD 11)
 
-find_library(MSG_CORE msg_core "/usr/local/lib")
+if (UNIX)
+  add_definitions (-D__unix__)
+endif()
+
+find_library(MSG_CORE msg_core "/usr/local")
 find_library(CJSON cjson)
 
 option(BUILD_TESTS "Build the test binaries")
@@ -18,26 +22,19 @@ add_library(phev STATIC
     src/phev.c
 )
 
-# find_package(zf_queue)
-# target_link_libraries(phev msg_core cjson)
-
 if(${BUILD_TESTS})
     find_package(unity)
     include(CTest)
     add_subdirectory(test)
 endif()
 
-#add_subdirectory(external) 
-
-#target_include_directories(msg_core PUBLIC msg_core/include)
-
-
+target_include_directories(phev PUBLIC ${CMAKE_SOURCE_DIR}/external/msg-core/include ${CMAKE_SOURCE_DIR}/external)
 if(WIN32)
     target_link_libraries(phev LINK_PUBLIC
         msg_core
         cjson
         mswsock
-        advapi32 
+        advapi32
         ws2_32
 
     )
