@@ -7,7 +7,7 @@ if (UNIX)
   add_definitions (-D__unix__)
 endif()
 
-find_library(MSG_CORE msg_core "/usr/local")
+find_library(MSG_CORE msg_core "/usr/local/lib")
 find_library(CJSON cjson)
 
 option(BUILD_TESTS "Build the test binaries")
