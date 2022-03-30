@@ -28,6 +28,7 @@ if(${BUILD_TESTS})
     add_subdirectory(test)
 endif()
 
+# FIXME: this should be handled via "subdirectory"
 target_include_directories(phev PUBLIC ${CMAKE_SOURCE_DIR}/external/msg-core/include ${CMAKE_SOURCE_DIR}/external)
 if(WIN32)
     target_link_libraries(phev LINK_PUBLIC
