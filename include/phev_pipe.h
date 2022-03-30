@@ -27,7 +27,7 @@
 //  For Windows (32- and 64-bit)
 #include <windows.h>
 #define SLEEP(msecs) Sleep(msecs)
-#elif __unix
+#elif defined(__unix) ||defined(__unix__)
 //  For linux, OSX, and other unixes
 #ifdef _POSIX_C_SOURCE
 #undef _POSIX_C_SOURCE
