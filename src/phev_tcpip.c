@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef __linux__
+#if defined(__linux__) || defined(__unix__)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -47,7 +47,7 @@
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 
-#elif __linux__
+#elif defined(__linux__) || defined(__unix__)
 #define TCP_READ read
 #define TCP_WRITE write
 #define TCP_CONNECT connect
