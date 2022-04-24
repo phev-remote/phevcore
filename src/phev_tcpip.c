@@ -47,7 +47,7 @@
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 
-#elif defined(__linux__) || defined(__unix__)
+#elif defined(__linux__) || defined(__unix__)
 #define TCP_READ read
 #define TCP_WRITE write
 #define TCP_CONNECT connect
