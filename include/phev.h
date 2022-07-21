@@ -77,6 +77,7 @@ typedef struct phevSettings_t {
     uint16_t port;
     bool registerDevice;
     uint8_t * mac;
+    bool numerical;   
     phevEventHandler_t handler;
     void * ctx;
     bool my18;
