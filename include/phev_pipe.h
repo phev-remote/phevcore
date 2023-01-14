@@ -9,7 +9,6 @@
 #include "msg_core.h"
 #include "msg_pipe.h"
 #include "phev_core.h"
-
 #define PHEV_PIPE_MAX_EVENT_HANDLERS 10
 #define PHEV_PIPE_MAX_UPDATE_CALLBACKS 10
 #ifndef PHEV_CONNECT_WAIT_TIME

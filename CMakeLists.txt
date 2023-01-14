@@ -37,7 +37,6 @@ if(WIN32)
         mswsock
         advapi32
         ws2_32
-
     )
 else()
     target_link_libraries (phev LINK_PUBLIC 

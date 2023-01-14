@@ -10,12 +10,9 @@ const char * TAG = "PHEV_REGISTER";
 
 void phev_register_sendMac(phev_pipe_ctx_t * ctx)
 {
-    LOG_V(TAG,"START - sendMac");
-    
+    LOG_V(TAG, "START - sendMac");
     //phev_pipe_sendMac(ctx, ((phevServiceCtx_t *) ctx->ctx)->mac);
-    
     LOG_V(TAG,"END - sendMac");
-    
 }
 phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
 {
@@ -42,11 +39,11 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     ctx->ctx = settings.ctx;
     ctx->pipe->registrationCompleteCallback = settings.complete;
 
-    if(settings.eventHandler) 
+    if(settings.eventHandler)
     {
         phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);    
-    } 
-    else 
+    }
+    else
     {
         //phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
     }
@@ -60,9 +57,7 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
     message_t * message = phev_core_convertToMessage(reg);
 
     phev_pipe_commandOutboundPublish(ctx,  message);
-//    free(message);
     LOG_V(TAG,"END - sendRegister");
-    
 }
 int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
@@ -73,8 +68,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
     {
         return 0;
     }
-    
-    switch(event->event) 
+    switch(event->event)
     {
         case PHEV_PIPE_GOT_VIN: {
             char * vin = ((phevVinEvent_t *) event->data)->vin;
@@ -105,13 +99,11 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_I(TAG,"ECU version");
             regCtx->ecu = true;
             phev_register_sendRegister(ctx);
-            
             break;
         };
         case PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO: {
             LOG_I(TAG,"Remote security present info");
             regCtx->remoteSecurity = true;
-            
             phev_register_sendRegister(ctx);
             break;
         }
@@ -149,6 +141,5 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         }
     }
     LOG_V(TAG,"END - eventHandler");
-    
     return 0;
 }
