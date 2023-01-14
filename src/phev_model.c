@@ -37,7 +37,7 @@ phevRegister_t * phev_model_getRegister(phevModel_t * model, uint8_t reg)
     {
         phevRegister_t * out = model->registers[reg];
         if(out == NULL)
-        {   
+        {
             LOG_D(TAG,"Register %d is not set",reg);
             goto phev_model_getRegister_end;
         } else {
@@ -50,12 +50,11 @@ phevRegister_t * phev_model_getRegister(phevModel_t * model, uint8_t reg)
                 if(ret)
                 {
                     memcpy(ret, out, sizeof(phevRegister_t) + out->length);
-                } 
+                }
                 else
                 {
-                    LOG_E(TAG,"Cannot allocate memory for register - length %d",out->length);
+                    LOG_E(TAG,"Cannot allocate memory for register - length %zu",out->length);
                 }
-                
                goto phev_model_getRegister_end;
             }
         }

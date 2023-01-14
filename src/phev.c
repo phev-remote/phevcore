@@ -386,13 +386,10 @@ void phev_airConMY19(phevCtx_t * ctx, phevAirConMode_t mode, phevAirConTime_t ti
     switch(time)
     {
         case T10MIN:
-         case 10:
          val0 = 0; break;
         case T20MIN:
-        case 20:
          val0 = 1; break;
         case T30MIN:
-        case 30:
          val0 = 2; break;
     }
 

@@ -47,7 +47,7 @@
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 
-#elif defined(__linux__) || defined(__unix__)
+#elif defined(__linux__)||defined(__unix__)
 #define TCP_READ read
 #define TCP_WRITE write
 #define TCP_CONNECT connect
@@ -68,7 +68,7 @@ uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 
     uint8_t length = (data[1] ^ xor) + 2;
 
-    if(length > 1023) return NULL;
+    //  TODO: FIXME: if(length > 1023) return NULL;
 
     for (int i = 0; i < length; i++)
     {

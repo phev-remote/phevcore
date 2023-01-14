@@ -980,7 +980,7 @@ int phev_pipe_updateRegisterEventHandler(phev_pipe_ctx_t *ctx, phevPipeEvent_t *
         return 0;
     }
 
-    LOG_D(APP_TAG, "Register callbacks %d",ctx->updateRegisterCallbacks->numberOfCallbacks);
+    LOG_D(APP_TAG, "Register callbacks %zu",ctx->updateRegisterCallbacks->numberOfCallbacks);
 
     if(ctx->updateRegisterCallbacks->numberOfCallbacks == 0)
     {
