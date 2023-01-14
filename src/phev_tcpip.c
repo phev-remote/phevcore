@@ -68,7 +68,7 @@ uint8_t *xorDataWithValue(const uint8_t *data, uint8_t xor)
 
     uint8_t length = (data[1] ^ xor) + 2;
 
-    if(length > 1023) return NULL;
+    //  TODO: FIXME: if(length > 1023) return NULL;
 
     for (int i = 0; i < length; i++)
     {
