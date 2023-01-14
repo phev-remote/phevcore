@@ -111,7 +111,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_I(TAG,"Registration Acknowledged");
 
             regCtx->registrationAck = true;   
-            regCtx->complete(regCtx);
+            regCtx->complete(ctx);
             LOG_I(TAG,"REGISTERED");
             while(true);
             break;
@@ -121,7 +121,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             phevError_t error = {
                 .message = "Maximum number of registrations"
             };
-            regCtx->errorHandler(&event);
+            regCtx->errorHandler(&error);
             return 1;
         }
         default : {
@@ -137,7 +137,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         {
                 LOG_D(TAG,"Calling callback");
 
-                regCtx->complete(regCtx);
+                regCtx->complete(ctx);
         }
     }
     LOG_V(TAG,"END - eventHandler");
