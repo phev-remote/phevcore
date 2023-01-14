@@ -217,7 +217,7 @@ bool phev_service_outputFilter(void *ctx, message_t *message)
         if (reg)
         {
             LOG_D(TAG, "Register has previously been set Reg %02X",phevMessage.reg);
-            LOG_D(TAG,"Register Data len is %d and data",reg->length);
+            LOG_D(TAG,"Register Data len is %zu and data",reg->length);
             LOG_BUFFER_HEXDUMP(TAG,reg->data,reg->length,LOG_DEBUG);
 
             int same = phev_model_compareRegister(serviceCtx->model, phevMessage.reg, phevMessage.data);
