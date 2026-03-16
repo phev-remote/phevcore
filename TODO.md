@@ -40,10 +40,12 @@ project layout. Each phase is one PR.
 
 ## Phase 3 — Directory restructure
 
-- [ ] Move `src/` into `src/msg/` + `src/phev/`
-- [ ] Move `include/` into `include/msg/` + `include/phev/`
-- [ ] Update all `#include` directives
-- [ ] Split CMake into two targets: `msg_core` (static) + `phev` (static, links `msg_core`)
-- [ ] Move tests into `tests/msg/` + `tests/phev/`
-- [ ] Gate dead transport backends (`msg_gcp_mqtt`, `msg_mqtt_paho`) behind CMake options
-- [ ] Update Dockerfile, install rules, and CI
+- [x] Move `src/` into `src/msg/` + `src/phev/`
+- [x] Move `include/` into `include/msg/` + `include/phev/`
+- [x] Update all `#include` directives (79 directives across 24 files)
+- [x] Split CMake into two targets: `msg_core` (static) + `phev` (static, links `msg_core`)
+- [x] Gate dead transport backends (`msg_gcp_mqtt`, `msg_mqtt_paho`) behind `BUILD_TRANSPORT_BACKENDS` option
+- [x] Update install rules for new directory layout
+- [x] Tests remain in `test/` (no msg-layer tests exist; all 7 suites test phev)
+- [x] Dockerfile and CI already use presets — no changes needed
+- [x] Update `AGENTS.md` to reflect restructure

@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include "greatest.h"
 #include "cJSON.h"
-#include "msg_utils.h"
-#include "phev_service.h"
+#include "msg/msg_utils.h"
+#include "phev/phev_service.h"
 
 GREATEST_MAIN_DEFS();
 

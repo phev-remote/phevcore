@@ -23,24 +23,48 @@ set(CJSON_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(cjson)
 
-# ---------- library ----------
+# ---------- msg_core library (vendored from github.com/papawattu/msg-core) ----------
+add_library(msg_core STATIC
+    src/msg/msg_core.c
+    src/msg/msg_mqtt.c
+    src/msg/msg_pipe.c
+    src/msg/msg_pipe_splitter.c
+    src/msg/msg_tcpip.c
+    src/msg/msg_utils.c
+)
+
+target_include_directories(msg_core
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(WIN32)
+    target_link_libraries(msg_core PUBLIC mswsock advapi32 ws2_32)
+endif()
+
+# ---------- optional dead transport backends ----------
+option(BUILD_TRANSPORT_BACKENDS "Build msg_gcp_mqtt and msg_mqtt_paho (requires external deps)" OFF)
+
+if(BUILD_TRANSPORT_BACKENDS)
+    target_sources(msg_core PRIVATE
+        src/msg/msg_gcp_mqtt.c
+        src/msg/msg_mqtt_paho.c
+    )
+endif()
+
+# ---------- phev library ----------
 add_library(phev STATIC
-    # msg-core sources (merged from github.com/papawattu/msg-core)
-    src/msg_core.c
-    src/msg_mqtt.c
-    src/msg_pipe.c
-    src/msg_pipe_splitter.c
-    src/msg_tcpip.c
-    src/msg_utils.c
-    # phev sources
-    src/phev.c
-    src/phev_config.c
-    src/phev_core.c
-    src/phev_model.c
-    src/phev_pipe.c
-    src/phev_register.c
-    src/phev_service.c
-    src/phev_tcpip.c
+    src/phev/phev.c
+    src/phev/phev_config.c
+    src/phev/phev_core.c
+    src/phev/phev_model.c
+    src/phev/phev_pipe.c
+    src/phev/phev_register.c
+    src/phev/phev_service.c
+    src/phev/phev_tcpip.c
 )
 
 target_include_directories(phev
@@ -53,12 +77,8 @@ target_include_directories(phev
 )
 
 target_link_libraries(phev
-    PUBLIC cjson
+    PUBLIC msg_core cjson
 )
-
-if(WIN32)
-    target_link_libraries(phev PUBLIC mswsock advapi32 ws2_32)
-endif()
 
 # ---------- tests ----------
 option(BUILD_TESTS "Build the test binaries" OFF)
@@ -76,25 +96,39 @@ endif()
 
 # ---------- install ----------
 install(
-    TARGETS phev
+    TARGETS msg_core phev
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
 
 install(FILES
-    include/phev.h
-    include/phev_config.h
-    include/phev_core.h
-    include/phev_model.h
-    include/phev_pipe.h
-    include/phev_register.h
-    include/phev_service.h
-    include/phev_tcpip.h
-    include/msg_core.h
-    include/msg_pipe.h
-    include/msg_pipe_splitter.h
-    include/msg_tcpip.h
-    include/msg_utils.h
-    include/logger.h
-    DESTINATION include
+    include/phev/phev.h
+    include/phev/phev_config.h
+    include/phev/phev_core.h
+    include/phev/phev_model.h
+    include/phev/phev_pipe.h
+    include/phev/phev_register.h
+    include/phev/phev_service.h
+    include/phev/phev_tcpip.h
+    DESTINATION include/phev
 )
+
+install(FILES
+    include/msg/msg_core.h
+    include/msg/msg_pipe.h
+    include/msg/msg_pipe_splitter.h
+    include/msg/msg_tcpip.h
+    include/msg/msg_utils.h
+    include/msg/msg_mqtt.h
+    include/msg/logger.h
+    DESTINATION include/msg
+)
+
+if(BUILD_TRANSPORT_BACKENDS)
+    install(FILES
+        include/msg/msg_gcp_mqtt.h
+        include/msg/msg_mqtt_paho.h
+        include/msg/config.h
+        DESTINATION include/msg
+    )
+endif()

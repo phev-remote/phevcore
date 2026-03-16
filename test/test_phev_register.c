@@ -11,12 +11,12 @@
 #define PHEV_CONNECT_MAX_RETRIES 2
 #endif
 
-#include "phev_register.h"
-#include "phev_service.h"
-#include "msg_core.h"
-#include "msg_pipe.h"
-#include "msg_utils.h"
-#include "phev_pipe.h"
+#include "phev/phev_register.h"
+#include "phev/phev_service.h"
+#include "msg/msg_core.h"
+#include "msg/msg_pipe.h"
+#include "msg/msg_utils.h"
+#include "phev/phev_pipe.h"
 
 static message_t * test_phev_register_messages[10];
 static message_t * test_phev_register_inHandlerSend = NULL;
