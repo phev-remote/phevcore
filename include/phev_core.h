@@ -149,9 +149,13 @@ bool phev_core_validateChecksum(const uint8_t *data);
 
 message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t * data);
 
+message_t * phev_core_extractIncomingMessageAndXORBounded(const uint8_t * data, const size_t bufLen);
+
 message_t * phev_core_extractOutgoingMessageAndXOR(const uint8_t * data);
 
 message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data);
+
+message_t * phev_core_extractAndDecodeIncomingMessageAndXORBounded(const uint8_t *data, const size_t bufLen);
 
 message_t * phev_core_extractAndDecodeOutgoingMessageAndXOR(const uint8_t *data);
 

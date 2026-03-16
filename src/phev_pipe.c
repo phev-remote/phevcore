@@ -238,7 +238,7 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     {
         LOG_E(APP_TAG, "Invalid message received");
 
-        msg_utils_destroyMsg(message);
+        free(phevMessage);
         return NULL;
     }
     if(message->ctx != NULL)
@@ -820,7 +820,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
     }
     LOG_BUFFER_HEXDUMP(APP_TAG, message->data, message->length, LOG_DEBUG);
 
-    message_t * out = phev_core_extractIncomingMessageAndXOR(message->data);
+    message_t * out = phev_core_extractIncomingMessageAndXORBounded(message->data, message->length);
 
     if (out == NULL)
     {
@@ -843,7 +843,7 @@ messageBundle_t *phev_pipe_outputSplitter(void *ctx, message_t *message)
 
     while (message->length > total)
     {
-        out = phev_core_extractIncomingMessageAndXOR(message->data + total);
+        out = phev_core_extractIncomingMessageAndXORBounded(message->data + total, message->length - total);
         if (out == NULL) {
             break;
         }

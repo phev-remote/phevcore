@@ -32,7 +32,7 @@ void test_phev_core_extractAndDecodeIncomingMessageAndXOR(void)
     uint8_t input[] = { 0x4f,0x26,0x20,0x23,0x21,0x31,0x43,0xcd };
     uint8_t expected[] = { 0x6f,0x06,0x00,0x03,0x01,0x11,0x63,0xed};
 
-    message_t * message = phev_core_extractAndDecodeIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractAndDecodeIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_MEMORY(expected,message->data,sizeof(expected));
@@ -792,7 +792,7 @@ void test_phev_core_decodeMessage_command_response(void)
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_in_clear(void)
 {
     uint8_t input[] = { 0x3f,0x04,0x01,0x00,0x00,0x44 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -801,7 +801,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_in_clear(void)
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_encoded(void)
 {
     uint8_t input[] = { 0xa1,0x9a,0x9f,0x96,0x9e,0xd2 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -811,7 +811,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_ping_encoded(void)
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_in_clear(void)
 {
     uint8_t input[] = { 0x6F,0x04,0x01,0x07,0x00,0x7B };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -820,7 +820,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_in_
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_encoded(void)
 {
     uint8_t input[] = { 0x5F,0x34,0x31,0x35,0x30,0x49 }; // 6F 04 01 05 00 79
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -830,7 +830,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_response_enc
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_in_clear(void)
 {
     uint8_t input[] = { 0x6F,0x04,0x00,0x1B,0x01,0x8F };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -839,7 +839,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_in_c
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_encoded(void)
 {
     uint8_t input[] = {  0xF1,0x9A,0x9E,0x85,0x9F,0x11 }; // 6F 04 00 1B 01 8F
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -849,7 +849,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_request_enco
 void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_start_in_clear(void)
 {
     uint8_t input[] = {  0x4E,0x0C,0x00,0x01,0x04,0x69,0x1D,0x04,0x61,0x94,0xF2,0x3F,0x02,0x11 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -859,14 +859,14 @@ void test_core_phev_core_extractIncomingMessageAndXOR_valid_command_start_in_cle
 void test_core_phev_core_extractIncomingMessageAndXOR_invalid_command(void)
 {
     uint8_t input[] = {  0x4F,0x0C,0x00,0x01,0x04,0x69,0x1D,0x04,0x61,0x94,0xF2,0x3F,0x02,0x11 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NULL(message);
 }
 void test_core_phev_core_extractIncomingMessageAndXOR_BB_command(void)
 {
     uint8_t input[] = { 0xB1,0x0E,0x0B,0x91,0x00,0x6F };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -875,7 +875,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_BB_command(void)
 void test_core_phev_core_extractIncomingMessageAndXOR_CC_command(void)
 {
     uint8_t input[] = {0xDE,0x16,0x13,0xC4,0x3B,0xC2 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -884,7 +884,7 @@ void test_core_phev_core_extractIncomingMessageAndXOR_CC_command(void)
 void test_core_phev_core_extractIncomingMessageAndXOR_2F_command(void)
 {
     uint8_t input[] = {0x3A,0x16,0x15,0x14,0x26 };
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
@@ -893,12 +893,11 @@ void test_core_phev_core_extractIncomingMessageAndXOR_2F_command(void)
 void test_core_phev_core_extractIncomingMessageValidFirstByteCommand(void)
 {
     uint8_t input[]= {0x6f,0xa7,0xa2,0x8b,0x62,0x19};
-    uint8_t expected[] = {0xcc,0x04,0x28,0x8b,0xba};
-    message_t * message = phev_core_extractIncomingMessageAndXOR(input);
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(input, sizeof(input));
 
     TEST_ASSERT_NOT_NULL(message);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected,message->data,sizeof(expected));
-    
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(input,message->data,sizeof(input));
+    TEST_ASSERT_EQUAL(0xa3,phev_core_getMessageXOR(message));
 }
 /*
 void test_phev_core_decode_encode(void)

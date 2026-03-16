@@ -28,6 +28,38 @@ uint8_t *phev_core_xorDataWithValue(const uint8_t *data, const uint8_t xor)
 
     return decoded;
 }
+static uint8_t *phev_core_xorDataWithValueBounded(const uint8_t *data, const uint8_t xor, const size_t bufLen)
+{
+    LOG_V(APP_TAG, "START - xorDataWithValueBounded");
+
+    if (bufLen < 2)
+    {
+        LOG_E(APP_TAG, "Buffer too small for XOR decode");
+        return NULL;
+    }
+
+    size_t length = (data[1] ^ xor) + 2;
+
+    if (length > bufLen)
+    {
+        LOG_D(APP_TAG, "Computed length %zu exceeds buffer size %zu with XOR %02X", length, bufLen, xor);
+        return NULL;
+    }
+
+    uint8_t *decoded = malloc(length);
+
+    LOG_D(APP_TAG, "Decoding data with length %d with XOR %02X", length, xor);
+
+    for (int i = 0; i < length; i++)
+    {
+        decoded[i] = data[i] ^ xor;
+    }
+
+    LOG_BUFFER_HEXDUMP(APP_TAG, decoded, length, LOG_DEBUG);
+    LOG_V(APP_TAG, "END - xorDataWithValueBounded");
+
+    return decoded;
+}
 bool phev_core_checkIncomingCommand(const uint8_t command)
 {
     switch (command)
@@ -96,6 +128,21 @@ bool phev_core_validateChecksum(const uint8_t *data)
 bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor)
 {
     uint8_t *decodedData = phev_core_xorDataWithValue(data, xor);
+
+    bool valid = phev_core_validateChecksum(decodedData);
+
+    free(decodedData);
+
+    return valid;
+}
+static bool phev_core_validateChecksumXORBounded(const uint8_t *data, const uint8_t xor, const size_t bufLen)
+{
+    uint8_t *decodedData = phev_core_xorDataWithValueBounded(data, xor, bufLen);
+
+    if (decodedData == NULL)
+    {
+        return false;
+    }
 
     bool valid = phev_core_validateChecksum(decodedData);
 
@@ -212,6 +259,37 @@ message_t *phev_core_encodedIncomingMessage(const uint8_t *data)
 
     return NULL;
 }
+static message_t *phev_core_encodedIncomingMessageBounded(const uint8_t *data, const size_t bufLen)
+{
+    if (bufLen < 3)
+    {
+        LOG_E(APP_TAG, "Buffer too small for encoded message decode");
+        return NULL;
+    }
+
+    uint8_t xor = data[2];
+    uint8_t command = data[0] ^ xor;
+    uint8_t length = (data[1] ^ xor) + 2;
+
+    if (length <= bufLen && phev_core_checkIncomingCommand(command) && phev_core_validateChecksumXORBounded(data, xor, bufLen))
+    {
+        message_t * message = phev_core_createMsgXOR(data,length,xor);
+        return message;
+    }
+
+    xor ^= 1;
+    command = data[0] ^ xor;
+    length = (data[1] ^ xor) + 2;
+
+    if (length <= bufLen && phev_core_checkIncomingCommand(command) && phev_core_validateChecksumXORBounded(data, xor, bufLen))
+    {
+        return phev_core_createMsgXOR(data, length, xor);
+    }
+
+    LOG_E(APP_TAG,"Unknown encoded command %02X or %02X", command, command ^ 1);
+
+    return NULL;
+}
 message_t *phev_core_encodedOutgoingMessage(const uint8_t *data)
 {
     uint8_t xor = data[2];
@@ -253,6 +331,31 @@ message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t *data)
     }
 
     LOG_V(APP_TAG, "END - extractIncomingMessageAndXOR");
+
+    return message;
+}
+message_t * phev_core_extractIncomingMessageAndXORBounded(const uint8_t *data, const size_t bufLen)
+{
+    LOG_V(APP_TAG, "START - extractIncomingMessageAndXORBounded");
+
+    if (bufLen < 3)
+    {
+        LOG_E(APP_TAG, "Buffer too small for message extraction");
+        return NULL;
+    }
+
+    message_t *message = NULL;
+
+    if (phev_core_checkIncomingCommand(data[0]) && phev_core_validateChecksumXORBounded(data, 0, bufLen))
+    {
+        message = phev_core_unencodedIncomingMessage(data);
+    }
+    else
+    {
+        message = phev_core_encodedIncomingMessageBounded(data, bufLen);
+    }
+
+    LOG_V(APP_TAG, "END - extractIncomingMessageAndXORBounded");
 
     return message;
 }
@@ -319,6 +422,32 @@ message_t * phev_core_extractAndDecodeIncomingMessageAndXOR(const uint8_t *data)
     msg_utils_destroyMsg(message);
 
     LOG_V(APP_TAG, "END - extractAndDecodeIncomingMessageAndXOR");
+
+    return decoded;
+}
+message_t * phev_core_extractAndDecodeIncomingMessageAndXORBounded(const uint8_t *data, const size_t bufLen)
+{
+    LOG_V(APP_TAG, "START - extractAndDecodeIncomingMessageAndXORBounded");
+
+    message_t * message = phev_core_extractIncomingMessageAndXORBounded(data, bufLen);
+
+    if(message == NULL)
+    {
+        LOG_W(APP_TAG,"Cannot extract incoming message");
+        return NULL;
+    }
+
+    uint8_t xor = phev_core_getMessageXOR(message);
+
+    uint8_t * decodedData = phev_core_xorDataWithValue(message->data, xor);
+
+    message_t * decoded = phev_core_createMsgXOR(decodedData,message->length,xor);
+
+    free(decodedData);
+
+    msg_utils_destroyMsg(message);
+
+    LOG_V(APP_TAG, "END - extractAndDecodeIncomingMessageAndXORBounded");
 
     return decoded;
 }
@@ -558,7 +687,7 @@ int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t
         return 0;
     }
 
-    message_t * message = phev_core_extractAndDecodeIncomingMessageAndXOR(data);
+    message_t * message = phev_core_extractAndDecodeIncomingMessageAndXORBounded(data, len);
 
     if (message)
     {

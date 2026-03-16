@@ -1229,6 +1229,7 @@ void test_phev_pipe_updateRegisterWithCallback_encoded(void)
     };
     phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
     ctx->currentXOR = 0x0d;
+    ctx->commandXOR = 0x0d;
 
     phev_pipe_updateRegisterWithCallback(ctx, KO_WF_H_LAMP_CONT_SP, 1,(phev_pipe_updateRegisterCallback_t) test_phev_pipe_update_register_callback,NULL);
 

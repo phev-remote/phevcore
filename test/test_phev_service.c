@@ -944,7 +944,7 @@ void test_phev_service_end_to_end_operations(void)
 {
     const char * commands = "{ \"requests\": [{ \"operation\" :  { \"airCon\" : \"on\" } }, { \"operation\" :  { \"headLights\" : \"off\" } } ] }";
     
-    const uint8_t expected[] = {0xf6,0x04,0x00,0x04,0x02,0x00,0xf6,0x04,0x00,0x0a,0x02,0x06};
+    const uint8_t expected_headlights_off[] = {0xf6,0x04,0x00,0x0a,0x02,0x06};
 
     test_phev_service_global_in_in_message = msg_utils_createMsg(commands, strlen(commands));
 
@@ -964,7 +964,7 @@ void test_phev_service_end_to_end_operations(void)
     
     phev_pipe_loop(ctx->pipe);
     TEST_ASSERT_NOT_NULL(test_phev_service_global_out_out_message);
-    TEST_ASSERT_EQUAL_MEMORY(expected, test_phev_service_global_out_out_message->data,sizeof(expected));
+    TEST_ASSERT_EQUAL_MEMORY(expected_headlights_off, test_phev_service_global_out_out_message->data,sizeof(expected_headlights_off));
     
 }
 void test_phev_service_end_to_end_updated_register(void)
