@@ -1,5 +1,13 @@
 # Build output
 build/
+build-*/
+
+# Tool / editor state
+.cache/
+opencode.json
+
+# Core dumps
+core
 
 # IDE / editor
 .vscode/

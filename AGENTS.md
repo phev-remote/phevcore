@@ -80,7 +80,7 @@ CTest registers 7 suites, each a standalone greatest executable:
 - `test_phev_register` (14 tests)
 - `test_phev_config` (12 tests)
 
-Total: 219 tests. 35 are SKIPped (pre-existing bugs from previously-unwired test functions).
+Total: 219 tests. All pass (0 skipped).
 
 ## Single-Test Guidance
 - greatest supports `-t <test_name>` CLI filtering, e.g. `./build/test/test_phev_core -t test_phev_core_simpleRequestMessage`.
@@ -106,7 +106,6 @@ cmake --preset dev && cmake --build --preset dev && ctest --preset dev
 ## Language and Build Conventions
 - Target language is C11: `set(CMAKE_C_STANDARD 11)`.
 - Two static library targets: `msg_core` (vendored messaging framework) and `phev` (links `msg_core` + `cjson`).
-- Dead transport backends (`msg_gcp_mqtt`, `msg_mqtt_paho`) are gated behind `BUILD_TRANSPORT_BACKENDS` (OFF by default).
 - Tests are only added when `BUILD_TESTS` is enabled.
 - Public headers are installed from `include/msg/` and `include/phev/`.
 
@@ -176,5 +175,5 @@ cmake --preset dev && cmake --build --preset dev && ctest --preset dev
 
 ## Known Quirks To Respect
 - Some code intentionally uses duplicated patterns, manual memory management, and verbose logging; preserve behavior first, elegance second.
-- There are existing rough edges and probable bugs in the codebase; avoid opportunistic rewrites unless required for the task at hand.
-- 35 of 219 test functions are SKIPped due to pre-existing bugs (never wired in the old Unity runners). See `TODO.md` for details.
+- There are existing rough edges in the codebase; avoid opportunistic rewrites unless required for the task at hand.
+- All 219 tests pass with 0 skips. See `TODO.md` for the full restructure history.
