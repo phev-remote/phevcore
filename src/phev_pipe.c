@@ -246,8 +246,6 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         uint8_t xor = phev_core_getMessageXOR(message);
         //LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
         pipeCtx->currentXOR = xor;
-        pipeCtx->commandXOR = xor;
-        pipeCtx->pingXOR = xor;
 
     }
     if(phevMessage->command == 0xbb)
@@ -337,7 +335,7 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
     }
     if (out)
     {
-        message_t * encoded = phev_core_XOROutboundMessage(out, phev_core_getMessageXOR(message));
+        message_t * encoded = phev_core_XOROutboundMessage(out, pipeCtx->commandXOR);
 
         ret = msg_utils_copyMsg(encoded);
         msg_utils_destroyMsg(encoded);
@@ -796,10 +794,10 @@ void phev_pipe_checkXORChanged(phev_pipe_ctx_t * ctx, message_t * message)
     {
         uint8_t xor =phev_core_getMessageXOR(message);
 
-        if(xor == ctx->currentXOR)
+        if(xor != ctx->currentXOR)
         {
-            ctx->currentXOR = xor;
             LOG_D(APP_TAG,"XOR changed to %02X from %02X",xor,ctx->currentXOR);
+            ctx->currentXOR = xor;
         }
     }
 }

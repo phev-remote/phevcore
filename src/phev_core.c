@@ -381,6 +381,10 @@ uint8_t phev_core_getXOR(const uint8_t *data, const uint8_t xor)
     {
         newXOR = data[2] ^ 1;
     }
+    if (command == 0xcc)
+    {
+        newXOR = data[2];
+    }
     if (command == 0xcd)
     {
         newXOR = data[2] ^ 1;
