@@ -10,6 +10,7 @@ target_link_libraries (test_runner LINK_PUBLIC
     ${CJSON}
     unity
 )
-target_include_directories(test_runner INTERFACE ${UNITY})
+find_path(UNITY_INCLUDE_DIR unity.h PATH_SUFFIXES unity)
+target_include_directories(test_runner PRIVATE ${UNITY_INCLUDE_DIR})
 
 add_test(test_phev_core test_runner)
