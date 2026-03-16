@@ -147,6 +147,8 @@ uint8_t phev_core_getType(const uint8_t *data);
 
 bool phev_core_validateChecksum(const uint8_t *data);
 
+bool phev_core_validateChecksumXOR(const uint8_t *data, const uint8_t xor);
+
 message_t * phev_core_extractIncomingMessageAndXOR(const uint8_t * data);
 
 message_t * phev_core_extractIncomingMessageAndXORBounded(const uint8_t * data, const size_t bufLen);

@@ -1,0 +1,24 @@
+{
+    "update": {
+        "ssid": "ssid",
+        "password": "password",
+        "host": "storage.googleapis.com",
+        "path": "/espimages/develop/",
+        "port": 80,
+        "latestBuild": 999,
+        "overGsm": true,
+        "forceUpdate": true
+    },
+    "carConnection": {
+        "host": "192.168.8.46",
+        "port": 8080,
+        "ssid": "REMOTE123456",
+        "password": "abcde123456"
+    },
+    "state": {
+        "connectedClients": 1,
+        "headLightsOn": true,
+        "parkLightsOn": true,
+        "airConOn": true
+    }
+}

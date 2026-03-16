@@ -1,5 +1,9 @@
+#define LOGGING_ON
+#define LOG_LEVEL LOG_DEBUG
+#define MY18
+
+#include "greatest.h"
 #include <string.h>
-#include "unity.h"
 #ifndef PHEV_CONNECT_WAIT_TIME
 #define PHEV_CONNECT_WAIT_TIME (1)
 #endif
@@ -29,6 +33,12 @@ static bool test_phev_register_e2e_completed = false;
 static char * vin_event_vin = NULL;
 static uint8_t vin_event_registrations = 0;
 static int test_register_max_reg = 0;
+
+/* Callback error tracking (cannot longjmp from callbacks) */
+static int test_phev_register_error_failures = 0;
+static const char * test_phev_register_error_msg = NULL;
+static int test_mock_transformer_failures = 0;
+static const char * test_mock_transformer_msg = NULL;
 
 static uint8_t test_phev_register_startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
 static uint8_t test_phev_register_startMsgMaxReg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x03,0xf5 };
@@ -74,7 +84,8 @@ message_t * test_phev_register_inHandlerOut(messagingClient_t *client)
 message_t * mock_outputInputTransformer(void *ctx, message_t *message)
 {
     printf("Got message %s",message->data);
-    TEST_FAIL_MESSAGE("FAILED");
+    test_mock_transformer_failures++;
+    test_mock_transformer_msg = "FAILED";
     return NULL;
 }
 
@@ -113,7 +124,7 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
     return pipe;
 }
 
-void test_phev_register_bootstrap(void)
+TEST test_phev_register_bootstrap(void)
 {
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
     
@@ -124,7 +135,8 @@ void test_phev_register_bootstrap(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    TEST_ASSERT_NOT_NULL(ctx);
+    ASSERT(ctx != NULL);
+    PASS();
 }
 
 int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
@@ -175,9 +187,10 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
             printf("Unknown event %d\n",event->event);
         }
     }
+    return 0;
 }
 // Outgoing tests
-void test_phev_register_should_send_register_on_vin(void)
+TEST test_phev_register_should_send_register_on_vin(void)
 {
     test_phev_register_index = 0;
     test_phev_register_inHandlerSend = NULL;
@@ -203,11 +216,12 @@ void test_phev_register_should_send_register_on_vin(void)
 
     phev_register_eventHandler(pipe ,&event);
 
-    TEST_ASSERT_NOT_NULL(test_phev_register_messages[0]);
-    TEST_ASSERT_EQUAL_MEMORY(expected,test_phev_register_messages[0]->data,sizeof(expected));
+    ASSERT(test_phev_register_messages[0] != NULL);
+    ASSERT_MEM_EQ(expected,test_phev_register_messages[0]->data,sizeof(expected));
     test_phev_register_messages[0] = NULL;
+    PASS();
 }
-void test_phev_register_should_trigger_aa_ack_event(void)
+TEST test_phev_register_should_trigger_aa_ack_event(void)
 {
     test_register_aa_ack = 0;
     uint8_t aaAck[] = {0x6f,0x04,0x01,0xaa,0x00,0x1e};
@@ -229,11 +243,12 @@ void test_phev_register_should_trigger_aa_ack_event(void)
 
     msg_pipe_loop(pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_aa_ack);
+    ASSERT_EQ_FMT(1,test_register_aa_ack,"%d");
     
+    PASS();
 }
 
-void test_phev_register_should_send_init(void)
+TEST test_phev_register_should_send_init(void)
 {  
     test_phev_register_index = 0;
     // VIN message through pipe: commandResponder ACK + sendRegister from GOT_VIN event
@@ -255,13 +270,14 @@ void test_phev_register_should_send_init(void)
 
     msg_pipe_loop(pipe->pipe);
 
-    TEST_ASSERT_NOT_NULL(test_phev_register_messages[0]);
-    TEST_ASSERT_EQUAL_MEMORY(expected_ack,test_phev_register_messages[0]->data,sizeof(expected_ack));
-    TEST_ASSERT_NOT_NULL(test_phev_register_messages[1]);
-    TEST_ASSERT_EQUAL_MEMORY(expected_reg,test_phev_register_messages[1]->data,sizeof(expected_reg));
+    ASSERT(test_phev_register_messages[0] != NULL);
+    ASSERT_MEM_EQ(expected_ack,test_phev_register_messages[0]->data,sizeof(expected_ack));
+    ASSERT(test_phev_register_messages[1] != NULL);
+    ASSERT_MEM_EQ(expected_reg,test_phev_register_messages[1]->data,sizeof(expected_reg));
     
+    PASS();
 }
-void test_phev_register_should_call_complete_when_registered(void)
+TEST test_phev_register_should_call_complete_when_registered(void)
 {
     uint8_t init_ack[] = {0x6f,0x04,0x01,0x10,0x00,0x84};
     test_phev_register_complete_called = 0;
@@ -288,13 +304,14 @@ void test_phev_register_should_call_complete_when_registered(void)
     ctx->vin = strdup("1234");
     msg_pipe_loop(pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_phev_register_complete_called);
+    ASSERT_EQ_FMT(1,test_phev_register_complete_called,"%d");
     
+    PASS();
 }
 
 // Incoming Tests
 
-void test_phev_register_getVin(void)
+TEST test_phev_register_getVin(void)
 {
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
     
@@ -309,11 +326,12 @@ void test_phev_register_getVin(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL_STRING("JMAXDGG2WGZ002035",vin_event_vin);
-    TEST_ASSERT_EQUAL(1,vin_event_registrations);
+    ASSERT_STR_EQ("JMAXDGG2WGZ002035",vin_event_vin);
+    ASSERT_EQ_FMT(1,vin_event_registrations,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_error_when_too_many_registrations(void)
+TEST test_phev_register_should_error_when_too_many_registrations(void)
 {
     test_register_max_reg = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -329,11 +347,12 @@ void test_phev_register_should_error_when_too_many_registrations(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_max_reg);
+    ASSERT_EQ_FMT(1,test_register_max_reg,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
 
-void test_phev_register_should_get_start_ack(void)
+TEST test_phev_register_should_get_start_ack(void)
 {
     test_register_start_ack = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -349,10 +368,11 @@ void test_phev_register_should_get_start_ack(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_start_ack);
+    ASSERT_EQ_FMT(1,test_register_start_ack,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_get_aa_ack(void)
+TEST test_phev_register_should_get_aa_ack(void)
 {
     test_register_aa_ack = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -368,10 +388,11 @@ void test_phev_register_should_get_aa_ack(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_aa_ack);
+    ASSERT_EQ_FMT(1,test_register_aa_ack,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_get_registration(void)
+TEST test_phev_register_should_get_registration(void)
 {
     test_register_reg_evt = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -387,10 +408,11 @@ void test_phev_register_should_get_registration(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_reg_evt);
+    ASSERT_EQ_FMT(1,test_register_reg_evt,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_get_ecu_version(void)
+TEST test_phev_register_should_get_ecu_version(void)
 {
     test_register_ecu_version2_evt = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -406,10 +428,11 @@ void test_phev_register_should_get_ecu_version(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_ecu_version2_evt);
+    ASSERT_EQ_FMT(1,test_register_ecu_version2_evt,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_get_remote_security_present(void)
+TEST test_phev_register_should_get_remote_security_present(void)
 {
     test_register_remote_security_prsnt_info_evt = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -425,10 +448,11 @@ void test_phev_register_should_get_remote_security_present(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_remote_security_prsnt_info_evt);
+    ASSERT_EQ_FMT(1,test_register_remote_security_prsnt_info_evt,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
-void test_phev_register_should_get_reg_disp(void)
+TEST test_phev_register_should_get_reg_disp(void)
 {
     test_register_reg_disp_evt = 0;
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
@@ -444,8 +468,9 @@ void test_phev_register_should_get_reg_disp(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL(1,test_register_reg_disp_evt);
+    ASSERT_EQ_FMT(1,test_register_reg_disp_evt,"%d");
     test_phev_register_inHandlerSend = NULL;
+    PASS();
 }
 
 // E2E registration test
@@ -510,13 +535,16 @@ void test_phev_register_e2e_complete(void)
 }
 void test_phev_register_errorHandler(phevError_t * error)
 {
-    TEST_FAIL_MESSAGE("Registration Error");
+    test_phev_register_error_failures++;
+    test_phev_register_error_msg = "Registration Error";
 }
-void test_phev_register_end_to_end(void)
+TEST test_phev_register_end_to_end(void)
 {
     test_phev_register_e2e_out_handler_stage = 0;
     test_phev_register_e2e_out_handler_out_stage = 0;
     test_phev_register_e2e_completed = false;
+    test_phev_register_error_failures = 0;
+    test_phev_register_error_msg = NULL;
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_register_inHandlerIn,
@@ -577,7 +605,9 @@ void test_phev_register_end_to_end(void)
         i++;
     }
     
-    TEST_ASSERT_EQUAL(5,test_phev_register_e2e_out_handler_stage);
+    ASSERTm("errorHandler callback was invoked unexpectedly",
+            test_phev_register_error_failures == 0);
+    ASSERT_EQ_FMT(5,test_phev_register_e2e_out_handler_stage,"%d");
     // Expected outbound messages:
     // Loop 0 (VIN): ACK for VIN + sendRegister from GOT_VIN = 2
     // Loop 1 (Start resp): sendRegister from START_ACK = 1
@@ -585,7 +615,35 @@ void test_phev_register_end_to_end(void)
     // Loop 3 (Registration): ACK for reg + sendRegister from REGISTRATION = 2
     // Loop 4 (Reg display): complete fires, no sendRegister = 0
     // Total = 5
-    TEST_ASSERT_EQUAL(5,test_phev_register_e2e_out_handler_out_stage);
-    TEST_ASSERT_EQUAL(true,ctx->registrationComplete);
+    ASSERT_EQ_FMT(5,test_phev_register_e2e_out_handler_out_stage,"%d");
+    ASSERT(ctx->registrationComplete);
 
+    PASS();
+}
+
+SUITE(phev_register_suite)
+{
+    RUN_TEST(test_phev_register_bootstrap);
+    RUN_TEST(test_phev_register_should_send_register_on_vin);
+    RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
+    RUN_TEST(test_phev_register_should_send_init);
+    RUN_TEST(test_phev_register_should_call_complete_when_registered);
+    RUN_TEST(test_phev_register_getVin);
+    RUN_TEST(test_phev_register_should_error_when_too_many_registrations);
+    RUN_TEST(test_phev_register_should_get_start_ack);
+    RUN_TEST(test_phev_register_should_get_aa_ack);
+    RUN_TEST(test_phev_register_should_get_registration);
+    RUN_TEST(test_phev_register_should_get_ecu_version);
+    RUN_TEST(test_phev_register_should_get_remote_security_present);
+    RUN_TEST(test_phev_register_should_get_reg_disp);
+    RUN_TEST(test_phev_register_end_to_end);
+}
+
+GREATEST_MAIN_DEFS();
+
+int main(int argc, char **argv)
+{
+    GREATEST_MAIN_BEGIN();
+    RUN_SUITE(phev_register_suite);
+    GREATEST_MAIN_END();
 }

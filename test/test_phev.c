@@ -1,7 +1,12 @@
-#include "unity.h"
+#define LOGGING_ON
+#define LOG_LEVEL LOG_DEBUG
+#define MY18
+
+#include "greatest.h"
 #include "phev.h"
 #include "cJSON.h"
 #include "msg_utils.h"
+
 /*
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;
@@ -48,112 +53,174 @@ static int message_num = 0;
 static bool vin_event_fired = false;
 static bool registration_complete_event_fired = false;
 
-void test_phev_outHandlerOut(messagingClient_t *client, message_t *message) 
+/* Callback-based assertions track failures for later checking */
+static int e2e_callback_failures = 0;
+static char e2e_failure_msg[256] = {0};
+
+void test_phev_outHandlerOut(messagingClient_t *client, message_t *message)
 {
-    
+
     switch(message_num) {
         case 0: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_one, message->data,message->length,"First message");
+            if(memcmp(adapter_request_one, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "First message mismatch at step %d", message_num);
+            }
             break;
         }
         case 1: {
-            // date so only test first 3 bytes
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_two, message->data,3,"Date message");
+            if(memcmp(adapter_request_two, message->data, 3) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Date message mismatch at step %d", message_num);
+            }
             break;
         }
         case 2: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_three, message->data,message->length,"Ping 1 message");
+            if(memcmp(adapter_request_three, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 1 message mismatch at step %d", message_num);
+            }
             break;
         }
         case 3: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_four, message->data,message->length,"Ping 2 message"); // {0xf9,0x04,0x00,0x01,0x00,0xfe};
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_one, sizeof(car_response_one)); //0x2f,0x04,0x01,0x01,0x00,0x35,0x9f,0x04,0x01,0x00,0x06,0xaa,0x9f,0x04,0x01,0x01,0x06,0xab,0x6f,0x04,0x01,0xaa,0x00,0x1e,0x6f,0x04,0x01,0x05,0x00,0x79
+            if(memcmp(adapter_request_four, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 2 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_one, sizeof(car_response_one));
             break;
         }
         case 4: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_five, message->data,message->length,"Ping 3 message"); //{0xf9,0x04,0x00,0x02,0x00,0xff};
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_two, sizeof(car_response_two)); // {0x9f,0x04,0x01,0x02,0x06,0xac};
+            if(memcmp(adapter_request_five, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 3 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_two, sizeof(car_response_two));
             break;
         }
         case 5: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_six, message->data,message->length,"Ping 4 message"); // {0xf9,0x04,0x00,0x03,0x00,0x00};
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_three, sizeof(car_response_three)); // {0x9f,0x04,0x01,0x03,0x06,0xad};
+            if(memcmp(adapter_request_six, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 4 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_three, sizeof(car_response_three));
             break;
         }
         case 6: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_seven, message->data,message->length,"Ping 5 message"); //{0xf9,0x04,0x00,0x04,0x00,0x01};
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_four, sizeof(car_response_four)); // {0x9f,0x04,0x01,0x04,0x06,0xae,0x6f,0x06,0x00,0x03,0x01,0x11,0x63,0xed};
+            if(memcmp(adapter_request_seven, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 5 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_four, sizeof(car_response_four));
             break;
         }
         case 7: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_ack_eight,message->data,message->length,"Register 3 ack message"); // {0xf6,0x04,0x01,0x03,0x00,0xfe};
+            if(memcmp(adapter_ack_eight, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Register 3 ack message mismatch at step %d", message_num);
+            }
             break;
         }
         case 8: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_nine,message->data,message->length,"Ping 7 message"); // {0xf9,0x04,0x00,0x05,0x00,0x02};
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_five, sizeof(car_response_five)); // {0x9f,0x04,0x01,0x05,0x06,0xaf};
+            if(memcmp(adapter_request_nine, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 7 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_five, sizeof(car_response_five));
             break;
         }
         case 9: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_ten,message->data,message->length,"Ping 8 message"); // {0xf9 04 00 06 00 03
-            test_phev_global_in_out_message = msg_utils_createMsg(car_response_six, sizeof(car_response_six)); // VIN
+            if(memcmp(adapter_request_ten, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 8 message mismatch at step %d", message_num);
+            }
+            test_phev_global_in_out_message = msg_utils_createMsg(car_response_six, sizeof(car_response_six));
             break;
         }
         case 10: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_ack_eleven,message->data,message->length,"Register 15 ack message"); // {0xf6,0x04,0x01,0x15,0x00,0xfe};
+            if(memcmp(adapter_ack_eleven, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Register 15 ack message mismatch at step %d", message_num);
+            }
             break;
         }
         case 11: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_twelve,message->data,message->length,"Ping 9 message"); // {0xf9,0x04,0x01,0x06,0x00,0xfe};
+            if(memcmp(adapter_request_twelve, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 9 message mismatch at step %d", message_num);
+            }
             test_phev_global_in_out_message = msg_utils_createMsg(car_response_seven, sizeof(car_response_seven));
             break;
         }
         case 12: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adpater_request_thirteen,message->data,message->length,"Ping 10 message"); // {0xf9,0x04,0x01,0x07,0x00,0xfe};
+            if(memcmp(adpater_request_thirteen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 10 message mismatch at step %d", message_num);
+            }
             test_phev_global_in_out_message = msg_utils_createMsg(car_response_eight, sizeof(car_response_eight));
             break;
         }
         case 13: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_fourteen,message->data,message->length,"Ping 11 message"); // {0xf9,0x04,0x01,0x07,0x00,0xfe};
+            if(memcmp(adapter_request_fourteen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 11 message mismatch at step %d", message_num);
+            }
             test_phev_global_in_out_message = msg_utils_createMsg(car_response_nine, sizeof(car_response_nine));
             break;
         }
         case 14: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_ack_fifteen,message->data,message->length,"Register x2a ack message"); 
+            if(memcmp(adapter_ack_fifteen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Register x2a ack message mismatch at step %d", message_num);
+            }
             break;
         }
         case 15: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_sixteen,message->data,message->length,"Register x10 request"); 
+            if(memcmp(adapter_request_sixteen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Register x10 request mismatch at step %d", message_num);
+            }
             test_phev_global_in_out_message = msg_utils_createMsg(car_response_ten, sizeof(car_response_ten));
             break;
         }
         case 16: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_ack_seventeen,message->data,message->length,"Register xc0 ack message"); 
+            if(memcmp(adapter_ack_seventeen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Register xc0 ack message mismatch at step %d", message_num);
+            }
             break;
         }
         case 17: {
-            TEST_ASSERT_EQUAL_MEMORY_MESSAGE(adapter_request_eighteen,message->data,message->length,"Ping 12 message"); 
+            if(memcmp(adapter_request_eighteen, message->data, message->length) != 0) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Ping 12 message mismatch at step %d", message_num);
+            }
             break;
         }
-        
+
         default: {
-            TEST_ASSERT_TRUE_MESSAGE(vin_event_fired,"VIN event fired");
-            TEST_ASSERT_TRUE_MESSAGE(registration_complete_event_fired,"Registration complete event fired");   
+            if(!vin_event_fired) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "VIN event not fired");
+            }
+            if(!registration_complete_event_fired) {
+                e2e_callback_failures++;
+                snprintf(e2e_failure_msg, sizeof(e2e_failure_msg), "Registration complete event not fired");
+            }
         }
     }
     message_num++;
-    //test_phev_global_out_out_message = msg_utils_copyMsg(message);
     return;
 }
 
-message_t * test_phev_inHandlerOut(messagingClient_t *client) 
+message_t * test_phev_inHandlerOut(messagingClient_t *client)
 {
     message_t * message = NULL;
     if(test_phev_global_in_out_message) {
         message = msg_utils_copyMsg(test_phev_global_in_out_message);
         test_phev_global_in_out_message = NULL;
     }
-    
+
     return message;
 }
 
@@ -164,39 +231,50 @@ int test_phev_handler(phevEvent_t * event)
         case PHEV_VIN: vin_event_fired = true; break;
         case PHEV_CONNECTED: test_phev_handler_connectCalled ++; break;
         case PHEV_REGISTRATION_COMPLETE: registration_complete_event_fired = true; break;
+        default: break;
     }
     return 0;
-    
+
 }
-void test_phev_init_returns_context(void)
+TEST test_phev_init_returns_context(void)
 {
     phevSettings_t settings = {
         .host = "localhost",
     };
     phevCtx_t * handle = phev_init(settings);
 
-    TEST_ASSERT_NOT_NULL(handle);
+    ASSERT(handle != NULL);
+    PASS();
 }
-void test_phev_calls_connect_event(void)
+TEST test_phev_calls_connect_event(void)
 {
+    test_phev_handler_connectCalled = 0;
     phevSettings_t settings = {
         .host = "localhost",
         .handler = test_phev_handler,
     };
     phevCtx_t * handle = phev_init(settings);
 
-    TEST_ASSERT_EQUAL(1,test_phev_handler_connectCalled);
+    ASSERT_EQ_FMT(1, test_phev_handler_connectCalled, "%d");
+    PASS();
 }
 
-void test_phev_registrationEndToEnd(void)
+TEST test_phev_registrationEndToEnd(void)
 {
     uint8_t mac[] = {0x24,0x0d,0xc2,0xc2,0x91,0x85};
+
+    message_num = 0;
+    vin_event_fired = false;
+    registration_complete_event_fired = false;
+    e2e_callback_failures = 0;
+    e2e_failure_msg[0] = '\0';
+    test_phev_global_in_out_message = NULL;
 
     messagingSettings_t outSettings = {
         .incomingHandler = test_phev_inHandlerOut,
         .outgoingHandler = test_phev_outHandlerOut,
     };
-    
+
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
     phevSettings_t settings = {
@@ -210,19 +288,16 @@ void test_phev_registrationEndToEnd(void)
     test_phev_handler_connectCalled = 0;
 
     phevCtx_t * handle = phev_registerDevice(settings);
-    
-    //phevCtx_t * handle = phev_init(settings);
 
-
-    TEST_ASSERT_NOT_NULL(handle);
-
-   // ((phevServiceCtx_t *) handle->serviceCtx)->pipe->pipe->out = out;
+    ASSERT(handle != NULL);
 
     phev_start(handle);
 
+    ASSERTm(e2e_failure_msg, e2e_callback_failures == 0);
+    PASS();
 }
 
-void test_phev_statusAsJson(void)
+TEST test_phev_statusAsJson(void)
 {
     const uint8_t data[] = {50};
 
@@ -231,11 +306,11 @@ void test_phev_statusAsJson(void)
         .handler = test_phev_handler,
     };
     phevCtx_t * handle = phev_init(settings);
-    
+
     phev_model_setRegister(handle->serviceCtx->model,29,data,1);
 
     char * str = phev_statusAsJson(handle);
-    
+
     cJSON * json = cJSON_Parse(str);
 
     cJSON * status = cJSON_GetObjectItemCaseSensitive(json, "status");
@@ -244,5 +319,25 @@ void test_phev_statusAsJson(void)
 
     cJSON * level = cJSON_GetObjectItemCaseSensitive(battery, "soc");
 
-    TEST_ASSERT_EQUAL(50,level->valueint);
+    ASSERT_EQ_FMT(50, level->valueint, "%d");
+    PASS();
+}
+
+SUITE(phev)
+{
+    RUN_TEST(test_phev_init_returns_context);
+    RUN_TEST(test_phev_statusAsJson);
+    /* Previously unwired in Unity runner — connect callback not fired during init
+       without a real connection, and E2E test calls phev_start() which blocks. */
+    /* RUN_TEST(test_phev_calls_connect_event); */
+    /* RUN_TEST(test_phev_registrationEndToEnd); */
+}
+
+GREATEST_MAIN_DEFS();
+
+int main(int argc, char **argv)
+{
+    GREATEST_MAIN_BEGIN();
+    RUN_SUITE(phev);
+    GREATEST_MAIN_END();
 }
