@@ -538,7 +538,8 @@ uint8_t phev_core_getXOR(const uint8_t *data, const uint8_t xor)
 }
 uint8_t phev_core_getType(const uint8_t *data)
 {
-    uint8_t type = data[2];
+    uint8_t xor = phev_core_getXOR(data, 0);
+    uint8_t type = data[2] ^ xor;
 
     return type;
 }
@@ -755,13 +756,23 @@ int phev_core_encodeMessage(phevMessage_t *message, uint8_t **data)
 
     d[message->length + 4] = phev_core_checksum(d);
 
+    int totalLength = d[1] + 2;
+
+    if (message->XOR != 0)
+    {
+        for (int i = 0; i < totalLength; i++)
+        {
+            d[i] = d[i] ^ message->XOR;
+        }
+    }
+
     *data = d;
 
     LOG_D(APP_TAG, "Created message");
-    LOG_BUFFER_HEXDUMP(APP_TAG, d, d[1] + 2, LOG_DEBUG);
+    LOG_BUFFER_HEXDUMP(APP_TAG, d, totalLength, LOG_DEBUG);
     LOG_V(APP_TAG, "END - encodeMessage");
 
-    return d[1] + 2;
+    return totalLength;
 }
 
 phevMessage_t *phev_core_message(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t *data, const size_t length)
@@ -862,13 +873,11 @@ phevMessage_t *phev_core_copyMessage(phevMessage_t *message)
 
     return out;
 }
-uint8_t *phev_core_xorDataOutbound(const uint8_t *data, uint8_t xor)
+uint8_t *phev_core_xorDataOutbound(const uint8_t *data, size_t length, uint8_t xor)
 {
-    uint8_t length = data[1] + 2;
-
     uint8_t *decoded = malloc(length);
 
-    for (int i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++)
     {
         decoded[i] = data[i] ^ xor;
     }
@@ -878,9 +887,9 @@ message_t *phev_core_XOROutboundMessage(const message_t *message, const uint8_t 
 {
     LOG_V(APP_TAG, "START - XOROutboundMessage");
 
-    uint8_t * data = phev_core_xorDataOutbound(message->data, xor);
+    uint8_t * data = phev_core_xorDataOutbound(message->data, message->length, xor);
 
-    message_t * encoded = msg_utils_createMsg(data,message->data[1] + 2);
+    message_t * encoded = msg_utils_createMsg(data, message->length);
 
     free(data);
 

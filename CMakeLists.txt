@@ -45,15 +45,6 @@ if(WIN32)
     target_link_libraries(msg_core PUBLIC mswsock advapi32 ws2_32)
 endif()
 
-# ---------- optional dead transport backends ----------
-option(BUILD_TRANSPORT_BACKENDS "Build msg_gcp_mqtt and msg_mqtt_paho (requires external deps)" OFF)
-
-if(BUILD_TRANSPORT_BACKENDS)
-    target_sources(msg_core PRIVATE
-        src/msg/msg_gcp_mqtt.c
-        src/msg/msg_mqtt_paho.c
-    )
-endif()
 
 # ---------- phev library ----------
 add_library(phev STATIC
@@ -123,12 +114,3 @@ install(FILES
     include/msg/logger.h
     DESTINATION include/msg
 )
-
-if(BUILD_TRANSPORT_BACKENDS)
-    install(FILES
-        include/msg/msg_gcp_mqtt.h
-        include/msg/msg_mqtt_paho.h
-        include/msg/config.h
-        DESTINATION include/msg
-    )
-endif()

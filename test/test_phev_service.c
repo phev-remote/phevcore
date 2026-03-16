@@ -2,6 +2,7 @@
 #define LOG_LEVEL LOG_DEBUG
 #define MY18
 #include <stdbool.h>
+#include <string.h>
 #include "greatest.h"
 #include "cJSON.h"
 #include "msg/msg_utils.h"
@@ -260,7 +261,6 @@ TEST test_phev_service_jsonCommandToPhevMessage_airConOn_cool(void)
 }
 TEST test_phev_service_jsonCommandToPhevMessage_update(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     const char * command = "{ \"operation\" :  { \"update\" : true } }";
     
     phevMessage_t * message = phev_service_jsonCommandToPhevMessage(command);
@@ -313,16 +313,17 @@ TEST test_phev_service_createPipe(void)
 }
 TEST test_phev_service_jsonInputTransformer(void)
 {
-    /* Pre-existing bug: phev_service_jsonInputTransformer dereferences
-       pipeCtx->connected (line 565 of phev_service.c) so passing NULL ctx
-       causes a segfault.  This test was never wired in the old Unity runner.
-       SKIP until the production code is fixed to handle NULL context. */
-    SKIP();
+    const char * command = "{ \"operation\" : { \"headLights\" : { \"state\" : \"on\" } } }";
+    message_t * message = msg_utils_createMsg((const uint8_t *) command, strlen(command) + 1);
+
+    message_t * out = phev_service_jsonInputTransformer(NULL, message);
+
+    ASSERT_EQ(NULL, out);
+    PASS();
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -362,8 +363,7 @@ TEST test_phev_service_jsonOutputTransformer_not_updated_register(void)
 } 
 TEST test_phev_service_jsonOutputTransformer_has_updated_register(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x02,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x02,0x7f};
     
     const uint8_t data[] = {1};
     messagingSettings_t inSettings = {
@@ -389,8 +389,7 @@ TEST test_phev_service_jsonOutputTransformer_has_updated_register(void)
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_reg(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -407,8 +406,7 @@ TEST test_phev_service_jsonOutputTransformer_updated_register_reg(void)
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_length(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0x00,0x7d};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -432,8 +430,7 @@ TEST test_phev_service_jsonOutputTransformer_updated_register_length(void)
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_data(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0xff,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x00,0x0a,0xff,0x7c};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -465,9 +462,8 @@ TEST test_phev_service_jsonOutputTransformer_updated_register_data(void)
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_data_multiple_items(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     const uint8_t numbers[] = {0xff,0xcc,0x55};
-    const uint8_t message[] = {0x6f,0x06,0x00,0x0a,0xff,0xcc,0x55,0x05};
+    const uint8_t message[] = {0x6f,0x06,0x00,0x0a,0xff,0xcc,0x55,0x9f};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -498,8 +494,7 @@ TEST test_phev_service_jsonOutputTransformer_updated_register_data_multiple_item
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_ack(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x7e};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
@@ -514,8 +509,7 @@ TEST test_phev_service_jsonOutputTransformer_updated_register_ack(void)
 }
 TEST test_phev_service_jsonOutputTransformer_updated_register_ack_register(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
-    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x05};
+    const uint8_t message[] = {0x6f,0x04,0x01,0x0a,0x00,0x7e};
     
     message_t * out = phev_service_jsonOutputTransformer(NULL,msg_utils_createMsg(message, sizeof(message)));
 
