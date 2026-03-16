@@ -3,8 +3,8 @@
 #define MY18
 
 #include "greatest.h"
-#include "phev_core.h"
-#include "msg_utils.h"
+#include "phev/phev_core.h"
+#include "msg/msg_utils.h"
 GREATEST_MAIN_DEFS();
 
 const uint8_t singleMessage[] = {0x6f, 0x0a, 0x00, 0x12, 0x00, 0x06, 0x06, 0x13, 0x05, 0x13, 0x01, 0xc3};

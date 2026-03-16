@@ -3,8 +3,8 @@
 #define MY18
 
 #include "greatest.h"
-#include "phev_model.h"
-#include "logger.h"
+#include "phev/phev_model.h"
+#include "msg/logger.h"
 
 TEST test_phev_model_create_model(void)
 {

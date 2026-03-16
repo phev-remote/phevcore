@@ -1,9 +1,9 @@
 #include <string.h>
 #include "greatest.h"
 
-#include "msg_core.h"
-#include "msg_pipe.h"
-#include "msg_utils.h"
+#include "msg/msg_core.h"
+#include "msg/msg_pipe.h"
+#include "msg/msg_utils.h"
 #ifndef PHEV_CONNECT_WAIT_TIME
 #define PHEV_CONNECT_WAIT_TIME (1)
 #endif
@@ -11,7 +11,7 @@
 #define PHEV_CONNECT_MAX_RETRIES 2
 #endif
 
-#include "phev_pipe.h"
+#include "phev/phev_pipe.h"
 
 GREATEST_MAIN_DEFS();
 
