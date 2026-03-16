@@ -6,11 +6,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "phev_core.h"
-#ifdef __XTENSA__
 #include "cJSON.h"
-#else
-#include <cjson/cJSON.h>
-#endif
 #ifndef BUILD_NUMBER
 #define BUILD_NUMBER 1
 #endif

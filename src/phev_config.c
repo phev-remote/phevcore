@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include "phev_config.h"
-#ifdef __XTENSA__
 #include "cJSON.h"
-#else
-#include <cjson/cJSON.h>
-#endif
 
 bool phev_config_checkForOption(const cJSON * json, const char * option)
 {

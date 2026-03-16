@@ -1,81 +1,100 @@
-project("Phev" C)
-cmake_minimum_required(VERSION 3.0)
-include(splint.cmake)
-set (CMAKE_C_STANDARD 11)
+cmake_minimum_required(VERSION 3.14)
+project(phev VERSION 1.0.0 LANGUAGES C)
 
-if (UNIX)
-  add_definitions (-D__unix__)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+if(UNIX)
+    add_definitions(-D__unix__)
 endif()
 
-option(SPLINT_HAS_A_FATAL "if YES, splint warnings will halt the build." NO)
-option(WANT_SPLINT "enable splint on sources" YES)
-mark_as_advanced(SPLINT_HAS_A_FATAL)
-set(SPLINT_COMMAND splint${CMAKE_EXECUTABLE_SUFFIX} CACHE FILEPATH "the location of the splint executable.")
-mark_as_advanced(SPLINT_COMMAND)
+# ---------- dependencies via FetchContent ----------
+include(FetchContent)
 
-find_library(MSG_CORE msg_core "/usr/local/lib")
-find_library(CJSON cjson)
-
-option(BUILD_TESTS "Build the test binaries")
-
-set(PHEV_SRCS
-    src/phev_register.c
-    src/phev_pipe.c
-    src/phev_core.c
-    src/phev_service.c
-    src/phev_model.c
-    src/phev_tcpip.c
-    src/phev.c
+FetchContent_Declare(cjson
+    GIT_REPOSITORY https://github.com/DaveGamble/cJSON.git
+    GIT_TAG        v1.7.18
 )
+
+# Disable cJSON extras we don't need
+set(ENABLE_CJSON_TEST OFF CACHE BOOL "" FORCE)
+set(ENABLE_CJSON_UTILS OFF CACHE BOOL "" FORCE)
+set(CJSON_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(cjson)
+
+# ---------- library ----------
 add_library(phev STATIC
-  ${PHEV_SRCS}
+    # msg-core sources (merged from github.com/papawattu/msg-core)
+    src/msg_core.c
+    src/msg_mqtt.c
+    src/msg_pipe.c
+    src/msg_pipe_splitter.c
+    src/msg_tcpip.c
+    src/msg_utils.c
+    # phev sources
+    src/phev.c
+    src/phev_config.c
+    src/phev_core.c
+    src/phev_model.c
+    src/phev_pipe.c
+    src/phev_register.c
+    src/phev_service.c
+    src/phev_tcpip.c
 )
 
-# FIXME: this should be handled via "subdirectory"
-#include_directories(${INCLUDE_DIRECTORIES} ${CMAKE_SOURCE_DIR}/external/msg-core/include ${CMAKE_SOURCE_DIR}/external /usr/local/include)
-target_include_directories(phev PUBLIC ${CMAKE_SOURCE_DIR}/external/msg-core/include ${CMAKE_SOURCE_DIR}/external /usr/local/include)
-
-add_splint(phev
-  ${PHEV_SRCS}
+target_include_directories(phev
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${cjson_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-if(${BUILD_TESTS})
-    find_package(unity)
-    include(CTest)
+target_link_libraries(phev
+    PUBLIC cjson
+)
+
+if(WIN32)
+    target_link_libraries(phev PUBLIC mswsock advapi32 ws2_32)
+endif()
+
+# ---------- tests ----------
+option(BUILD_TESTS "Build the test binaries" OFF)
+
+if(BUILD_TESTS)
+    FetchContent_Declare(unity
+        GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
+        GIT_TAG        master
+    )
+    FetchContent_MakeAvailable(unity)
+
+    enable_testing()
     add_subdirectory(test)
 endif()
 
-if(WIN32)
-    target_link_libraries(phev LINK_PUBLIC
-        msg_core
-        cjson
-        mswsock
-        advapi32
-        ws2_32
-    )
-else()
-    target_link_libraries (phev LINK_PUBLIC 
-        ${MSG_CORE}
-        ${CJSON}
-    )
-endif()
-
-set_property(TARGET phev PROPERTY C_STANDARD 11)
-
-target_include_directories(phev PUBLIC include /usr/local /usr/local/include)
-
+# ---------- install ----------
 install(
-    TARGETS
-      phev
+    TARGETS phev
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
-install (FILES
-	include/phev.h
-    include/phev_service.h
+
+install(FILES
+    include/phev.h
+    include/phev_config.h
     include/phev_core.h
-    include/phev_pipe.h
     include/phev_model.h
+    include/phev_pipe.h
     include/phev_register.h
-	DESTINATION include/
+    include/phev_service.h
+    include/phev_tcpip.h
+    include/msg_core.h
+    include/msg_pipe.h
+    include/msg_pipe_splitter.h
+    include/msg_tcpip.h
+    include/msg_utils.h
+    include/logger.h
+    DESTINATION include
 )

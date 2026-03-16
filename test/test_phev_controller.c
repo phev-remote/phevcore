@@ -12,7 +12,7 @@
 #include "mock_msg_mqtt.h"
 #include "mock_phev_store.h"
 
-#include <cjson/cJSON.h>
+#include "cJSON.h"
 
 void setUp(void)
 {
