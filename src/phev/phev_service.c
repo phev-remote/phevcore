@@ -417,6 +417,12 @@ bool phev_service_validateCommand(const char *command)
         {
             return phev_service_validateCheckOnOrOff(airCon->valuestring);
         }
+        cJSON *update = cJSON_GetObjectItemCaseSensitive(operation, PHEV_SERVICE_OPERATION_UPDATE_JSON);
+
+        if (update)
+        {
+            return cJSON_IsBool(update) && cJSON_IsTrue(update);
+        }
     }
 
     return false;
@@ -562,7 +568,7 @@ message_t *phev_service_jsonInputTransformer(void *ctx, message_t *message)
 
     if (message)
     {
-        if(!pipeCtx->connected)
+        if(!pipeCtx || !pipeCtx->connected)
         {
             LOG_W(TAG,"Not sending command as not connected");
             return NULL;

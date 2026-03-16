@@ -241,12 +241,9 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
         free(phevMessage);
         return NULL;
     }
-    if(message->ctx != NULL)
+    if(phevMessage->XOR != 0)
     {
-        uint8_t xor = phev_core_getMessageXOR(message);
-        //LOG_I(APP_TAG,"Command received XOR changed to %02X",xor);
-        pipeCtx->currentXOR = xor;
-
+        pipeCtx->currentXOR = phevMessage->XOR;
     }
     if(phevMessage->command == 0xbb)
     {
@@ -275,9 +272,21 @@ message_t *phev_pipe_outputChainInputTransformer(void *ctx, message_t *message)
     LOG_D(APP_TAG, "Command %02x Register %d Length %d Type %d XOR %02X", phevMessage->command, phevMessage->reg, phevMessage->length, phevMessage->type, phevMessage->XOR);
     LOG_BUFFER_HEXDUMP(APP_TAG, phevMessage->data, phevMessage->length, LOG_DEBUG);
 
+    uint8_t detectedXOR = phevMessage->XOR;
+
     phev_core_destroyMessage(phevMessage);
 
-    //free(phevMessage);
+    if(detectedXOR != 0)
+    {
+        message_t *decoded = phev_core_extractAndDecodeIncomingMessageAndXORBounded(message->data, message->length);
+        if(decoded != NULL)
+        {
+            LOG_V(APP_TAG, "END - outputChainInputTransformer (decoded)");
+            return decoded;
+        }
+    }
+
+    LOG_V(APP_TAG, "END - outputChainInputTransformer");
     return message;
 
 }
@@ -295,6 +304,15 @@ message_t *phev_pipe_commandResponder(void *ctx, message_t *message)
         phevMessage_t phevMsg;
 
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
+
+        // If the message was already decoded by the input transformer,
+        // phev_core_decodeMessage will see it as plaintext (XOR=0).
+        // The real XOR is carried in message->ctx by the transformer.
+        uint8_t messageXOR = phev_core_getMessageXOR(message);
+        if (messageXOR != 0 && phevMsg.XOR == 0)
+        {
+            phevMsg.XOR = messageXOR;
+        }
 
         LOG_D(APP_TAG, "Decoded message XOR %02x", phevMsg.XOR);
         if (phevMsg.command == PING_RESP_CMD || phevMsg.command == PING_RESP_CMD_MY18 || phevMsg.command == 0xbb || phevMsg.command == 0xcd || phevMsg.command == 0xcc)

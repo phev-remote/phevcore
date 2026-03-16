@@ -75,6 +75,10 @@ message_t * test_phev_pipe_inHandlerIn_notConnnected(messagingClient_t * client)
     client->connected = 0;
     return NULL;
 }
+int test_phev_pipe_connect_fail(messagingClient_t * client)
+{
+    return -1;
+}
 TEST test_phev_pipe_createPipe(void)
 {
     test_phev_pipe_reset_globals();
@@ -152,7 +156,6 @@ TEST test_phev_pipe_loop(void)
 }
 TEST test_phev_pipe_sendMac(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     test_phev_pipe_reset_globals();
     
     const uint8_t expected[] = {0xf2,0x0a,0x00,0x01,0x24,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xc8,0xf6,0x04,0x00,0xaa,0x00,0xa4};
@@ -195,7 +198,6 @@ TEST test_phev_pipe_sendMac(void)
 }
 TEST test_phev_pipe_start_my18(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     test_phev_pipe_reset_globals();
     
     const uint8_t expected[] = {0xf2,0x0a,0x00,0x01,0x24,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xc8,0xf6,0x04,0x00,0xaa,0x00,0xa4};
@@ -321,7 +323,6 @@ TEST test_phev_pipe_commandResponder(void)
 }
 TEST test_phev_pipe_commandResponder_reg_update_odd_xor(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     test_pipe_global_message_idx = 0;
     test_pipe_global_message[0] = NULL;
     test_pipe_global_in_message = NULL;
@@ -365,7 +366,6 @@ TEST test_phev_pipe_commandResponder_reg_update_odd_xor(void)
 }
 TEST test_phev_pipe_commandResponder_reg_update_even_xor(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     test_pipe_global_message_idx = 0;
     test_pipe_global_message[0] = NULL;
     test_pipe_global_in_message = NULL;
@@ -536,7 +536,6 @@ TEST test_phev_pipe_commandResponder_should_only_respond_to_commands(void)
 }
 TEST test_phev_pipe_commandResponder_should_encrypt_with_correct_xor(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     uint8_t input[] = { 0x62,0x09,0x0d,0x2c,0x0d,0x99 };
     uint8_t expected[] = { 0xfb,0x09,0x0c,0x2c,0x0d,0x11 };
     
@@ -628,7 +627,6 @@ TEST test_phev_pipe_outputChainInputTransformer(void)
 }
 TEST test_phev_pipe_outputChainInputTransformer_encoded(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
@@ -677,7 +675,6 @@ TEST test_phev_pipe_outputChainInputTransformer_encoded(void)
 }
 TEST test_phev_pipe_outputChainInputTransformer_changedXOR_command_response(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
@@ -724,7 +721,6 @@ TEST test_phev_pipe_outputChainInputTransformer_changedXOR_command_response(void
 }
 TEST test_phev_pipe_outputChainInputTransformer_changedXOR_command_request(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
@@ -771,7 +767,6 @@ TEST test_phev_pipe_outputChainInputTransformer_changedXOR_command_request(void)
 }
 TEST test_phev_pipe_outputChainInputTransformer_changedXOR_ping_response(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
@@ -1057,16 +1052,17 @@ TEST test_phev_pipe_no_input_connection(void)
 }
 TEST test_phev_pipe_waitForConnection_should_timeout(void)
 {
-    SKIP(); /* pre-existing bug: never wired in Unity */
     test_phev_pipe_reset_globals();
 
     messagingSettings_t inSettings = {
         .incomingHandler = test_phev_pipe_inHandlerIn,
         .outgoingHandler = test_phev_pipe_outHandlerIn,
+        .connect = test_phev_pipe_connect_fail,
     };
     messagingSettings_t outSettings = {
         .incomingHandler = test_phev_pipe_inHandlerOut,
         .outgoingHandler = test_phev_pipe_outHandlerOut,
+        .connect = test_phev_pipe_connect_fail,
     };
 
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
