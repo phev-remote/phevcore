@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: CI
 
 on:
   push:
@@ -7,12 +7,17 @@ on:
     branches: [ master ]
 
 jobs:
-
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag phev-remote/phevcore:$(date +%s)
+    - uses: actions/checkout@v4
+
+    - name: Configure
+      run: cmake --preset ci
+
+    - name: Build
+      run: cmake --build --preset ci
+
+    - name: Test
+      run: ctest --preset ci

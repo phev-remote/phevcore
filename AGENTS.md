@@ -3,89 +3,101 @@
 ## Purpose
 - This repository is a small C11 library for talking to Mitsubishi Outlander PHEV remote WiFi systems.
 - Core code lives in `src/`, public headers in `include/`, and Unity tests in `test/`.
-- The build is CMake-based and depends on external `msg-core`, `cJSON`, and optionally Unity for tests.
-- `splint.cmake` is a stub file to satisfy the CMake include.
+- The build is CMake-based; `cJSON` and Unity are fetched via FetchContent. `msg-core` sources are vendored directly in `src/`.
 
 ## Repository Layout
-- `src/`: library implementation files such as `phev.c`, `phev_core.c`, `phev_service.c`, `phev_pipe.c`.
-- `include/`: installed public headers such as `phev.h`, `phev_core.h`, `phev_service.h`.
-- `test/`: Unity-based test sources plus `test/CMakeLists.txt` and the monolithic `test_runner.c`.
+- `src/`: library implementation files — both phev-specific (`phev.c`, `phev_core.c`, `phev_service.c`, `phev_pipe.c`, etc.) and vendored msg-core (`msg_core.c`, `msg_pipe.c`, `msg_utils.c`, etc.).
+- `include/`: installed public headers such as `phev.h`, `phev_core.h`, `phev_service.h`, `msg_core.h`, `msg_pipe.h`.
+- `test/`: Unity-based test sources, per-suite `run_*.c` runners, and `test/CMakeLists.txt`.
 - `CMakeLists.txt`: root build definition for the static library and optional tests.
-- `Dockerfile`: CI-like reproducible build that installs dependencies and runs `ctest`.
-- `.github/workflows/dockerimage.yml`: GitHub Action that only builds the Docker image.
+- `CMakePresets.json`: standardized build presets (dev, release, ci).
+- `Dockerfile`: reproducible build that uses the `ci` preset and runs `ctest`.
+- `.github/workflows/dockerimage.yml`: GitHub Actions CI that builds and tests natively with cmake presets.
+- `.clang-format`: documents the project's formatting conventions (not enforced).
+- `TODO.md`: tracks the multi-phase restructure plan.
 
 ## Dependencies
-- Runtime/build dependencies: `msg-core` and `cJSON`.
-- Test dependency: Unity.
-- README expects these libraries installed into standard locations such as `/usr/local`.
-- `.gitmodules` references `external/Unity`, `external/msg-core`, and `external/cJSON`, but the submodule directories are not present in this checkout.
+- Build/runtime: `cJSON` (fetched via FetchContent, v1.7.18).
+- Test: Unity (fetched via FetchContent from master).
+- msg-core sources are vendored directly in `src/` and `include/` (originally from github.com/papawattu/msg-core).
 
 ## Build Commands
-- Configure release-ish local build:
+
+### Using presets (recommended, requires CMake >= 3.21)
 ```sh
-cmake -S . -B build -DWANT_SPLINT=NO
+# Development (debug + tests + compile_commands.json)
+cmake --preset dev && cmake --build --preset dev
+
+# Release (optimized, no tests)
+cmake --preset release && cmake --build --preset release
+
+# CI (release + tests)
+cmake --preset ci && cmake --build --preset ci
 ```
-- Build library:
+
+### Manual configuration
 ```sh
+cmake -S . -B build -DBUILD_TESTS=ON
 cmake --build build
 ```
-- Configure with tests enabled:
-```sh
-cmake -S . -B build -DBUILD_TESTS=ON -DWANT_SPLINT=NO
-```
-- Build everything including tests:
-```sh
-cmake --build build
-```
-- Install artifacts:
+
+### Install artifacts
 ```sh
 cmake --install build
 ```
 
 ## Test Commands
-- Run all configured CTest tests:
+- Run all tests via preset:
+```sh
+ctest --preset dev
+```
+- Run all tests manually:
 ```sh
 ctest --test-dir build --output-on-failure
 ```
-- Run the single registered CTest target:
+- Run a specific test suite:
 ```sh
 ctest --test-dir build -R '^test_phev_core$' --output-on-failure
 ```
-- Run the Unity runner directly:
+- Run a test executable directly:
 ```sh
-./build/test/test_runner
+./build/test/test_phev_core
 ```
-- Run the Dockerized test flow used by CI/docs:
+- Run the Dockerized test flow:
 ```sh
 docker build -t phevcore . && docker run --rm phevcore
 ```
-- Windows helper script:
-```bat
-runtests.bat
-```
+
+## Test Suites
+CTest registers 6 per-suite executables, each with its own `run_*.c` runner:
+- `test_phev_core` (52 tests)
+- `test_phev_pipe` (18 tests)
+- `test_phev_service` (56 tests)
+- `test_phev_model` (8 tests)
+- `test_phev` (2 tests)
+- `test_phev_register` (14 tests)
+
+A legacy monolithic `test_runner.c` also exists but is not wired into the CMake build.
 
 ## Single-Test Guidance
-- CTest only knows about one test target, `test_phev_core`, which actually executes the full `test_runner` binary.
-- `test/test_runner.c` includes all test source files directly and calls many `RUN_TEST(...)` entries in one `main()`.
-- There is no built-in per-test-name CLI filter wired into the current Unity runner.
-- If you need one specific Unity case, the least invasive approach is to temporarily comment out unrelated `RUN_TEST(...)` lines in `test/test_runner.c`, build, run `./build/test/test_runner`, then restore the file.
+- There is no built-in per-test-name CLI filter in the current Unity runners.
+- If you need one specific Unity case, the least invasive approach is to temporarily comment out unrelated `RUN_TEST(...)` lines in the relevant `test/run_*.c` file, build, run, then restore.
 - If you need repeatable focused execution, add a dedicated temporary runner in `test/` rather than reshaping production code.
 
 ## Lint / Static Analysis
-- There is no ESLint/clang-format/Prettier-style tooling here; this is a plain C project.
-- Root `CMakeLists.txt` includes `splint.cmake` and defines `WANT_SPLINT`, but `splint.cmake` is a stub.
-- Prefer configuring with `-DWANT_SPLINT=NO` unless you also restore real Splint integration.
-- There is no other repository-defined lint command.
+- A `.clang-format` file documents the project's formatting conventions (4-space indent, Allman braces, middle pointer alignment).
+- It is not enforced automatically; use it with editor integrations or manual `clang-format` runs when desired.
+- There is no other repository-defined lint or static analysis command.
 
 ## CI / Verification
-- GitHub Actions currently validates that the Docker image builds; it does not run native host builds directly.
-- The Dockerfile builds dependencies, configures with `-DBUILD_TESTS=true`, builds, and runs:
+- GitHub Actions runs on push/PR to `master`: configure, build, and test using the `ci` preset.
+- The Dockerfile also uses the `ci` preset and can be used for local verification:
 ```sh
-ctest -j6 -T test --output-on-failure
+docker build -t phevcore . && docker run --rm phevcore
 ```
-- For local verification after code changes, prefer:
+- For quick local verification after code changes:
 ```sh
-cmake -S . -B build -DBUILD_TESTS=ON -DWANT_SPLINT=NO && cmake --build build && ctest --test-dir build --output-on-failure
+cmake --preset dev && cmake --build --preset dev && ctest --preset dev
 ```
 
 ## Language and Build Conventions
@@ -103,14 +115,15 @@ cmake -S . -B build -DBUILD_TESTS=ON -DWANT_SPLINT=NO && cmake --build build && 
 
 ## Formatting Style
 - Follow the existing 4-space indentation.
-- Opening braces usually go on the next line for functions and control statements.
+- Opening braces usually go on the next line for functions and control statements (Allman style).
 - Keep one statement per line.
 - Use spaces inside control keywords: `if (...)`, `switch (...)`, `for (...)`.
 - Multi-line struct initializers commonly use one field per line with leading `.` designators.
 - Keep line wrapping pragmatic; this codebase does not enforce a strict column limit.
+- See `.clang-format` for the machine-readable style definition.
 
 ## Naming Conventions
-- Public and private functions use the `phev_` prefix.
+- Public and private functions use the `phev_` prefix (or `msg_` for msg-core).
 - Types use `_t` suffixes, for example `phevCtx_t`, `phevMessage_t`, `phevServiceCtx_t`.
 - Constants and protocol/register macros use upper snake case, for example `KO_WF_H_LAMP_CONT_SP`.
 - Local log tags are usually `const static char *TAG` or `APP_TAG`.
@@ -145,8 +158,8 @@ cmake -S . -B build -DBUILD_TESTS=ON -DWANT_SPLINT=NO && cmake --build build && 
 
 ## Testing Conventions
 - Tests are integration-heavy and often exercise real message encoding/decoding paths.
-- `test/test_runner.c` includes source-style test files with `#include "test_xxx.c"`; preserve that layout unless intentionally refactoring tests.
-- Add new test functions to the relevant `test/test_*.c` file and wire them into `RUN_TEST(...)` in `test/test_runner.c`.
+- Each test suite has a dedicated `test/run_*.c` runner that `#include`s the corresponding `test_*.c` file and wires `RUN_TEST(...)` entries.
+- Add new test functions to the relevant `test/test_*.c` file and wire them into `RUN_TEST(...)` in the matching `test/run_*.c` runner.
 - Follow existing assertion style with Unity macros such as `TEST_ASSERT_EQUAL`, `TEST_ASSERT_NOT_NULL`, and `TEST_ASSERT_EQUAL_HEX8_ARRAY`.
 
 ## Editing Guidance For Agents
@@ -157,7 +170,7 @@ cmake -S . -B build -DBUILD_TESTS=ON -DWANT_SPLINT=NO && cmake --build build && 
 - Be careful around callback registration and pipe/service context wiring; several modules pass context through nested structs.
 
 ## Known Quirks To Respect
-- `test/CMakeLists.txt` registers the executable as a single CTest case named `test_phev_core` even though it runs many suites.
-- The project references Splint integration, but the helper CMake file is a stub in this checkout.
 - Some code intentionally uses duplicated patterns, manual memory management, and verbose logging; preserve behavior first, elegance second.
 - There are existing rough edges and probable bugs in the codebase; avoid opportunistic rewrites unless required for the task at hand.
+- 75 of 220 defined test functions are not wired into any runner (34%). See `TODO.md` for the Phase 2 plan to address this.
+- `test_phev_config.c` (12 tests) and `test_phev_controller.c` (5 active tests, needs CMock) are orphaned with no runner.

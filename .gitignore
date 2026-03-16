@@ -1,3 +1,18 @@
-build
-.vscode
-.devcontainer
+# Build output
+build/
+
+# IDE / editor
+.vscode/
+.devcontainer/
+.idea/
+*.swp
+*.swo
+*~
+
+# CMake
+CMakeUserPresets.json
+compile_commands.json
+
+# OS
+.DS_Store
+Thumbs.db
