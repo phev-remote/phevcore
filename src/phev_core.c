@@ -194,6 +194,11 @@ message_t *phev_core_unencodedIncomingMessage(const uint8_t *data)
             LOG_D(APP_TAG, "2E Command unencoded");
             return msg_utils_createMsg(data, length);
         }
+        case 0x2f:
+        {
+            LOG_D(APP_TAG, "Start response (2F) unencoded");
+            return msg_utils_createMsg(data, length);
+        }
         }
     }
     LOG_E(APP_TAG,"Unknown unencoded command %02X", command);

@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include "unity.h"
 #include "cJSON.h"
+#include "msg_utils.h"
 #include "phev_service.h"
 
 message_t * test_phev_service_global_in_in_message = NULL;

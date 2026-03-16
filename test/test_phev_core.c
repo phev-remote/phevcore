@@ -3,7 +3,7 @@
 #include "msg_utils.h"
 
 const uint8_t singleMessage[] = {0x6f, 0x0a, 0x00, 0x12, 0x00, 0x06, 0x06, 0x13, 0x05, 0x13, 0x01, 0xc3};
-const uint8_t doubleMessage[] = {0x6f, 0x0a, 0x00, 0x12, 0x00, 0x05, 0x16, 0x15, 0x03, 0x0d, 0x01, 0xff, 0x6f, 0x0a, 0x00, 0x13, 0x00, 0x05, 0x16, 0x15, 0x03, 0x0d, 0x01, 0xff};
+const uint8_t doubleMessage[] = {0x6f, 0x0a, 0x00, 0x12, 0x00, 0x05, 0x16, 0x15, 0x03, 0x0d, 0x01, 0xcc, 0x6f, 0x0a, 0x00, 0x13, 0x00, 0x05, 0x16, 0x15, 0x03, 0x0d, 0x01, 0xcd};
 
 void test_create_phev_message(void)
 {
@@ -95,20 +95,24 @@ void test_split_message_double_correct(void)
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(doubleMessage, sizeof(doubleMessage), &msg);
+    TEST_ASSERT_EQUAL(1, ret);
 
-    ret = phev_core_decodeMessage(doubleMessage + ret, sizeof(singleMessage) - ret, &msg);
+    size_t firstLen = doubleMessage[1] + 2;
+    ret = phev_core_decodeMessage(doubleMessage + firstLen, sizeof(doubleMessage) - firstLen, &msg);
 
-    TEST_ASSERT_EQUAL(0x0, msg.reg);
+    TEST_ASSERT_EQUAL(0x13, msg.reg);
 } 
 void test_split_message_double_decode(void)
 {
     phevMessage_t msg;
 
     int ret = phev_core_decodeMessage(doubleMessage, sizeof(doubleMessage), &msg);
+    TEST_ASSERT_EQUAL(1, ret);
 
-    ret = phev_core_decodeMessage(doubleMessage + ret, sizeof(doubleMessage) - ret, &msg);
+    size_t firstLen = doubleMessage[1] + 2;
+    ret = phev_core_decodeMessage(doubleMessage + firstLen, sizeof(doubleMessage) - firstLen, &msg);
 
-    TEST_ASSERT_EQUAL(0x00, msg.reg);
+    TEST_ASSERT_EQUAL(0x13, msg.reg);
 } 
 void test_encode_message_single(void)
 {

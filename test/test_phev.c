@@ -1,6 +1,7 @@
 #include "unity.h"
 #include "phev.h"
 #include "cJSON.h"
+#include "msg_utils.h"
 /*
 typedef struct phevCtx_t {
     phevServiceCtx_t * serviceCtx;

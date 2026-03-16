@@ -26,7 +26,10 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
 
     ctx->vin = NULL;
-    ctx->pipe->ctx = settings.ctx;
+    if(settings.ctx != NULL)
+    {
+        ctx->pipe->ctx = settings.ctx;
+    }
     ctx->startAck = false;
     ctx->aaAck = false;
     ctx->registrationRequest = false;
@@ -107,21 +110,22 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             phev_register_sendRegister(ctx);
             break;
         }
-        case PHEV_PIPE_REG_DISP: {
+        case PHEV_PIPE_REG_DISP:
+        case PHEV_PIPE_REGISTRATION_COMPLETE: {
             LOG_I(TAG,"Registration Acknowledged");
 
-            regCtx->registrationAck = true;   
-            regCtx->complete(ctx);
-            LOG_I(TAG,"REGISTERED");
-            while(true);
+            regCtx->registrationAck = true;
             break;
         }
         case PHEV_PIPE_MAX_REGISTRATIONS: {
             LOG_E(TAG,"Max number of allowed registrations");
-            phevError_t error = {
-                .message = "Maximum number of registrations"
-            };
-            regCtx->errorHandler(&error);
+            if(regCtx->errorHandler != NULL)
+            {
+                phevError_t error = {
+                    .message = "Maximum number of registrations"
+                };
+                regCtx->errorHandler(&error);
+            }
             return 1;
         }
         default : {
