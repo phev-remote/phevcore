@@ -1,7 +1,0 @@
-language: c
-services:
-    - docker
-    
-script:
-    - docker build -t papawattu/phevcore .
-    - docker run papawattu/phevcore
