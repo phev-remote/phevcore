@@ -64,11 +64,11 @@ endif()
 option(BUILD_TESTS "Build the test binaries" OFF)
 
 if(BUILD_TESTS)
-    FetchContent_Declare(unity
-        GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
-        GIT_TAG        master
+    FetchContent_Declare(greatest
+        GIT_REPOSITORY https://github.com/silentbicycle/greatest.git
+        GIT_TAG        v1.5.0
     )
-    FetchContent_MakeAvailable(unity)
+    FetchContent_MakeAvailable(greatest)
 
     enable_testing()
     add_subdirectory(test)

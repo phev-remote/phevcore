@@ -86,7 +86,7 @@ static void hexdump(const char * tag, const unsigned char * buffer, const int le
         out[(i % 16)] = '\0';
         char padding[(16 * 3) + 2];
         memset(&padding,' ',num+1);
-        padding[(16-i)*3] = '\0';
+        padding[(16-(i % 16))*3] = '\0';
         printf("%s | %s |\n",padding,out);
     }
     printf("\n");

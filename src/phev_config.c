@@ -62,10 +62,10 @@ void phev_config_setUpdateConfig(phevUpdateConfig_t * config, const char * ssid,
 
     config->updateWifi.password[strlen(password)] = '\0';
     
-    config->updateHost = malloc(strlen(host));
+    config->updateHost = malloc(strlen(host) + 1);
     strcpy(config->updateHost,host);    
     
-    config->updatePath = malloc(strlen(path));
+    config->updatePath = malloc(strlen(path) + 1);
     strcpy(config->updatePath,path);
     
     const char * buildPath = NULL;     
