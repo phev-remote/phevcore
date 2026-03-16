@@ -1,6 +1,6 @@
 # Phev Remote Core Library 
 
-[![CI](https://github.com/phev-remote/phevcore/actions/workflows/dockerimage.yml/badge.svg?branch=master)](https://github.com/phev-remote/phevcore/actions/workflows/dockerimage.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/phev-remote/phevcore/actions/workflows/dockerimage.yml/badge.svg?branch=main)](https://github.com/phev-remote/phevcore/actions/workflows/dockerimage.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A library that can be used to communicate with the Mistushish Outlander PHEV with the Remote WiFi option in the MMC so mainly the GH4 + models.
 

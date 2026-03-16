@@ -18,7 +18,7 @@
 
 ## Dependencies
 - Build/runtime: `cJSON` (fetched via FetchContent, v1.7.18).
-- Test: Unity (fetched via FetchContent from master).
+- Test: greatest (fetched via FetchContent, v1.5.0).
 - msg-core sources are vendored directly in `src/` and `include/` (originally from github.com/papawattu/msg-core).
 
 ## Build Commands
@@ -90,7 +90,7 @@ A legacy monolithic `test_runner.c` also exists but is not wired into the CMake 
 - There is no other repository-defined lint or static analysis command.
 
 ## CI / Verification
-- GitHub Actions runs on push/PR to `master`: configure, build, and test using the `ci` preset.
+- GitHub Actions runs on push/PR to `main`: configure, build, and test using the `ci` preset.
 - The Dockerfile also uses the `ci` preset and can be used for local verification:
 ```sh
 docker build -t phevcore . && docker run --rm phevcore
